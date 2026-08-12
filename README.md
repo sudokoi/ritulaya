@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/images/icon.png" alt="Ritulaya logo" width="120" height="120" />
+</p>
+
 # Ritulaya
 
 Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. No accounts. No analytics.
@@ -15,7 +19,7 @@ Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. 
 | --------------- | ---------------------------------------------------------------------- |
 | Framework       | Expo SDK 57, React Native 0.86, TypeScript                             |
 | Routing         | expo-router (file-based)                                               |
-| Styling         | NativeWind 5 (Tailwind CSS) + react-native-reusables                   |
+| Styling         | NativeWind 4 (Tailwind CSS) + react-native-reusables                   |
 | State           | xstate v5 + @xstate/store                                              |
 | Database        | expo-sqlite + Drizzle ORM                                              |
 | Encryption      | SQLCipher with Android Keystore-managed key                            |
