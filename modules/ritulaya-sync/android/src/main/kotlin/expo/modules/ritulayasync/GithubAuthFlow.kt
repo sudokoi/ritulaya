@@ -12,7 +12,6 @@ import java.net.URL
 class GithubAuthFlow(private val appContext: AppContext) {
 
     companion object {
-        private const val CLIENT_ID = "Ov23lihYBxLtgot0H8Nq"
         private const val DEVICE_CODE_URL = "https://github.com/login/device/code"
         private const val ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
         private const val POLL_INTERVAL_MS = 5000L
@@ -21,9 +20,9 @@ class GithubAuthFlow(private val appContext: AppContext) {
 
     private var deviceCode: String = ""
 
-    fun initiateDeviceFlow(): Pair<String, String> {
+    fun initiateDeviceFlow(clientId: String): Pair<String, String> {
         val json = JSONObject().apply {
-            put("client_id", CLIENT_ID)
+            put("client_id", clientId)
             put("scope", "repo")
         }
 
@@ -35,11 +34,11 @@ class GithubAuthFlow(private val appContext: AppContext) {
         return Pair(userCode, verificationUrl)
     }
 
-    fun pollForToken(): String? {
+    fun pollForToken(clientId: String): String? {
         if (deviceCode.isEmpty()) return null
 
         val json = JSONObject().apply {
-            put("client_id", CLIENT_ID)
+            put("client_id", clientId)
             put("device_code", deviceCode)
             put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
         }

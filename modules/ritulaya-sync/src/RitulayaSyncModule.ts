@@ -13,8 +13,8 @@ export interface SyncConfig {
 }
 
 interface RitulayaSyncNativeModule {
-  initiateDeviceFlow(): Promise<DeviceFlowResult>
-  pollForToken(): Promise<string | null>
+  initiateDeviceFlow(clientId: string): Promise<DeviceFlowResult>
+  pollForToken(clientId: string): Promise<string | null>
   disconnect(): Promise<void>
   configureRepo(owner: string, repo: string, branch: string): Promise<void>
   getConfig(): Promise<SyncConfig | null>

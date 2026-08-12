@@ -9,6 +9,7 @@ class RitulayaSyncModule : Module() {
 
     private lateinit var prefs: SharedPreferences
     private lateinit var orchestrator: SyncOrchestrator
+    private lateinit var authFlow: GithubAuthFlow
 
     override fun definition() = ModuleDefinition {
         Name("RitulayaSync")
@@ -18,18 +19,19 @@ class RitulayaSyncModule : Module() {
                 ?: throw IllegalStateException("Context not available")
             prefs = ctx.getSharedPreferences("ritulaya_sync", Context.MODE_PRIVATE)
             orchestrator = SyncOrchestrator(ctx, prefs)
+            authFlow = GithubAuthFlow(appContext)
         }
 
-        AsyncFunction("initiateDeviceFlow") {
-            val flow = GithubAuthFlow(appContext).initiateDeviceFlow()
+        AsyncFunction("initiateDeviceFlow") { clientId: String ->
+            val flow = authFlow.initiateDeviceFlow(clientId)
             mapOf(
                 "userCode" to flow.first,
                 "verificationUrl" to flow.second
             )
         }
 
-        AsyncFunction("pollForToken") {
-            val token = GithubAuthFlow(appContext).pollForToken()
+        AsyncFunction("pollForToken") { clientId: String ->
+            val token = authFlow.pollForToken(clientId)
             if (token != null) {
                 prefs.edit().putString("github_token", token).apply()
             }
