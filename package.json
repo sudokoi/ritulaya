@@ -44,6 +44,7 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.0",
+    "react-native-svg": "15.15.4",
     "react-native-web": "0.21.0",
     "react-native-worklets": "0.10.1",
     "tailwind-merge": "3.6.0",
@@ -57,6 +58,8 @@
     "@eslint/compat": "2.1.0",
     "@eslint/js": "10.0.1",
     "@expo/config-plugins": "57.0.7",
+    "@react-native/jest-preset": "0.86.2",
+    "@swc/core": "1.15.47",
     "@swc/jest": "0.2.39",
     "@testing-library/react-native": "14.0.1",
     "@types/jest": "29.5.14",
@@ -91,5 +94,5 @@
     "prepare": ""
   },
   "private": true,
-  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
+  "packageManager": "yarn@4.5.0"
 }

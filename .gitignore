@@ -3,8 +3,10 @@
 # dependencies
 node_modules/
 
-# pnpm
-pnpm-debug.log*
+# yarn
+.yarn/cache/
+.yarn/install-state.gz
+pnp-debug.log*
 
 # Expo
 .expo/

@@ -1,0 +1,10 @@
+.yarn/
+node_modules/
+.expo/
+dist/
+web-build/
+android/
+ios/
+build/
+pnpm-lock.yaml
+yarn.lock
