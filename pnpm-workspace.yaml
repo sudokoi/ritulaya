@@ -1,2 +1,8 @@
+packages: []
+
 allowBuilds:
-  unrs-resolver: true
+  "@swc/core": true
+
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver
