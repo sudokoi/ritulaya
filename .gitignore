@@ -49,3 +49,5 @@ example
 
 # Gradle build outputs
 **/android/build/
+
+build
