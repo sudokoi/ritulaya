@@ -1,17 +1,27 @@
 import { View, Text, ScrollView } from "react-native"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { format, differenceInDays } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { useCycleActor } from "@/hooks/use-cycle-actor"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { usePrediction } from "@/hooks/use-predictions"
+import { useDayLogs } from "@/hooks/use-day-logs"
+import type { FlowIntensity } from "@/types/day-log"
+import type { SymptomKey } from "@/constants/symptoms"
+import type { MoodKey } from "@/constants/moods"
 
 export default function CalendarScreen() {
   const { cycles } = useCycleActor()
   const { avgCycleLength, avgPeriodLength } = useSettingsActor()
   const prediction = usePrediction()
+  const { logs, upsertDayLog, getLogForDate } = useDayLogs()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+
+  const existingLog = useMemo(() => {
+    if (!selectedDate) return null
+    return getLogForDate(format(selectedDate, "yyyy-MM-dd"))
+  }, [selectedDate, getLogForDate])
 
   const { periodDays, predictedDays, fertileDays, ovulationDays, loggedDays } =
     useMemo(() => {
@@ -20,10 +30,10 @@ export default function CalendarScreen() {
         if (!c.endDate) return
         const start = new Date(c.startDate)
         const end = new Date(c.endDate)
-        let d = new Date(start)
+        const d = new Date(start)
         while (d <= end) {
           pDays.push(format(d, "yyyy-MM-dd"))
-          d = new Date(d.getTime() + 86400000)
+          d.setDate(d.getDate() + 1)
         }
       })
 
@@ -31,32 +41,34 @@ export default function CalendarScreen() {
       if (prediction) {
         const start = prediction.nextPeriodStart
         const end = prediction.nextPeriodEnd
-        let d = new Date(start)
+        const d = new Date(start)
         while (d <= end) {
           predDays.push(format(d, "yyyy-MM-dd"))
-          d = new Date(d.getTime() + 86400000)
+          d.setDate(d.getDate() + 1)
         }
       }
 
       const fertDays: string[] = []
       const ovDays: string[] = []
       if (prediction) {
-        let d = new Date(prediction.fertileWindow.start)
+        const d = new Date(prediction.fertileWindow.start)
         while (d <= prediction.fertileWindow.end) {
           fertDays.push(format(d, "yyyy-MM-dd"))
-          d = new Date(d.getTime() + 86400000)
+          d.setDate(d.getDate() + 1)
         }
         ovDays.push(format(prediction.ovulationDay, "yyyy-MM-dd"))
       }
+
+      const lDays = logs.map((l) => l.date)
 
       return {
         periodDays: pDays,
         predictedDays: predDays,
         fertileDays: fertDays,
         ovulationDays: ovDays,
-        loggedDays: [],
+        loggedDays: lDays,
       }
-    }, [cycles, prediction])
+    }, [cycles, prediction, logs])
 
   const stats = useMemo(() => {
     const completedCycles = cycles.filter((c) => c.endDate !== null)
@@ -71,6 +83,26 @@ export default function CalendarScreen() {
 
     return { avgLen }
   }, [cycles, avgCycleLength])
+
+  const handleSave = useCallback(
+    (data: {
+      flowIntensity: FlowIntensity | null
+      symptoms: string[]
+      mood: string | null
+      notes: string | null
+    }) => {
+      if (!selectedDate) return
+      upsertDayLog({
+        date: format(selectedDate, "yyyy-MM-dd"),
+        flowIntensity: data.flowIntensity,
+        symptoms: data.symptoms as SymptomKey[],
+        mood: data.mood as MoodKey | null,
+        notes: data.notes,
+      })
+      setSelectedDate(null)
+    },
+    [selectedDate, upsertDayLog],
+  )
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
@@ -108,9 +140,13 @@ export default function CalendarScreen() {
         <DayDetailSheet
           visible={selectedDate !== null}
           date={selectedDate ?? new Date()}
-          onSave={() => {
-            setSelectedDate(null)
-          }}
+          existingFlow={existingLog?.flowIntensity as FlowIntensity | null}
+          existingSymptoms={
+            existingLog ? (JSON.parse(existingLog.symptoms) as SymptomKey[]) : []
+          }
+          existingMood={existingLog?.mood as MoodKey | null}
+          existingNotes={existingLog?.notes}
+          onSave={handleSave}
           onClose={() => setSelectedDate(null)}
         />
       </View>

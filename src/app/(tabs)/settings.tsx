@@ -12,6 +12,8 @@ import {
   Bug,
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
+import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
 
 interface SettingsRowProps {
   icon: React.ReactNode
@@ -57,84 +59,115 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 export default function SettingsScreen() {
+  const { biometricLock, discreetMode, reminderPeriodAhead, reminderDailyLog, update } =
+    useSettingsActor()
+  const discreet = useDiscreet()
+
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="px-6 pt-14 pb-2">
-        <Text className="text-2xl font-bold text-[var(--text-primary)]">Settings</Text>
+        <Text className="text-2xl font-bold text-[var(--text-primary)]">
+          {discreetLabel(discreet, "Settings", "Preferences")}
+        </Text>
       </View>
 
       <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <StatItem value="28" label="avg cycle" />
-          <StatItem value="5" label="period days" />
-          <StatItem value="85%" label="regular" />
+          <StatItem value="28" label="avg cycle" discreet={discreet} />
+          <StatItem value="5" label="period days" discreet={discreet} />
+          <StatItem value="85%" label="regular" discreet={discreet} />
         </View>
         <TouchableOpacity className="mt-3 flex-row items-center justify-center gap-1">
-          <Text className="text-sm font-medium text-follicular">View Full Insights</Text>
+          <Text className="text-sm font-medium text-follicular">
+            {discreetLabel(discreet, "View Full Insights", "View Details")}
+          </Text>
           <ChevronRight size={14} color="#7BA891" />
         </TouchableOpacity>
       </View>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title="Privacy" />
+        <SectionHeader title={discreetLabel(discreet, "Privacy", "Security")} />
         <SettingsRow
           icon={<Shield size={20} color="#8E8C8A" />}
-          label="Biometric Lock"
-          right={<Switch value={false} trackColor={{ true: "#7BA891" }} />}
+          label={discreetLabel(discreet, "Biometric Lock", "App Lock")}
+          right={
+            <Switch
+              value={biometricLock}
+              onValueChange={(v) => update({ biometricLock: v })}
+              trackColor={{ true: "#7BA891" }}
+            />
+          }
         />
         <SettingsRow
           icon={<EyeOff size={20} color="#8E8C8A" />}
-          label="Discreet Mode"
-          right={<Switch value={false} trackColor={{ true: "#7BA891" }} />}
+          label={discreetLabel(discreet, "Discreet Mode", "Simple Mode")}
+          right={
+            <Switch
+              value={discreetMode}
+              onValueChange={(v) => update({ discreetMode: v })}
+              trackColor={{ true: "#7BA891" }}
+            />
+          }
         />
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title="Data" />
+        <SectionHeader title={discreetLabel(discreet, "Data", "Storage")} />
         <SettingsRow
           icon={<Cloud size={20} color="#8E8C8A" />}
-          label="GitHub Sync"
+          label={discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
           value="Not set up"
         />
-        <SettingsRow icon={<Download size={20} color="#8E8C8A" />} label="Export Data" />
+        <SettingsRow
+          icon={<Download size={20} color="#8E8C8A" />}
+          label={discreetLabel(discreet, "Export Data", "Export")}
+        />
         <SettingsRow
           icon={<Trash2 size={20} color="#EF4444" />}
-          label="Delete All Data"
+          label={discreetLabel(discreet, "Delete All Data", "Clear All")}
           danger
         />
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title="Reminders" />
+        <SectionHeader title={discreetLabel(discreet, "Reminders", "Alerts")} />
         <SettingsRow
           icon={<Bell size={20} color="#8E8C8A" />}
-          label="Period Ahead"
-          value="2 days"
+          label={discreetLabel(discreet, "Period Ahead", "Alert Ahead")}
+          value={`${reminderPeriodAhead} days`}
         />
         <SettingsRow
           icon={<Bell size={20} color="#8E8C8A" />}
-          label="Daily Log"
-          value="Off"
+          label={discreetLabel(discreet, "Daily Log", "Daily Alert")}
+          value={reminderDailyLog ? "On" : "Off"}
         />
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title="Appearance" />
+        <SectionHeader title={discreetLabel(discreet, "Appearance", "Display")} />
         <SettingsRow
           icon={<Smartphone size={20} color="#8E8C8A" />}
-          label="Theme"
+          label={discreetLabel(discreet, "Theme", "Appearance")}
           value="System"
         />
       </View>
 
       <View className="mx-4 mt-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title="About" />
-        <SettingsRow icon={<Info size={20} color="#8E8C8A" />} label="Privacy Policy" />
-        <SettingsRow icon={<Bug size={20} color="#8E8C8A" />} label="Export Debug Logs" />
+        <SectionHeader title={discreetLabel(discreet, "About", "Info")} />
+        <SettingsRow
+          icon={<Info size={20} color="#8E8C8A" />}
+          label={discreetLabel(discreet, "Privacy Policy", "Policy")}
+        />
+        <SettingsRow
+          icon={<Bug size={20} color="#8E8C8A" />}
+          label={discreetLabel(discreet, "Export Debug Logs", "Diagnostics")}
+        />
         <View className="flex-row items-center justify-between py-4">
           <View className="flex-row items-center gap-3">
             <Info size={20} color="#8E8C8A" />
-            <Text className="text-base text-[var(--text-primary)]">Version</Text>
+            <Text className="text-base text-[var(--text-primary)]">
+              {discreetLabel(discreet, "Version", "Build")}
+            </Text>
           </View>
           <Text className="text-sm text-[var(--text-muted)]">0.1.0</Text>
         </View>
@@ -143,11 +176,21 @@ export default function SettingsScreen() {
   )
 }
 
-function StatItem({ value, label }: { value: string; label: string }) {
+function StatItem({
+  value,
+  label,
+  discreet,
+}: {
+  value: string
+  label: string
+  discreet: boolean
+}) {
   return (
     <View className="flex-1 items-center">
       <Text className="text-2xl font-bold text-[var(--text-primary)]">{value}</Text>
-      <Text className="text-xs text-[var(--text-muted)]">{label}</Text>
+      <Text className="text-xs text-[var(--text-muted)]">
+        {discreetLabel(discreet, label, label.replace(/\w/g, "*"))}
+      </Text>
     </View>
   )
 }
