@@ -4,13 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class RitulayaSyncModule : Module() {
 
-    private val scope = CoroutineScope(Dispatchers.IO)
     private lateinit var prefs: SharedPreferences
     private lateinit var orchestrator: SyncOrchestrator
 
@@ -24,20 +20,20 @@ class RitulayaSyncModule : Module() {
             orchestrator = SyncOrchestrator(ctx, prefs)
         }
 
-        AsyncFunction("initiateDeviceFlow"): Map<String, String> {
+        AsyncFunction("initiateDeviceFlow") {
             val flow = GithubAuthFlow(appContext).initiateDeviceFlow()
-            return mapOf(
+            mapOf(
                 "userCode" to flow.first,
                 "verificationUrl" to flow.second
             )
         }
 
-        AsyncFunction("pollForToken"): String? {
+        AsyncFunction("pollForToken") {
             val token = GithubAuthFlow(appContext).pollForToken()
             if (token != null) {
                 prefs.edit().putString("github_token", token).apply()
             }
-            return token
+            token
         }
 
         AsyncFunction("disconnect") {
@@ -52,27 +48,27 @@ class RitulayaSyncModule : Module() {
                 .apply()
         }
 
-        AsyncFunction("getConfig"): Map<String, String>? {
-            val owner = prefs.getString("repo_owner", null) ?: return null
-            val repo = prefs.getString("repo_name", null) ?: return null
+        AsyncFunction("getConfig") {
+            val owner = prefs.getString("repo_owner", null) ?: return@AsyncFunction null
+            val repo = prefs.getString("repo_name", null) ?: return@AsyncFunction null
             val branch = prefs.getString("repo_branch", "main")!!
-            return mapOf("repoOwner" to owner, "repoName" to repo, "branch" to branch)
+            mapOf("repoOwner" to owner, "repoName" to repo, "branch" to branch)
         }
 
-        AsyncFunction("syncNow"): Map<String, Any> {
-            return orchestrator.sync()
+        AsyncFunction("syncNow") {
+            orchestrator.sync()
         }
 
         AsyncFunction("scheduleBackgroundSync") { intervalMinutes: Int ->
             SyncWorker.schedule(appContext.reactContext?.applicationContext!!, intervalMinutes)
         }
 
-        AsyncFunction("getSyncStatus"): Map<String, Any> {
+        AsyncFunction("getSyncStatus") {
             val syncedAt = prefs.getLong("last_sync_at", 0L)
             val warning = prefs.getBoolean("sync_warning", false)
             val failures = prefs.getInt("consecutive_failures", 0)
 
-            return mapOf(
+            mapOf(
                 "syncedAt" to if (syncedAt > 0) syncedAt.toString() else null,
                 "warning" to warning,
                 "consecutiveFailures" to failures,

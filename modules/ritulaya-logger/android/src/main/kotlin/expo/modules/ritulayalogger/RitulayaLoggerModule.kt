@@ -5,6 +5,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class RitulayaLoggerModule : Module() {
 
@@ -23,7 +24,15 @@ class RitulayaLoggerModule : Module() {
         AsyncFunction("log") { level: String, tag: String, message: String, metadata: String? ->
             scope.launch {
                 val dao = db.logDao()
-                dao.insert(LogEntry(level = level, tag = tag, message = message, metadata = metadata))
+                dao.insert(
+                    LogEntity(
+                        timestamp = System.currentTimeMillis(),
+                        level = level,
+                        tag = tag,
+                        message = message,
+                        metadata = metadata
+                    )
+                )
                 val count = dao.count()
                 if (count > LogDatabase.getMaxEntries()) {
                     dao.prune(LogDatabase.getMaxEntries())
@@ -31,10 +40,10 @@ class RitulayaLoggerModule : Module() {
             }
         }
 
-        AsyncFunction("exportLogs"): String {
+        AsyncFunction("exportLogs") {
             val dao = db.logDao()
-            val entries = dao.getRecent(LogDatabase.getMaxEntries())
-            return entries.joinToString("\n") { entry ->
+            val entries = runBlocking { dao.getRecent(LogDatabase.getMaxEntries()) }
+            entries.joinToString("\n") { entry ->
                 val sanitized = sanitize(entry.message)
                 "[${entry.level.uppercase()}] ${entry.tag}: $sanitized"
             }
@@ -42,7 +51,7 @@ class RitulayaLoggerModule : Module() {
 
         AsyncFunction("clearLogs") {
             val dao = db.logDao()
-            dao.clearAll()
+            runBlocking { dao.clearAll() }
         }
     }
 

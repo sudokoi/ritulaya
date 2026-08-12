@@ -2,26 +2,21 @@ package expo.modules.ritulayasync
 
 import android.content.Context
 import android.content.SharedPreferences
-import expo.modules.kotlin.Promise
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class SyncOrchestrator(
     private val appContext: Context,
     private val prefs: SharedPreferences
 ) {
-    suspend fun sync(): Map<String, Any> {
+    fun sync(): Map<String, Any> {
         val token = prefs.getString("github_token", null)
-            ?: return errorResult("Not authenticated")
+        if (token == null) return errorResult("Not authenticated")
 
         val owner = prefs.getString("repo_owner", null)
-            ?: return errorResult("Repo not configured")
+        if (owner == null) return errorResult("Repo not configured")
         val repo = prefs.getString("repo_name", null)
-            ?: return errorResult("Repo not configured")
+        if (repo == null) return errorResult("Repo not configured")
         val branch = prefs.getString("repo_branch", "main")!!
 
         val api = GithubApiClient(token)
@@ -41,25 +36,20 @@ class SyncOrchestrator(
     private fun fetchMergePush(
         api: GithubApiClient, owner: String, repo: String, branch: String
     ): Map<String, Any> {
-        // Fetch remote cycles
         val cyclesFile = api.getFileContent(owner, repo, "ritulaya-cycles.csv", branch)
         val remoteCycles = if (cyclesFile != null) CsvHandler.parseCycles(cyclesFile.content) else emptyList()
 
-        // Fetch remote day logs
         val logsFile = api.getFileContent(owner, repo, "ritulaya-day-logs.csv", branch)
         val remoteLogs = if (logsFile != null) CsvHandler.parseDayLogs(logsFile.content) else emptyList()
 
-        // Fetch manifest
         val manifestFile = api.getFileContent(owner, repo, "ritulaya.json", branch)
 
-        // Merge with local
         val localCycles = loadLocalCycles()
         val localLogs = loadLocalDayLogs()
 
         val mergedCycles = MergeEngine.mergeCycles(localCycles, remoteCycles)
         val mergedLogs = MergeEngine.mergeDayLogs(localLogs, remoteLogs)
 
-        // Upload if changed
         val cyclesCsv = CsvHandler.writeCycles(mergedCycles)
         val logsCsv = CsvHandler.writeDayLogs(mergedLogs)
         val manifest = CsvHandler.writeManifest()
@@ -75,7 +65,6 @@ class SyncOrchestrator(
                 manifest, null, branch, "Sync: add manifest")
         }
 
-        // Clear warning state
         prefs.edit()
             .putLong("last_sync_at", System.currentTimeMillis())
             .putInt("consecutive_failures", 0)
@@ -88,18 +77,9 @@ class SyncOrchestrator(
         )
     }
 
-    private fun loadLocalCycles(): List<CycleRow> {
-        // Read from SQLite via the existing Drizzle schema
-        // For now, return empty — local data needs DB access
-        // In production, call into the SQLite database
-        return emptyList()
-    }
+    private fun loadLocalCycles(): List<CycleRow> = emptyList()
 
-    private fun loadLocalDayLogs(): List<DayLogRow> {
-        // Read from SQLite via the existing Drizzle schema
-        // For now, return empty
-        return emptyList()
-    }
+    private fun loadLocalDayLogs(): List<DayLogRow> = emptyList()
 
     private fun errorResult(message: String): Map<String, Any> {
         return mapOf(

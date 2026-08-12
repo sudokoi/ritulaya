@@ -5,23 +5,21 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [LogEntry::class], version = 1, exportSchema = false)
+@Database(entities = [LogEntity::class], version = 1, exportSchema = true)
 abstract class LogDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
 
     companion object {
         private const val MAX_ENTRIES = 1000
+        private const val DATABASE_NAME = "ritulaya_logs.db"
 
         @Volatile
         private var INSTANCE: LogDatabase? = null
 
         fun getInstance(context: Context): LogDatabase {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    LogDatabase::class.java,
-                    "ritulaya_logs.db"
-                )
+                INSTANCE ?: Room
+                    .databaseBuilder(context.applicationContext, LogDatabase::class.java, DATABASE_NAME)
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }

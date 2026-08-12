@@ -1,3 +1,4 @@
+import { Slot } from "expo-router"
 import { DefaultTheme, ThemeProvider } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import { useColorScheme } from "react-native"
@@ -16,6 +17,7 @@ export default function RootLayout() {
       <StoreProvider>
         <DiscreetGuard>
           <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
+            <Slot />
             <PortalHost />
           </ThemeProvider>
         </DiscreetGuard>

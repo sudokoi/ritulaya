@@ -1,15 +1,13 @@
 package expo.modules.ritulayasync
 
 import android.content.Context
-import android.content.SharedPreferences
 import expo.modules.kotlin.AppContext
-import expo.modules.securesecurestore.SecureStore
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.UUID
 
 class GithubAuthFlow(private val appContext: AppContext) {
 
@@ -37,7 +35,7 @@ class GithubAuthFlow(private val appContext: AppContext) {
         return Pair(userCode, verificationUrl)
     }
 
-    suspend fun pollForToken(): String? {
+    fun pollForToken(): String? {
         if (deviceCode.isEmpty()) return null
 
         val json = JSONObject().apply {
@@ -47,14 +45,14 @@ class GithubAuthFlow(private val appContext: AppContext) {
         }
 
         for (i in 0 until MAX_POLLS) {
-            delay(POLL_INTERVAL_MS)
+            runBlocking { delay(POLL_INTERVAL_MS) }
 
             try {
                 val response = postJson(ACCESS_TOKEN_URL, json, "application/json")
                 val error = response.optString("error", "")
                 if (error == "authorization_pending") continue
                 if (error == "slow_down") {
-                    delay(POLL_INTERVAL_MS * 2)
+                    runBlocking { delay(POLL_INTERVAL_MS * 2) }
                     continue
                 }
 

@@ -158,6 +158,9 @@ importers:
       "@eslint/js":
         specifier: 10.0.1
         version: 10.0.1(eslint@9.39.5(jiti@1.21.7)(supports-color@8.1.1))
+      "@expo/config-plugins":
+        specifier: ^57.0.7
+        version: 57.0.7(supports-color@8.1.1)(typescript@6.0.3)
       "@swc/jest":
         specifier: ^0.2.39
         version: 0.2.39(@swc/core@1.15.47)

@@ -55,6 +55,7 @@
     "@changesets/cli": "3.0.0",
     "@eslint/compat": "2.1.0",
     "@eslint/js": "10.0.1",
+    "@expo/config-plugins": "^57.0.7",
     "@swc/jest": "^0.2.39",
     "@testing-library/react-native": "14.0.1",
     "@types/jest": "^29.5.14",
