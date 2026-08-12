@@ -1,50 +1,113 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native"
-import { useMemo } from "react"
-import { format, addDays, isToday } from "date-fns"
+import { useMemo, useEffect } from "react"
+import { format, addDays, isToday, differenceInDays } from "date-fns"
 import { WeekStrip } from "@/components/week-strip"
+import { useCycleActor } from "@/hooks/use-cycle-actor"
+import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { usePrediction } from "@/hooks/use-predictions"
 import { cn } from "@/lib/utils"
+import { PHASE_COLORS, type Phase } from "@/constants/phase-colors"
 
-const periodDays = ["2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05"]
-const predictedDays = ["2026-08-29", "2026-08-30", "2026-08-31"]
-const fertileDays = ["2026-08-12", "2026-08-13"]
+function getPhase(daysUntilPeriod: number, avgCycleLength: number): Phase {
+  if (daysUntilPeriod <= 5) return "menstrual"
+  const dayInCycle = avgCycleLength - daysUntilPeriod
+  if (dayInCycle <= 5) return "menstrual"
+  if (dayInCycle <= 13) return "follicular"
+  if (dayInCycle <= 15) return "ovulation"
+  return "luteal"
+}
 
-const moodChips = ["😊 Happy", "🤍 Cramps", "💤 Tired"]
+const PHASE_TIPS: Record<Phase, string> = {
+  menstrual: "Gentle movement and extra rest help. Be kind to yourself this week.",
+  follicular: "Your energy is rising. Great time for new projects and planning.",
+  ovulation: "Your energy peaks now. Great time for intense workouts & social plans.",
+  luteal: "A good time to wrap things up. Prioritize rest and comfort.",
+}
+
+const PHASE_NAMES: Record<Phase, string> = {
+  menstrual: "Menstrual Phase",
+  follicular: "Follicular Phase",
+  ovulation: "Ovulation Phase",
+  luteal: "Luteal Phase",
+}
 
 export default function TodayScreen() {
+  const { currentCycle, isLoaded, load } = useCycleActor()
+  const { avgCycleLength } = useSettingsActor()
+  const prediction = usePrediction()
+  const today = useMemo(() => new Date(), [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const daysUntilPeriod = prediction
+    ? differenceInDays(prediction.nextPeriodStart, today)
+    : 14
+
+  const phase = getPhase(daysUntilPeriod, avgCycleLength)
+  const phaseColor = PHASE_COLORS[phase].hex
+
   const weekDays = useMemo(() => {
-    const today = new Date()
     return Array.from({ length: 7 }).map((_, i) => {
       const date = addDays(today, i - 3)
       const iso = format(date, "yyyy-MM-dd")
       return {
         date,
         label: format(date, "EEEEE"),
-        isPeriod: periodDays.includes(iso),
-        isPredicted: predictedDays.includes(iso),
-        isFertile: fertileDays.includes(iso),
+        isPeriod: false,
+        isPredicted: false,
+        isFertile: prediction
+          ? iso >= format(prediction.fertileWindow.start, "yyyy-MM-dd") &&
+            iso <= format(prediction.fertileWindow.end, "yyyy-MM-dd")
+          : false,
         isToday: isToday(date),
       }
     })
-  }, [])
+  }, [prediction, today])
+
+  const cycleDay = currentCycle
+    ? differenceInDays(today, new Date(currentCycle.startDate)) + 1
+    : "-"
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="items-center px-6 pt-14 pb-6">
-        <Text className="text-7xl font-bold text-[var(--text-primary)]">14</Text>
+        <Text className="text-7xl font-bold text-[var(--text-primary)]">
+          {isLoaded ? cycleDay : "-"}
+        </Text>
         <View className="mt-3 flex-row items-center gap-2">
-          <View className="h-2 w-2 rounded-full bg-follicular" />
-          <Text className="text-lg font-medium text-follicular">Ovulation Phase</Text>
+          <View
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: phaseColor }}
+          />
+          <Text className="text-lg font-medium" style={{ color: phaseColor }}>
+            {PHASE_NAMES[phase]}
+          </Text>
         </View>
         <View className="mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-[var(--border-light)]">
-          <View className="h-full w-1/2 rounded-full bg-follicular" />
+          <View
+            className="h-full rounded-full"
+            style={{
+              backgroundColor: phaseColor,
+              width: `${Math.min(((cycleDay === "-" ? 14 : (cycleDay as number)) / avgCycleLength) * 100, 100)}%`,
+            }}
+          />
         </View>
         <Text className="mt-2 text-sm text-[var(--text-muted)]">
-          14 days until next period
+          {daysUntilPeriod} days until next period
         </Text>
+        {prediction && (
+          <Text className="mt-1 text-xs text-[var(--text-muted)]">
+            {format(prediction.nextPeriodStart, "MMM d")} —{" "}
+            {format(prediction.nextPeriodEnd, "MMM d")}
+          </Text>
+        )}
       </View>
 
       <TouchableOpacity
-        className="mx-4 mb-4 rounded-card bg-menstrual px-6 py-4"
+        className="mx-4 mb-4 rounded-card px-6 py-4"
+        style={{ backgroundColor: PHASE_COLORS.menstrual.hex }}
         activeOpacity={0.8}
       >
         <Text className="text-center text-lg font-semibold text-white">
@@ -66,7 +129,7 @@ export default function TodayScreen() {
           ))}
         </View>
         <View className="flex-row flex-wrap gap-2">
-          {moodChips.map((chip) => (
+          {["😊 Happy", "🤍 Cramps", "💤 Tired"].map((chip) => (
             <View key={chip} className="rounded-pill bg-[var(--border-light)] px-4 py-2">
               <Text className="text-sm text-[var(--text-primary)]">{chip}</Text>
             </View>
@@ -81,9 +144,12 @@ export default function TodayScreen() {
         <WeekStrip days={weekDays} />
       </View>
 
-      <View className="mx-4 mt-4 mb-8 rounded-card bg-luteal/10 px-5 py-4">
-        <Text className="text-sm font-medium text-luteal">
-          Your energy peaks now. Great time for intense workouts & social plans.
+      <View
+        className="mx-4 mt-4 mb-8 rounded-card px-5 py-4"
+        style={{ backgroundColor: `${phaseColor}15` }}
+      >
+        <Text className="text-sm font-medium" style={{ color: phaseColor }}>
+          {PHASE_TIPS[phase]}
         </Text>
       </View>
     </ScrollView>
