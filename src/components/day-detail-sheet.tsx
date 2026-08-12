@@ -7,9 +7,10 @@ import {
   ScrollView,
   Pressable,
 } from "react-native"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { format } from "date-fns"
 import { X } from "lucide-react-native"
+import * as Haptics from "expo-haptics"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
 import type { FlowIntensity } from "@/types/day-log"
@@ -54,13 +55,15 @@ export function DayDetailSheet({
   const [mood, setMood] = useState<string | null>(existingMood ?? null)
   const [notes, setNotes] = useState(existingNotes ?? "")
 
-  const toggleSymptom = (key: string) => {
+  const toggleSymptom = useCallback((key: string) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     setSymptoms((prev) =>
       prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key],
     )
-  }
+  }, [])
 
   const handleSave = () => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onSave({
       flowIntensity: flow,
       symptoms,
@@ -100,7 +103,10 @@ export function DayDetailSheet({
                 {FLOW_LEVELS.map((level) => (
                   <TouchableOpacity
                     key={level.key}
-                    onPress={() => setFlow(flow === level.key ? null : level.key)}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                      setFlow(flow === level.key ? null : level.key)
+                    }}
                     className={cn(
                       "flex-1 rounded-button py-2.5",
                       flow === level.key ? "bg-menstrual" : "bg-[var(--border-light)]",
@@ -129,7 +135,10 @@ export function DayDetailSheet({
                 {MOOD_CATALOG.map((m) => (
                   <TouchableOpacity
                     key={m.key}
-                    onPress={() => setMood(mood === m.key ? null : m.key)}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                      setMood(mood === m.key ? null : m.key)
+                    }}
                     className={cn(
                       "items-center gap-1 rounded-xl px-3 py-2",
                       mood === m.key && "bg-luteal/20",
