@@ -5,6 +5,7 @@ import { WeekStrip } from "@/components/week-strip"
 import { useCycleActor } from "@/hooks/use-cycle-actor"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { usePrediction } from "@/hooks/use-predictions"
+import { useNotifications } from "@/hooks/use-notifications"
 import { cn } from "@/lib/utils"
 import { PHASE_COLORS, type Phase } from "@/constants/phase-colors"
 
@@ -36,6 +37,7 @@ export default function TodayScreen() {
   const { avgCycleLength } = useSettingsActor()
   const prediction = usePrediction()
   const today = useMemo(() => new Date(), [])
+  useNotifications()
 
   useEffect(() => {
     load()
