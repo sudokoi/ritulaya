@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, Switch } from "react-native"
+import { router } from "expo-router"
 import {
   Shield,
   EyeOff,
@@ -145,7 +146,8 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Cloud size={20} color="#8E8C8A" />}
           label={discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
-          value="Not set up"
+          value={discreetLabel(discreet, "Not set up", "Off")}
+          onPress={() => router.push("/settings/github-sync")}
         />
         <SettingsRow
           icon={<Download size={20} color="#8E8C8A" />}

@@ -45,6 +45,21 @@ class RitulayaSyncModule : Module() {
             tokenStore.remove("github_token")
         }
 
+        AsyncFunction("getUsername") {
+            val token = tokenStore.load("github_token") ?: return@AsyncFunction null
+            GithubApiClient(token).getUsername()
+        }
+
+        AsyncFunction("listRepos") {
+            val token = tokenStore.load("github_token") ?: return@AsyncFunction null
+            GithubApiClient(token).listRepos()
+        }
+
+        AsyncFunction("createRepo") { name: String ->
+            val token = tokenStore.load("github_token") ?: return@AsyncFunction null
+            GithubApiClient(token).createRepo(name, true)
+        }
+
         AsyncFunction("configureRepo") { owner: String, repo: String, branch: String ->
             prefs.edit()
                 .putString("repo_owner", owner)

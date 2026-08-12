@@ -16,6 +16,9 @@ interface RitulayaSyncNativeModule {
   initiateDeviceFlow(clientId: string): Promise<DeviceFlowResult>
   pollForToken(clientId: string): Promise<string | null>
   disconnect(): Promise<void>
+  getUsername(): Promise<string | null>
+  listRepos(): Promise<{ name: string; private: boolean }[] | null>
+  createRepo(name: string): Promise<void>
   configureRepo(owner: string, repo: string, branch: string): Promise<void>
   getConfig(): Promise<SyncConfig | null>
   syncNow(): Promise<SyncStatus>

@@ -1,4 +1,4 @@
-import { Slot } from "expo-router"
+import { Stack } from "expo-router"
 import { DefaultTheme, ThemeProvider } from "expo-router"
 import { useColorScheme } from "react-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
@@ -14,7 +14,10 @@ export default function RootLayout() {
       <StoreProvider>
         <DiscreetGuard>
           <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
-            <Slot />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="settings/github-sync" />
+            </Stack>
             <PortalHost />
           </ThemeProvider>
         </DiscreetGuard>

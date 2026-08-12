@@ -2,7 +2,6 @@ export interface SyncConfig {
   repoOwner: string
   repoName: string
   branch: string
-  syncIntervalMinutes: number
 }
 
 export interface SyncStatus {

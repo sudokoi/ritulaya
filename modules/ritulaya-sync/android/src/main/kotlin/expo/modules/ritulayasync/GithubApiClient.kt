@@ -59,6 +59,30 @@ class GithubApiClient(private val token: String) {
         post(url, body.toString())
     }
 
+    fun getUsername(): String {
+        val url = "https://api.github.com/user"
+        val response = get(url)
+        val json = org.json.JSONObject(response)
+        return json.optString("login", "")
+    }
+
+    fun listRepos(): List<Map<String, Any>> {
+        val url = "https://api.github.com/user/repos?sort=updated&per_page=100"
+        val response = get(url)
+        val arr = org.json.JSONArray(response)
+        val repos = mutableListOf<Map<String, Any>>()
+        for (i in 0 until arr.length()) {
+            val repo = arr.getJSONObject(i)
+            repos.add(
+                mapOf(
+                    "name" to repo.optString("name"),
+                    "private" to repo.optBoolean("private")
+                )
+            )
+        }
+        return repos
+    }
+
     private fun get(urlStr: String): String {
         val conn = (URL(urlStr).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
