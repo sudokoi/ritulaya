@@ -25,27 +25,30 @@ Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. 
 | Encryption      | SQLCipher with Android Keystore-managed key                            |
 | Sync            | Kotlin native module — GitHub REST API, OAuth device flow, WorkManager |
 | Testing         | Jest + react-native-testing-library + Maestro                          |
-| Package manager | pnpm                                                                   |
+| Package manager | Yarn 4                                                                 |
 
 ## Getting Started
 
 ```bash
 # Install dependencies
-pnpm install
+yarn install
 
 # Start the dev server
-pnpm start
+yarn start
 
 # Run on Android
-pnpm android
+yarn android
 
 # Lint, format, typecheck
-pnpm lint
-pnpm format
-pnpm typecheck
+yarn lint
+yarn format
+yarn typecheck
 
 # Run tests
-pnpm test
+yarn test
+
+# Build a local APK
+yarn build:android:local
 ```
 
 ## Architecture
@@ -57,8 +60,8 @@ See [docs/decisions/](./docs/decisions/) for architecture decision records.
 Versioned with [Changesets](https://github.com/changesets/changesets). Starting at `0.1.x` — pre-release, unstable API.
 
 ```bash
-pnpm changeset        # Create a changeset
-pnpm changeset:version  # Bump versions + update changelog
+yarn changeset        # Create a changeset
+yarn changeset:version  # Bump versions + update changelog
 ```
 
 ## License
