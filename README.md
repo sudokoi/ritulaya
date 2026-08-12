@@ -1,56 +1,62 @@
-# Welcome to your Expo app 👋
+# Ritulaya
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. No accounts. No analytics.
 
-## Get started
+## Philosophy
 
-1. Install dependencies
+- **Your data lives on your device** — encrypted with a hardware-backed key that never leaves the Android Keystore
+- **Sync is optional and automatic** — connect your own GitHub repo, it syncs silently in the background
+- **No telemetry, no tracking, no third-party SDKs** — structurally enforced, not just promised
+- **Phase-aware design** — the app's visual language shifts with your cycle, in calm muted tones
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+| Layer           | Choice                                                                 |
+| --------------- | ---------------------------------------------------------------------- |
+| Framework       | Expo SDK 57, React Native 0.86, TypeScript                             |
+| Routing         | expo-router (file-based)                                               |
+| Styling         | NativeWind 5 (Tailwind CSS) + react-native-reusables                   |
+| State           | xstate v5 + @xstate/store                                              |
+| Database        | expo-sqlite + Drizzle ORM                                              |
+| Encryption      | SQLCipher with Android Keystore-managed key                            |
+| Sync            | Kotlin native module — GitHub REST API, OAuth device flow, WorkManager |
+| Testing         | Jest + react-native-testing-library + Maestro                          |
+| Package manager | pnpm                                                                   |
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting Started
 
 ```bash
-npm run reset-project
+# Install dependencies
+pnpm install
+
+# Start the dev server
+pnpm start
+
+# Run on Android
+pnpm android
+
+# Lint, format, typecheck
+pnpm lint
+pnpm format
+pnpm typecheck
+
+# Run tests
+pnpm test
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Architecture
 
-### Other setup steps
+See [docs/decisions/](./docs/decisions/) for architecture decision records.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Versioning
 
-## Learn more
+Versioned with [Changesets](https://github.com/changesets/changesets). Starting at `0.1.x` — pre-release, unstable API.
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+pnpm changeset        # Create a changeset
+pnpm changeset:version  # Bump versions + update changelog
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## License
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+AGPL-3.0-only. See [LICENSE](./LICENSE).

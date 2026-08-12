@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# pnpm
+pnpm-debug.log*
+
 # Expo
 .expo/
 dist/
