@@ -45,6 +45,7 @@ export default tseslint.config(
       "android/",
       "ios/",
       "scripts/",
+      "plugins/",
       "*.config.*",
       "assets/",
       ".changeset/",
