@@ -1,61 +1,86 @@
 package expo.modules.ritulayasync
 
+import android.content.Context
+import android.content.SharedPreferences
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RitulayaSyncModule : Module() {
-  override fun definition() = ModuleDefinition {
-    Name("RitulayaSync")
 
-    AsyncFunction("initiateDeviceFlow") {
-      // TODO: Start OAuth device flow, return userCode + verificationUrl
-      mapOf(
-        "userCode" to "",
-        "verificationUrl" to ""
-      )
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private lateinit var prefs: SharedPreferences
+    private lateinit var orchestrator: SyncOrchestrator
+
+    override fun definition() = ModuleDefinition {
+        Name("RitulayaSync")
+
+        OnCreate {
+            val ctx = appContext.reactContext?.applicationContext
+                ?: throw IllegalStateException("Context not available")
+            prefs = ctx.getSharedPreferences("ritulaya_sync", Context.MODE_PRIVATE)
+            orchestrator = SyncOrchestrator(ctx, prefs)
+        }
+
+        AsyncFunction("initiateDeviceFlow"): Map<String, String> {
+            val flow = GithubAuthFlow(appContext).initiateDeviceFlow()
+            return mapOf(
+                "userCode" to flow.first,
+                "verificationUrl" to flow.second
+            )
+        }
+
+        AsyncFunction("pollForToken"): String? {
+            val token = GithubAuthFlow(appContext).pollForToken()
+            if (token != null) {
+                prefs.edit().putString("github_token", token).apply()
+            }
+            return token
+        }
+
+        AsyncFunction("disconnect") {
+            prefs.edit().clear().apply()
+        }
+
+        AsyncFunction("configureRepo") { owner: String, repo: String, branch: String ->
+            prefs.edit()
+                .putString("repo_owner", owner)
+                .putString("repo_name", repo)
+                .putString("repo_branch", branch)
+                .apply()
+        }
+
+        AsyncFunction("getConfig"): Map<String, String>? {
+            val owner = prefs.getString("repo_owner", null) ?: return null
+            val repo = prefs.getString("repo_name", null) ?: return null
+            val branch = prefs.getString("repo_branch", "main")!!
+            return mapOf("repoOwner" to owner, "repoName" to repo, "branch" to branch)
+        }
+
+        AsyncFunction("syncNow"): Map<String, Any> {
+            return orchestrator.sync()
+        }
+
+        AsyncFunction("scheduleBackgroundSync") { intervalMinutes: Int ->
+            SyncWorker.schedule(appContext.reactContext?.applicationContext!!, intervalMinutes)
+        }
+
+        AsyncFunction("getSyncStatus"): Map<String, Any> {
+            val syncedAt = prefs.getLong("last_sync_at", 0L)
+            val warning = prefs.getBoolean("sync_warning", false)
+            val failures = prefs.getInt("consecutive_failures", 0)
+
+            return mapOf(
+                "syncedAt" to if (syncedAt > 0) syncedAt.toString() else null,
+                "warning" to warning,
+                "consecutiveFailures" to failures,
+                "status" to if (warning) "error" else "idle"
+            )
+        }
+
+        Events("syncStatusChanged")
+        Events("syncConflictDetected")
     }
-
-    AsyncFunction("pollForToken") {
-      // TODO: Poll GitHub OAuth endpoint, return token or null
-      null as String?
-    }
-
-    AsyncFunction("disconnect") {
-      // TODO: Clear config + token from secure store
-    }
-
-    AsyncFunction("configureRepo") { owner: String, repo: String, branch: String ->
-      // TODO: Save repo config
-    }
-
-    AsyncFunction("getConfig") {
-      // TODO: Return current sync config or null
-      null as Map<String, String>?
-    }
-
-    AsyncFunction("syncNow") {
-      // TODO: Run fetch-merge-push cycle
-      mapOf(
-        "status" to "inSync",
-        "syncedAt" to ""
-      )
-    }
-
-    AsyncFunction("scheduleBackgroundSync") { intervalMinutes: Int ->
-      // TODO: Schedule/cancel WorkManager periodic task
-    }
-
-    AsyncFunction("getSyncStatus") {
-      // TODO: Return sync status
-      mapOf(
-        "syncedAt" to null,
-        "warning" to false,
-        "consecutiveFailures" to 0,
-        "status" to "idle"
-      )
-    }
-
-    Events("syncStatusChanged")
-    Events("syncConflictDetected")
-  }
 }
