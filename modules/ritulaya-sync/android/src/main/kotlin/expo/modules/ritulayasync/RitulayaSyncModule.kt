@@ -10,6 +10,7 @@ class RitulayaSyncModule : Module() {
     private lateinit var prefs: SharedPreferences
     private lateinit var orchestrator: SyncOrchestrator
     private lateinit var authFlow: GithubAuthFlow
+    private lateinit var tokenStore: SecureTokenStore
 
     override fun definition() = ModuleDefinition {
         Name("RitulayaSync")
@@ -18,6 +19,7 @@ class RitulayaSyncModule : Module() {
             val ctx = appContext.reactContext?.applicationContext
                 ?: throw IllegalStateException("Context not available")
             prefs = ctx.getSharedPreferences("ritulaya_sync", Context.MODE_PRIVATE)
+            tokenStore = SecureTokenStore(ctx)
             orchestrator = SyncOrchestrator(ctx, prefs)
             authFlow = GithubAuthFlow(appContext)
         }
@@ -33,13 +35,14 @@ class RitulayaSyncModule : Module() {
         AsyncFunction("pollForToken") { clientId: String ->
             val token = authFlow.pollForToken(clientId)
             if (token != null) {
-                prefs.edit().putString("github_token", token).apply()
+                tokenStore.save("github_token", token)
             }
             token
         }
 
         AsyncFunction("disconnect") {
             prefs.edit().clear().apply()
+            tokenStore.remove("github_token")
         }
 
         AsyncFunction("configureRepo") { owner: String, repo: String, branch: String ->

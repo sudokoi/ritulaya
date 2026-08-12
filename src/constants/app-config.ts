@@ -7,5 +7,4 @@
  * For the device flow, only the client_id is required (no client secret).
  * Override at build time with EXPO_PUBLIC_GITHUB_OAUTH_CLIENT_ID.
  */
-export const GITHUB_OAUTH_CLIENT_ID =
-  process.env.EXPO_PUBLIC_GITHUB_OAUTH_CLIENT_ID ?? ""
+export const GITHUB_OAUTH_CLIENT_ID = process.env.EXPO_PUBLIC_GITHUB_OAUTH_CLIENT_ID ?? ""

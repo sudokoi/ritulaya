@@ -9,8 +9,10 @@ class SyncOrchestrator(
     private val appContext: Context,
     private val prefs: SharedPreferences
 ) {
+    private val tokenStore = SecureTokenStore(appContext)
+
     fun sync(): Map<String, Any> {
-        val token = prefs.getString("github_token", null)
+        val token = tokenStore.load("github_token")
         if (token == null) return errorResult("Not authenticated")
 
         val owner = prefs.getString("repo_owner", null)
