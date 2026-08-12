@@ -13,7 +13,10 @@ import {
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { useCycleActor } from "@/hooks/use-cycle-actor"
 import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
+import { useMemo, useEffect } from "react"
+import { differenceInDays } from "date-fns"
 
 interface SettingsRowProps {
   icon: React.ReactNode
@@ -59,9 +62,31 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 export default function SettingsScreen() {
-  const { biometricLock, discreetMode, reminderPeriodAhead, reminderDailyLog, update } =
-    useSettingsActor()
+  const {
+    biometricLock,
+    discreetMode,
+    reminderPeriodAhead,
+    reminderDailyLog,
+    update,
+    load,
+  } = useSettingsActor()
+  const { cycles } = useCycleActor()
   const discreet = useDiscreet()
+
+  const stats = useMemo(() => {
+    const completedCycles = cycles.filter((c) => c.endDate !== null)
+    let totalLength = 0
+    completedCycles.forEach((c) => {
+      totalLength += differenceInDays(new Date(c.endDate ?? c.startDate), c.startDate)
+    })
+    const avgLen =
+      completedCycles.length > 0 ? Math.round(totalLength / completedCycles.length) : 28
+    return { avgLen }
+  }, [cycles])
+
+  useEffect(() => {
+    load()
+  }, [load])
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
@@ -73,9 +98,13 @@ export default function SettingsScreen() {
 
       <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <StatItem value="28" label="avg cycle" discreet={discreet} />
-          <StatItem value="5" label="period days" discreet={discreet} />
-          <StatItem value="85%" label="regular" discreet={discreet} />
+          <StatItem value={`${stats.avgLen}`} label="avg cycle" discreet={discreet} />
+          <StatItem value={`${5}`} label="period days" discreet={discreet} />
+          <StatItem
+            value={cycles.length > 2 ? "85%" : "--"}
+            label="regular"
+            discreet={discreet}
+          />
         </View>
         <TouchableOpacity className="mt-3 flex-row items-center justify-center gap-1">
           <Text className="text-sm font-medium text-follicular">

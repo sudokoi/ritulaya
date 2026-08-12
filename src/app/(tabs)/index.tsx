@@ -6,6 +6,8 @@ import { useCycleActor } from "@/hooks/use-cycle-actor"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useNotifications } from "@/hooks/use-notifications"
+import { useLogPeriod } from "@/hooks/use-log-period"
+import { useDayLogs } from "@/hooks/use-day-logs"
 import { cn } from "@/lib/utils"
 import { PHASE_COLORS, type Phase } from "@/constants/phase-colors"
 
@@ -39,9 +41,13 @@ export default function TodayScreen() {
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
+  const { loadDayLogs, todayLog } = useDayLogs()
+  const { logPeriodToday } = useLogPeriod()
+
   useEffect(() => {
     load()
-  }, [load])
+    loadDayLogs()
+  }, [load, loadDayLogs])
 
   const daysUntilPeriod = prediction
     ? differenceInDays(prediction.nextPeriodStart, today)
@@ -111,6 +117,7 @@ export default function TodayScreen() {
         className="mx-4 mb-4 rounded-card px-6 py-4"
         style={{ backgroundColor: PHASE_COLORS.menstrual.hex }}
         activeOpacity={0.8}
+        onPress={() => logPeriodToday()}
       >
         <Text className="text-center text-lg font-semibold text-white">
           Log Period Today
@@ -119,24 +126,46 @@ export default function TodayScreen() {
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">TODAY</Text>
-        <View className="mb-3 flex-row justify-center gap-2">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <View
-              key={i}
-              className={cn(
-                "h-8 w-8 rounded-full",
-                i < 1 ? "bg-menstrual" : "bg-[var(--border-light)]",
+        {todayLog ? (
+          <>
+            <View className="mb-3 flex-row justify-center gap-2">
+              {(["none", "spotting", "light", "medium", "heavy"] as const).map(
+                (level) => (
+                  <View
+                    key={level}
+                    className={cn(
+                      "h-8 w-8 rounded-full",
+                      todayLog.flowIntensity === level
+                        ? "bg-menstrual"
+                        : "bg-[var(--border-light)]",
+                    )}
+                  />
+                ),
               )}
-            />
-          ))}
-        </View>
-        <View className="flex-row flex-wrap gap-2">
-          {["😊 Happy", "🤍 Cramps", "💤 Tired"].map((chip) => (
-            <View key={chip} className="rounded-pill bg-[var(--border-light)] px-4 py-2">
-              <Text className="text-sm text-[var(--text-primary)]">{chip}</Text>
             </View>
-          ))}
-        </View>
+            <View className="flex-row flex-wrap gap-2">
+              {todayLog.symptoms !== "[]" && JSON.parse(todayLog.symptoms).length > 0
+                ? (JSON.parse(todayLog.symptoms) as string[]).map((symptom: string) => (
+                    <View
+                      key={symptom}
+                      className="rounded-pill bg-[var(--border-light)] px-4 py-2"
+                    >
+                      <Text className="text-sm text-[var(--text-primary)]">
+                        {symptom}
+                      </Text>
+                    </View>
+                  ))
+                : null}
+              {todayLog.mood && (
+                <Text className="text-sm text-[var(--text-muted)]">{todayLog.mood}</Text>
+              )}
+            </View>
+          </>
+        ) : (
+          <Text className="text-sm text-[var(--text-muted)]">
+            Nothing logged yet today
+          </Text>
+        )}
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
