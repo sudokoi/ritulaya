@@ -8,6 +8,19 @@ import expo.modules.ritulayasync.CsvHandler.DayLogRow
 import net.sqlcipher.database.SQLiteDatabase
 import java.io.File
 
+data class SettingsRow(
+    val avgCycleLength: Int,
+    val avgPeriodLength: Int,
+    val lutealPhaseLength: Int,
+    val theme: String,
+    val language: String,
+    val biometricLock: Int,
+    val discreetMode: Int,
+    val reminderPeriodAhead: Int,
+    val reminderDailyLog: Int,
+    val updatedAt: String,
+)
+
 class LocalDataStore(
     private val appContext: Context,
 ) {
@@ -221,5 +234,66 @@ class LocalDataStore(
         value: String?,
     ) {
         if (value != null) values.put(key, value) else values.putNull(key)
+    }
+
+    fun loadSettings(): SettingsRow? {
+        val db = open() ?: return null
+        return try {
+            db
+                .rawQuery(
+                    "SELECT avg_cycle_length, avg_period_length, luteal_phase_length, theme, " +
+                        "language, biometric_lock, discreet_mode, reminder_period_ahead, " +
+                        "reminder_daily_log, updated_at FROM settings WHERE id = 'default'",
+                    null,
+                ).use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        SettingsRow(
+                            avgCycleLength = cursor.getInt(0),
+                            avgPeriodLength = cursor.getInt(1),
+                            lutealPhaseLength = cursor.getInt(2),
+                            theme = cursor.getString(3) ?: "system",
+                            language = cursor.getString(4) ?: "en",
+                            biometricLock = cursor.getInt(5),
+                            discreetMode = cursor.getInt(6),
+                            reminderPeriodAhead = cursor.getInt(7),
+                            reminderDailyLog = cursor.getInt(8),
+                            updatedAt = cursor.getString(9) ?: "",
+                        )
+                    } else {
+                        null
+                    }
+                }
+        } catch (e: Exception) {
+            null
+        } finally {
+            db.close()
+        }
+    }
+
+    fun persistSettings(settings: SettingsRow) {
+        val db = open() ?: return
+        try {
+            val values = ContentValues()
+            values.put("avg_cycle_length", settings.avgCycleLength)
+            values.put("avg_period_length", settings.avgPeriodLength)
+            values.put("luteal_phase_length", settings.lutealPhaseLength)
+            values.put("theme", settings.theme)
+            values.put("language", settings.language)
+            values.put("biometric_lock", settings.biometricLock)
+            values.put("discreet_mode", settings.discreetMode)
+            values.put("reminder_period_ahead", settings.reminderPeriodAhead)
+            values.put("reminder_daily_log", settings.reminderDailyLog)
+            values.put("updated_at", settings.updatedAt)
+
+            if (db.update("settings", values, "id = ?", arrayOf("default")) == 0) {
+                values.put("id", "default")
+                values.put("created_at", settings.updatedAt)
+                db.insertWithOnConflict("settings", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+            }
+        } catch (e: Exception) {
+            // best-effort
+        } finally {
+            db.close()
+        }
     }
 }

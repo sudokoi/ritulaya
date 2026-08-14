@@ -46,13 +46,18 @@ class SyncOrchestrator(
         val logsFile = api.getFileContent(owner, repo, "ritulaya-day-logs.csv", branch)
         val remoteLogs = if (logsFile != null) CsvHandler.parseDayLogs(logsFile.content) else emptyList()
 
+        val settingsFile = api.getFileContent(owner, repo, "ritulaya-settings.json", branch)
+        val remoteSettings = settingsFile?.let { parseSettings(it.content) }
+
         val manifestFile = api.getFileContent(owner, repo, "ritulaya.json", branch)
 
         val localCycles = localData.loadCycles()
         val localLogs = localData.loadDayLogs()
+        val localSettings = localData.loadSettings()
 
         val mergedCycles = MergeEngine.mergeCycles(localCycles, remoteCycles)
         val mergedLogs = MergeEngine.mergeDayLogs(localLogs, remoteLogs)
+        val mergedSettings = mergeSettings(localSettings, remoteSettings)
 
         val cyclesCsv = CsvHandler.writeCycles(mergedCycles)
         val logsCsv = CsvHandler.writeDayLogs(mergedLogs)
@@ -78,6 +83,17 @@ class SyncOrchestrator(
             branch,
             message,
         )
+        if (mergedSettings != null) {
+            api.updateOrCreateFile(
+                owner,
+                repo,
+                "ritulaya-settings.json",
+                writeSettings(mergedSettings),
+                settingsFile?.sha,
+                branch,
+                message,
+            )
+        }
         if (manifestFile == null) {
             api.updateOrCreateFile(
                 owner,
@@ -91,6 +107,7 @@ class SyncOrchestrator(
         }
 
         localData.persist(mergedCycles, mergedLogs)
+        mergedSettings?.let { localData.persistSettings(it) }
 
         prefs
             .edit()
@@ -104,6 +121,50 @@ class SyncOrchestrator(
             "syncedAt" to System.currentTimeMillis().toString(),
         )
     }
+
+    private fun mergeSettings(
+        local: SettingsRow?,
+        remote: SettingsRow?,
+    ): SettingsRow? {
+        if (local == null) return remote
+        if (remote == null) return local
+        return if (remote.updatedAt >= local.updatedAt) remote else local
+    }
+
+    private fun parseSettings(json: String): SettingsRow? =
+        try {
+            val o = org.json.JSONObject(json)
+            SettingsRow(
+                avgCycleLength = o.optInt("avgCycleLength", 28),
+                avgPeriodLength = o.optInt("avgPeriodLength", 3),
+                lutealPhaseLength = o.optInt("lutealPhaseLength", 14),
+                theme = o.optString("theme", "system"),
+                language = o.optString("language", "en"),
+                biometricLock = o.optInt("biometricLock", 0),
+                discreetMode = o.optInt("discreetMode", 0),
+                reminderPeriodAhead = o.optInt("reminderPeriodAhead", 2),
+                reminderDailyLog = o.optInt("reminderDailyLog", 0),
+                updatedAt = o.optString("updatedAt", ""),
+            )
+        } catch (e: Exception) {
+            null
+        }
+
+    private fun writeSettings(settings: SettingsRow): String =
+        org.json
+            .JSONObject()
+            .apply {
+                put("avgCycleLength", settings.avgCycleLength)
+                put("avgPeriodLength", settings.avgPeriodLength)
+                put("lutealPhaseLength", settings.lutealPhaseLength)
+                put("theme", settings.theme)
+                put("language", settings.language)
+                put("biometricLock", settings.biometricLock)
+                put("discreetMode", settings.discreetMode)
+                put("reminderPeriodAhead", settings.reminderPeriodAhead)
+                put("reminderDailyLog", settings.reminderDailyLog)
+                put("updatedAt", settings.updatedAt)
+            }.toString()
 
     private fun errorResult(message: String): Map<String, Any> =
         mapOf(

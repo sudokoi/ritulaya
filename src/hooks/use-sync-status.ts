@@ -7,6 +7,7 @@ import {
 import { syncStore, loadSyncStatus, resetSyncStore } from "@/stores/sync-store"
 import { loadDayLogs } from "@/stores/day-log-store"
 import { loadCycles } from "@/stores/cycle-store"
+import { loadSettings } from "@/stores/settings-store"
 import { logger } from "@/services/logger"
 
 export function useSyncStatus() {
@@ -26,6 +27,7 @@ export function useSyncStatus() {
       if (result?.status === "inSync") {
         await loadDayLogs()
         loadCycles()
+        loadSettings()
       }
       await loadSyncStatus()
     } catch (e) {
