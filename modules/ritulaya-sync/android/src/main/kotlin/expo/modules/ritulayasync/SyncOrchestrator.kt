@@ -56,7 +56,7 @@ class SyncOrchestrator(
 
         val cyclesCsv = CsvHandler.writeCycles(mergedCycles)
         val logsCsv = CsvHandler.writeDayLogs(mergedLogs)
-        val manifest = CsvHandler.writeManifest()
+        val manifest = SyncManifest.write()
 
         val message = "Sync: ritulaya data update"
 

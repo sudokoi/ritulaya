@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { useCycles } from "@/hooks/use-cycles"
 import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
+import { averageCycleLength } from "@/lib/cycle-derivation"
 import { useMemo, useEffect } from "react"
-import { differenceInDays } from "date-fns"
 
 interface SettingsRowProps {
   icon: React.ReactNode
@@ -74,16 +74,7 @@ export default function SettingsScreen() {
   const { cycles } = useCycles()
   const discreet = useDiscreet()
 
-  const stats = useMemo(() => {
-    const completedCycles = cycles.filter((c) => c.endDate !== null)
-    let totalLength = 0
-    completedCycles.forEach((c) => {
-      totalLength += differenceInDays(new Date(c.endDate ?? c.startDate), c.startDate)
-    })
-    const avgLen =
-      completedCycles.length > 0 ? Math.round(totalLength / completedCycles.length) : 28
-    return { avgLen }
-  }, [cycles])
+  const avgLen = useMemo(() => averageCycleLength(cycles, 28), [cycles])
 
   useEffect(() => {
     load()
@@ -99,7 +90,7 @@ export default function SettingsScreen() {
 
       <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <StatItem value={`${stats.avgLen}`} label="avg cycle" discreet={discreet} />
+          <StatItem value={`${avgLen}`} label="avg cycle" discreet={discreet} />
           <StatItem value={`${5}`} label="period days" discreet={discreet} />
           <StatItem
             value={cycles.length > 2 ? "85%" : "--"}

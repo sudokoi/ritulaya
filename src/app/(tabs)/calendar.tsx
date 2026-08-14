@@ -1,12 +1,13 @@
 import { View, Text, ScrollView } from "react-native"
 import { useState, useMemo, useCallback } from "react"
-import { format, differenceInDays } from "date-fns"
+import { format } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { useCycles } from "@/hooks/use-cycles"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
+import { averageCycleLength, deriveCycleDays } from "@/lib/cycle-derivation"
 import type { FlowIntensity } from "@/types/day-log"
 import type { SymptomKey } from "@/constants/symptoms"
 import type { MoodKey } from "@/constants/moods"
@@ -23,66 +24,17 @@ export default function CalendarScreen() {
     return getLogForDate(format(selectedDate, "yyyy-MM-dd"))
   }, [selectedDate, getLogForDate])
 
-  const { periodDays, predictedDays, fertileDays, ovulationDays, loggedDays } =
-    useMemo(() => {
-      const pDays: string[] = []
-      cycles.forEach((c) => {
-        if (!c.endDate) return
-        const start = new Date(c.startDate)
-        const end = new Date(c.endDate)
-        const d = new Date(start)
-        while (d <= end) {
-          pDays.push(format(d, "yyyy-MM-dd"))
-          d.setDate(d.getDate() + 1)
-        }
-      })
+  const { periodDays, predictedDays, fertileDays, ovulationDays } = useMemo(
+    () => deriveCycleDays(cycles, prediction),
+    [cycles, prediction],
+  )
 
-      const predDays: string[] = []
-      if (prediction) {
-        const start = prediction.nextPeriodStart
-        const end = prediction.nextPeriodEnd
-        const d = new Date(start)
-        while (d <= end) {
-          predDays.push(format(d, "yyyy-MM-dd"))
-          d.setDate(d.getDate() + 1)
-        }
-      }
+  const loggedDays = useMemo(() => logs.map((log) => log.date), [logs])
 
-      const fertDays: string[] = []
-      const ovDays: string[] = []
-      if (prediction) {
-        const d = new Date(prediction.fertileWindow.start)
-        while (d <= prediction.fertileWindow.end) {
-          fertDays.push(format(d, "yyyy-MM-dd"))
-          d.setDate(d.getDate() + 1)
-        }
-        ovDays.push(format(prediction.ovulationDay, "yyyy-MM-dd"))
-      }
-
-      const lDays = logs.map((l) => l.date)
-
-      return {
-        periodDays: pDays,
-        predictedDays: predDays,
-        fertileDays: fertDays,
-        ovulationDays: ovDays,
-        loggedDays: lDays,
-      }
-    }, [cycles, prediction, logs])
-
-  const stats = useMemo(() => {
-    const completedCycles = cycles.filter((c) => c.endDate !== null)
-    let totalLength = 0
-    completedCycles.forEach((c) => {
-      totalLength += differenceInDays(new Date(c.endDate ?? c.startDate), c.startDate)
-    })
-    const avgLen =
-      completedCycles.length > 0
-        ? Math.round(totalLength / completedCycles.length)
-        : avgCycleLength
-
-    return { avgLen }
-  }, [cycles, avgCycleLength])
+  const avgLen = useMemo(
+    () => averageCycleLength(cycles, avgCycleLength),
+    [cycles, avgCycleLength],
+  )
 
   const handleSave = useCallback(
     (data: {
@@ -110,7 +62,7 @@ export default function CalendarScreen() {
         <View className="flex-row px-4 py-2">
           <View className="flex-1 items-center">
             <Text className="text-2xl font-bold text-[var(--text-primary)]">
-              {stats.avgLen}
+              {avgLen}
             </Text>
             <Text className="text-xs text-[var(--text-muted)]">avg cycle</Text>
           </View>

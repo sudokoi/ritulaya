@@ -1,7 +1,5 @@
 package expo.modules.ritulayasync
 
-import android.util.Base64
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.StringReader
 import java.io.StringWriter
@@ -71,23 +69,14 @@ object CsvHandler {
             "id,date,cycle_id,flow_intensity,symptoms,mood,notes,cervical_mucus,bbt,sexual_activity,created_at,updated_at,deleted_at\n",
         )
         rows.forEach { row ->
-            val symptoms = encode(row.symptoms)
-            val notes = encode(row.notes ?: "")
+            val symptoms = FieldCodec.encode(row.symptoms)
+            val notes = FieldCodec.encode(row.notes ?: "")
             writer.write(
                 "${row.id},${row.date},${row.cycleId ?: ""},${row.flowIntensity ?: ""},$symptoms,${row.mood ?: ""},$notes,${row.cervicalMucus ?: ""},${row.bbt ?: ""},${row.sexualActivity},${row.createdAt},${row.updatedAt},${row.deletedAt ?: ""}\n",
             )
         }
         return writer.toString()
     }
-
-    fun writeManifest(): String =
-        JSONObject()
-            .apply {
-                put("app", "ritulaya")
-                put("appVersion", "0.1.0")
-                put("schemaVersion", 1)
-                put("sharing", JSONObject.NULL)
-            }.toString(2)
 
     private fun parseCycleRow(line: String): CycleRow {
         val parts = line.split(",")
@@ -108,9 +97,9 @@ object CsvHandler {
             date = parts[1],
             cycleId = parts.getOrNull(2)?.ifEmpty { null },
             flowIntensity = parts.getOrNull(3)?.ifEmpty { null },
-            symptoms = decode(parts.getOrNull(4) ?: "[]"),
+            symptoms = FieldCodec.decode(parts.getOrNull(4) ?: "[]"),
             mood = parts.getOrNull(5)?.ifEmpty { null },
-            notes = decode(parts.getOrNull(6) ?: "").ifEmpty { null },
+            notes = FieldCodec.decode(parts.getOrNull(6) ?: "").ifEmpty { null },
             cervicalMucus = parts.getOrNull(7)?.ifEmpty { null },
             bbt = parts.getOrNull(8)?.toDoubleOrNull(),
             sexualActivity = parts.getOrNull(9)?.toIntOrNull() ?: 0,
@@ -119,13 +108,4 @@ object CsvHandler {
             deletedAt = parts.getOrNull(12)?.ifEmpty { null },
         )
     }
-
-    private fun encode(value: String): String = Base64.encodeToString(value.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
-
-    private fun decode(value: String): String =
-        try {
-            String(Base64.decode(value, Base64.DEFAULT), Charsets.UTF_8)
-        } catch (e: Exception) {
-            value
-        }
 }
