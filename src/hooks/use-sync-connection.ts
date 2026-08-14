@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useSelector } from "@xstate/store-react"
 import { createRepo, configureRepo, scheduleBackgroundSync } from "@/services/sync"
 import { syncStore, loadSyncConfig, refreshSyncIdentity } from "@/stores/sync-store"
+import { logger } from "@/services/logger"
 
 const SYNC_INTERVAL_MINUTES = 24 * 60
 
@@ -27,6 +28,7 @@ export function useSyncConnection() {
         await loadSyncConfig()
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to create repository")
+        logger.error("sync:repo", "Failed to create repository", e)
       } finally {
         setBusy(false)
       }
@@ -43,6 +45,7 @@ export function useSyncConnection() {
       await loadSyncConfig()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to configure repository")
+      logger.error("sync:repo", "Failed to configure repository", e)
     } finally {
       setBusy(false)
     }

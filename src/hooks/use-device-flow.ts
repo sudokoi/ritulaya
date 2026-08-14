@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react"
 import { initiateDeviceFlow, pollForToken } from "@/services/sync"
+import { logger } from "@/services/logger"
 
 export function useDeviceFlow() {
   const [deviceFlow, setDeviceFlow] = useState<{
@@ -27,6 +28,7 @@ export function useDeviceFlow() {
     } catch (e) {
       setDeviceFlow(null)
       setError(e instanceof Error ? e.message : "Failed to connect to GitHub")
+      logger.error("sync:device-flow", "GitHub device flow failed", e)
       return false
     } finally {
       setConnecting(false)

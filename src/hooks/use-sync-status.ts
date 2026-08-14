@@ -7,6 +7,7 @@ import {
 import { syncStore, loadSyncStatus, resetSyncStore } from "@/stores/sync-store"
 import { loadDayLogs } from "@/stores/day-log-store"
 import { loadCycles } from "@/stores/cycle-store"
+import { logger } from "@/services/logger"
 
 export function useSyncStatus() {
   const status = useSelector(syncStore, (s) => s.context.status)
@@ -29,6 +30,7 @@ export function useSyncStatus() {
       await loadSyncStatus()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sync failed")
+      logger.error("sync:status", "Sync failed", e)
     } finally {
       setSyncing(false)
     }
