@@ -8,5 +8,6 @@
 | [0004](./0004-kotlin-native-modules.md)   | Kotlin native modules for sync, crypto, logging, and widget | Accepted |
 | [0005](./0005-android-only.md)            | Android-only platform target                                | Accepted |
 | [0006](./0006-no-analytics.md)            | No analytics or telemetry                                   | Accepted |
-| [0007](./0007-pnpm-package-manager.md)    | pnpm as package manager                                     | Accepted |
+| [0007](./0007-yarn-package-manager.md)    | Yarn 4 as package manager                                   | Accepted |
 | [0008](./0008-static-csv-sync-files.md)   | Two static CSV files for GitHub sync format                 | Accepted |
+| [0009](./0009-sync-persistence-merge.md)  | Sync persistence and merge semantics                        | Accepted |

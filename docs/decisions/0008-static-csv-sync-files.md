@@ -19,11 +19,13 @@ The reference project (expense-buddy) uses per-day CSV files (`expenses-YYYY-MM-
 
 Use two static CSV files: `ritulaya-cycles.csv` (one row per cycle) and `ritulaya-day-logs.csv` (one row per logged day). Plus a `ritulaya.json` manifest with schema version and metadata for forward compatibility with a future companion app.
 
+The CSV is plaintext and human-readable. Fields that may contain commas, quotes, or newlines (symptoms JSON, notes) are quoted using standard CSV quoting (double-quote wrapping with `""` escaping); newlines in notes are flattened to spaces. No base64 or other opaque encoding is used — the repository is private, so values are stored in the clear.
+
 ```
 ritulaya-data/
 ├── ritulaya.json           ← { schemaVersion: 1, app: "ritulaya", sharing: null }
 ├── ritulaya-cycles.csv     ← id, start_date, end_date, created_at, updated_at, deleted_at
-└── ritulaya-day-logs.csv   ← id, date, cycle_id, flow_intensity, symptoms, mood, ...
+└── ritulaya-day-logs.csv   ← id, date, cycle_id, flow_intensity, symptoms, mood, notes, ...
 ```
 
 ## Consequences
