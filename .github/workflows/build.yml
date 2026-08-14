@@ -1,0 +1,76 @@
+name: Build (AAB + APK)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_suffix:
+        description: "Version suffix (leave empty to use commit SHA)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  build:
+    name: Build (${{ matrix.profile }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: ci
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [internal, production]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".node-version"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Determine version name
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version_suffix }}" ]; then
+            VERSION="${{ github.event.inputs.version_suffix }}"
+          else
+            VERSION="${GITHUB_SHA:0:7}"
+          fi
+          echo "version_name=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build with EAS
+        id: build
+        run: |
+          eas build --platform android --profile ${{ matrix.profile }} --non-interactive --json > build-output.json
+          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' build-output.json)
+          echo "build_url=$BUILD_URL" >> $GITHUB_OUTPUT
+
+      - name: Download artifact
+        run: |
+          EXT=${{ matrix.profile == 'production' && 'aab' || 'apk' }}
+          curl -L -o "ritulaya-${{ steps.version.outputs.version_name }}-${{ matrix.profile }}.$EXT" "${{ steps.build.outputs.build_url }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ritulaya-${{ steps.version.outputs.version_name }}-${{ matrix.profile }}
+          path: ritulaya-${{ steps.version.outputs.version_name }}-${{ matrix.profile }}.${{ matrix.profile == 'production' && 'aab' || 'apk' }}
