@@ -6,7 +6,6 @@ interface WeekDay {
   label: string
   isPeriod: boolean
   isPredicted: boolean
-  isFertile: boolean
   isToday: boolean
 }
 

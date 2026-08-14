@@ -1,6 +1,6 @@
 import * as Notifications from "expo-notifications"
 import { subDays } from "date-fns"
-import { discreetLabel } from "@/providers/discreet-guard"
+import { discreetLabel } from "@/lib/discreet"
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -52,10 +52,6 @@ export async function schedulePeriodReminder(
 }
 
 export async function scheduleDailyLogReminder(discreet: boolean) {
-  const trigger = new Date()
-  trigger.setHours(20, 0, 0, 0)
-  trigger.setDate(trigger.getDate() + (trigger.getHours() >= 20 ? 1 : 0))
-
   await Notifications.scheduleNotificationAsync({
     content: {
       title: discreetLabel(discreet, "Daily Log", "Check-in"),

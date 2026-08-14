@@ -13,9 +13,9 @@ import {
   Bug,
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
+import { discreetLabel } from "@/lib/discreet"
 import { useSettings } from "@/hooks/use-settings"
 import { useCycles } from "@/hooks/use-cycles"
-import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
 import { averageCycleLength } from "@/lib/cycle-derivation"
 import { useMemo, useEffect } from "react"
 
@@ -65,14 +65,14 @@ function SectionHeader({ title }: { title: string }) {
 export default function SettingsScreen() {
   const {
     biometricLock,
-    discreetMode,
+    discreetMode: discreet,
+    avgPeriodLength,
     reminderPeriodAhead,
     reminderDailyLog,
     update,
     load,
   } = useSettings()
   const { cycles } = useCycles()
-  const discreet = useDiscreet()
 
   const avgLen = useMemo(() => averageCycleLength(cycles, 28), [cycles])
 
@@ -91,7 +91,11 @@ export default function SettingsScreen() {
       <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
           <StatItem value={`${avgLen}`} label="avg cycle" discreet={discreet} />
-          <StatItem value={`${5}`} label="period days" discreet={discreet} />
+          <StatItem
+            value={`${avgPeriodLength}`}
+            label="period days"
+            discreet={discreet}
+          />
           <StatItem
             value={cycles.length > 2 ? "85%" : "--"}
             label="regular"
@@ -124,7 +128,7 @@ export default function SettingsScreen() {
           label={discreetLabel(discreet, "Discreet Mode", "Simple Mode")}
           right={
             <Switch
-              value={discreetMode}
+              value={discreet}
               onValueChange={(v) => update({ discreetMode: v })}
               trackColor={{ true: "#7BA891" }}
             />

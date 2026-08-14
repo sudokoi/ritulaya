@@ -10,10 +10,11 @@ import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { cn } from "@/lib/utils"
 import { getPhase, PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
+import { deriveCycleDays } from "@/lib/cycle-derivation"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
-  const { currentCycle, isLoaded, load } = useCycles()
+  const { cycles, currentCycle, isLoaded, load } = useCycles()
   const { avgCycleLength } = useSettings()
   const prediction = usePrediction()
   const today = useMemo(() => new Date(), [])
@@ -34,6 +35,11 @@ export default function TodayScreen() {
   const phase = getPhase(daysUntilPeriod, avgCycleLength)
   const phaseColor = PHASE_COLORS[phase].hex
 
+  const { periodDays, predictedDays } = useMemo(
+    () => deriveCycleDays(cycles, prediction),
+    [cycles, prediction],
+  )
+
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
       const date = addDays(today, i - 3)
@@ -41,16 +47,12 @@ export default function TodayScreen() {
       return {
         date,
         label: format(date, "EEEEE"),
-        isPeriod: false,
-        isPredicted: false,
-        isFertile: prediction
-          ? iso >= format(prediction.fertileWindow.start, "yyyy-MM-dd") &&
-            iso <= format(prediction.fertileWindow.end, "yyyy-MM-dd")
-          : false,
+        isPeriod: periodDays.includes(iso),
+        isPredicted: predictedDays.includes(iso),
         isToday: isToday(date),
       }
     })
-  }, [prediction, today])
+  }, [periodDays, predictedDays, today])
 
   const cycleDay = currentCycle
     ? differenceInDays(today, new Date(currentCycle.startDate)) + 1

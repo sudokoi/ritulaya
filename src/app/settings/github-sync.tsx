@@ -13,14 +13,15 @@ import { ChevronLeft, Cloud, Trash2, RefreshCw, Plus } from "lucide-react-native
 import { useDeviceFlow } from "@/hooks/use-device-flow"
 import { useSyncConnection } from "@/hooks/use-sync-connection"
 import { useSyncStatus } from "@/hooks/use-sync-status"
-import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
+import { useSettings } from "@/hooks/use-settings"
+import { discreetLabel } from "@/lib/discreet"
 import { cn } from "@/lib/utils"
 
 export default function GithubSyncScreen() {
   const deviceFlow = useDeviceFlow()
   const connection = useSyncConnection()
   const syncStatus = useSyncStatus()
-  const discreet = useDiscreet()
+  const { discreetMode: discreet } = useSettings()
 
   const [repoName, setRepoName] = useState("ritulaya-data")
   const [existingOwner, setExistingOwner] = useState("")
