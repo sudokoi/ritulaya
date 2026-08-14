@@ -25,9 +25,7 @@ export function useSyncStatus() {
     try {
       const result = await syncNowService()
       if (result?.status === "inSync") {
-        await loadDayLogs()
-        loadCycles()
-        loadSettings()
+        await Promise.all([loadDayLogs(), loadCycles(), loadSettings()])
       }
       await loadSyncStatus()
     } catch (e) {

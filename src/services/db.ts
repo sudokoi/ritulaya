@@ -1,8 +1,8 @@
-import RitulayaDb, { type SettingsRow } from "../../modules/ritulaya-db"
+import RitulayaDb, { type SettingsRow, type SettingsPatch } from "../../modules/ritulaya-db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 
-export type { SettingsRow }
+export type { SettingsRow, SettingsPatch }
 
 export async function listCycles(): Promise<Cycle[]> {
   if (!RitulayaDb) return []
@@ -49,7 +49,7 @@ export async function findSettings(): Promise<SettingsRow | null> {
   return RitulayaDb.getSettings()
 }
 
-export async function updateSettings(patch: Record<string, unknown>): Promise<void> {
+export async function updateSettings(patch: SettingsPatch): Promise<void> {
   if (!RitulayaDb) return
   await RitulayaDb.updateSettings(patch)
 }

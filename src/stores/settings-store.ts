@@ -1,5 +1,5 @@
 import { createStore } from "@xstate/store"
-import { findSettings, updateSettings, type SettingsRow } from "@/services/db"
+import { findSettings, updateSettings, type SettingsRow, type SettingsPatch } from "@/services/db"
 
 export interface SettingsState {
   avgCycleLength: number
@@ -60,7 +60,6 @@ export async function loadSettings() {
     const row = await findSettings()
     if (!row) {
       await updateSettings({
-        id: "default",
         avgCycleLength: defaults.avgCycleLength,
         avgPeriodLength: defaults.avgPeriodLength,
         lutealPhaseLength: defaults.lutealPhaseLength,
@@ -85,7 +84,7 @@ export async function loadSettings() {
 
 export async function updateSettingsFn(patch: Partial<SettingsState>) {
   try {
-    const data: Record<string, unknown> = {}
+    const data: SettingsPatch = {}
     if (patch.avgCycleLength !== undefined) data.avgCycleLength = patch.avgCycleLength
     if (patch.avgPeriodLength !== undefined) data.avgPeriodLength = patch.avgPeriodLength
     if (patch.lutealPhaseLength !== undefined)

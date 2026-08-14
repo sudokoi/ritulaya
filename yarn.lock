@@ -924,7 +924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.18.6, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.29.2":
+"@babel/runtime@npm:^7.18.6, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.25.0":
   version: 7.29.7
   resolution: "@babel/runtime@npm:7.29.7"
   checksum: 10/9883b4951787779fd382b121f22f92966d85f19434841f65fb00b2dfec232107e139683f47c6f252891826ad8ee18317b46c3a0e4819116a9885f47b46d7126a
@@ -5777,17 +5777,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-device@npm:57.0.1":
-  version: 57.0.1
-  resolution: "expo-device@npm:57.0.1"
-  dependencies:
-    ua-parser-js: "npm:^0.7.33"
-  peerDependencies:
-    expo: "*"
-  checksum: 10/40f5e98b072c8b172d608d9b1447b1eb43f232a81225be655190248f1e08d1c27dc01d0327c95a23403e25a39e76a825c60f50180b5a0d85676b4952ddf62fc3
-  languageName: node
-  linkType: hard
-
 "expo-file-system@npm:57.0.2, expo-file-system@npm:~57.0.2":
   version: 57.0.2
   resolution: "expo-file-system@npm:57.0.2"
@@ -5868,17 +5857,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/9e97df2ba1b250b60943b7faf42d6f7dc2f0825f9a244b3815a62c6e445975a083b4754109e2dd1336765014a2aa3cefd920380b7f281ec8af3ea8ce2d51bc52
-  languageName: node
-  linkType: hard
-
-"expo-local-authentication@npm:57.0.2":
-  version: 57.0.2
-  resolution: "expo-local-authentication@npm:57.0.2"
-  dependencies:
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    expo: "*"
-  checksum: 10/5bb820fa468b90e3eb120990b2fc2aee87aa620f2a1aa731fd80343524cbcea1328e21741ff2c72e8495a5ce90833eddff4b0fd231a2de10dc61d12cae6461a1
   languageName: node
   linkType: hard
 
@@ -6081,16 +6059,6 @@ __metadata:
     react-native-web:
       optional: true
   checksum: 10/4da9775c0d657231d9c986d4435f5fd254d2fd4a4b24d92d9471669b8fe7009df1db6f097530f6274ab646c98dc82f3a287baaf15531213b2ae5f424ef6fa1d8
-  languageName: node
-  linkType: hard
-
-"expo-web-browser@npm:57.0.2":
-  version: 57.0.2
-  resolution: "expo-web-browser@npm:57.0.2"
-  peerDependencies:
-    expo: "*"
-    react-native: "*"
-  checksum: 10/1e6b9c1070c8bf9ecdd2c8c4c2b369c3672028577a7c596dc18d3ebd03c60255974c251fccd0ebd0b32344b5e5c78f466ec3a5a62176c688f8fd9bb3ea63be87
   languageName: node
   linkType: hard
 
@@ -6793,13 +6761,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"html-parse-stringify@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "html-parse-stringify@npm:4.0.1"
-  checksum: 10/c30ce1fbc81c32c87808d8a527519a7524c73499b223cf2002e9fddd49ecf98626ee8c13bb011a3cc283803831d67fdb75ae9f566666d05c915e460d5b5016cc
-  languageName: node
-  linkType: hard
-
 "http-errors@npm:~2.0.1":
   version: 2.0.1
   resolution: "http-errors@npm:2.0.1"
@@ -6864,18 +6825,6 @@ __metadata:
   version: 1.1.0
   resolution: "hyphenate-style-name@npm:1.1.0"
   checksum: 10/b9ed74e29181d96bd58a2d0e62fc4a19879db591dba268275829ff0ae595fcdf11faafaeaa63330a45c3004664d7db1f0fc7cdb372af8ee4615ed8260302c207
-  languageName: node
-  linkType: hard
-
-"i18next@npm:26.3.6":
-  version: 26.3.6
-  resolution: "i18next@npm:26.3.6"
-  peerDependencies:
-    typescript: ^5 || ^6 || ^7
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/529f1dbfae6b0fe98d997af98af5d6d0a0e27ddf5b91b81c5dfccad94e3a66dceeba2d1b7327f0045085bc4d552abbf4a1efbfadd4bbb98d13a54e3310eae428
   languageName: node
   linkType: hard
 
@@ -6990,13 +6939,6 @@ __metadata:
     hasown: "npm:^2.0.2"
     side-channel: "npm:^1.1.0"
   checksum: 10/1d5219273a3dab61b165eddf358815eefc463207db33c20fcfca54717da02e3f492003757721f972fd0bf21e4b426cab389c5427b99ceea4b8b670dc88ee6d4a
-  languageName: node
-  linkType: hard
-
-"intl-pluralrules@npm:2.0.1":
-  version: 2.0.1
-  resolution: "intl-pluralrules@npm:2.0.1"
-  checksum: 10/562964d81c4477ab0b66e051c31cdbb2ca599307ffdfdc88a1e16d2cf137e481082b90d5ad81f9d2d5f6767ec5528d764a44462f6752109ac035c04604973e23
   languageName: node
   linkType: hard
 
@@ -9940,28 +9882,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-i18next@npm:17.0.11":
-  version: 17.0.11
-  resolution: "react-i18next@npm:17.0.11"
-  dependencies:
-    "@babel/runtime": "npm:^7.29.2"
-    html-parse-stringify: "npm:^4.0.1"
-    use-sync-external-store: "npm:^1.6.0"
-  peerDependencies:
-    i18next: ">= 26.2.0"
-    react: ">= 16.8.0"
-    typescript: ^5 || ^6 || ^7
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-    typescript:
-      optional: true
-  checksum: 10/9c810cc32b976faeab765983984721142347c93564e844bad1b9efa58a5a8c8d735086bbebcd0872e1ca2c4c76c2474f93a7f49a6ac35756330abb9ca4cfc00c
-  languageName: node
-  linkType: hard
-
 "react-is-18@npm:react-is@^18.3.1, react-is@npm:^18.0.0":
   version: 18.3.1
   resolution: "react-is@npm:18.3.1"
@@ -10587,14 +10507,12 @@ __metadata:
     expo: "npm:57.0.12"
     expo-clipboard: "npm:57.0.1"
     expo-constants: "npm:57.0.10"
-    expo-device: "npm:57.0.1"
     expo-file-system: "npm:57.0.2"
     expo-font: "npm:57.0.1"
     expo-glass-effect: "npm:57.0.1"
     expo-haptics: "npm:57.0.1"
     expo-image: "npm:57.0.2"
     expo-linking: "npm:57.0.5"
-    expo-local-authentication: "npm:57.0.2"
     expo-notifications: "npm:57.0.10"
     expo-router: "npm:57.0.12"
     expo-sharing: "npm:57.0.11"
@@ -10602,9 +10520,6 @@ __metadata:
     expo-status-bar: "npm:57.0.1"
     expo-symbols: "npm:57.0.2"
     expo-system-ui: "npm:57.0.2"
-    expo-web-browser: "npm:57.0.2"
-    i18next: "npm:26.3.6"
-    intl-pluralrules: "npm:2.0.1"
     jest: "npm:29.7.0"
     jest-expo: "npm:57.0.4"
     jest-watch-typeahead: "npm:3.0.1"
@@ -10613,7 +10528,6 @@ __metadata:
     prettier: "npm:3.9.6"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
-    react-i18next: "npm:17.0.11"
     react-native: "npm:0.86.2"
     react-native-css-interop: "npm:0.2.6"
     react-native-gesture-handler: "npm:2.32.0"
@@ -11718,15 +11632,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ua-parser-js@npm:^0.7.33":
-  version: 0.7.41
-  resolution: "ua-parser-js@npm:0.7.41"
-  bin:
-    ua-parser-js: script/cli.js
-  checksum: 10/e41306332d8ace098d51a644a3ba95522ddfc04243727a3c0419efcdf486c8f868c3af8e6a56f6aa86bdc26e6b893abb0b2bde0c9e1a1625a183dfdf839cac82
-  languageName: node
-  linkType: hard
-
 "ua-parser-js@npm:^1.0.35":
   version: 1.0.41
   resolution: "ua-parser-js@npm:1.0.41"
@@ -11884,15 +11789,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10/2fec05eb851cdfc4a4657b1dfb434e686f346c3265ffc9db8a974bb58f8128bd4a708a3cc00e8f51655fccf81822ed4419ebed42f41610589e3aab0cf2492edb
-  languageName: node
-  linkType: hard
-
-"use-sync-external-store@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "use-sync-external-store@npm:1.6.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
 

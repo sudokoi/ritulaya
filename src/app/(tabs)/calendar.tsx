@@ -101,6 +101,7 @@ export default function CalendarScreen() {
         />
 
         <DayDetailSheet
+          key={selectedDate ? format(selectedDate, "yyyy-MM-dd") : "closed"}
           visible={selectedDate !== null}
           date={selectedDate ?? new Date()}
           existingFlow={existingLog?.flowIntensity}

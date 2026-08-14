@@ -17,6 +17,19 @@ export interface SettingsRow {
   updatedAt: string
 }
 
+export interface SettingsPatch {
+  avgCycleLength?: number
+  avgPeriodLength?: number
+  lutealPhaseLength?: number
+  theme?: string
+  language?: string
+  biometricLock?: number
+  discreetMode?: number
+  reminderPeriodAhead?: number
+  reminderDailyLog?: number
+  createdAt?: string
+}
+
 interface RitulayaDbNativeModule {
   listCycles(): Promise<Cycle[]>
   createCycle(startDate: string): Promise<Cycle>
@@ -27,7 +40,7 @@ interface RitulayaDbNativeModule {
   upsertDayLog(input: DayLogCreate): Promise<DayLog>
   deleteDayLog(id: string): Promise<void>
   getSettings(): Promise<SettingsRow | null>
-  updateSettings(patch: Record<string, unknown>): Promise<void>
+  updateSettings(patch: SettingsPatch): Promise<void>
 }
 
 export default requireOptionalNativeModule<RitulayaDbNativeModule>("RitulayaDb")
