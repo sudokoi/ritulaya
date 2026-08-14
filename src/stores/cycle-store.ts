@@ -1,6 +1,5 @@
 import { createStore } from "@xstate/store"
-import { listCycles, findCurrentCycle, createCycle, endCycle } from "@/db/cycles"
-import { findLastFlowDate } from "@/db/day-logs"
+import { listCycles, createCycle, endCycle, findLastFlowDate } from "@/services/db"
 import { upsertDayLog } from "@/stores/day-log-store"
 import { todayISO } from "@/utils/date"
 import { addDays, differenceInDays, format } from "date-fns"
@@ -31,28 +30,31 @@ export const cycleStore = createStore({
   },
 })
 
-export function loadCycles() {
-  const cycles = listCycles()
-  const currentCycle = findCurrentCycle()
+export async function loadCycles() {
+  const cycles = await listCycles()
+  const currentCycle = cycles.find((cycle) => cycle.endDate === null) ?? null
   cycleStore.send({ type: "setCycles", cycles, currentCycle })
 }
 
 export async function logPeriodToday(flow: FlowIntensity = "medium", periodDays = 3) {
   const today = todayISO()
-  let cycle = findCurrentCycle()
+  const cycles = await listCycles()
+  let cycle = cycles.find((c) => c.endDate === null) ?? null
 
   if (cycle) {
-    const lastFlowDate = findLastFlowDate()
+    const lastFlowDate = await findLastFlowDate()
     if (
       lastFlowDate &&
       differenceInDays(new Date(today), new Date(lastFlowDate)) >= NEW_CYCLE_GAP_DAYS
     ) {
-      endCycle(cycle.id, format(addDays(new Date(today), -1), "yyyy-MM-dd"))
-      cycle = createCycle(today)
+      await endCycle(cycle.id, format(addDays(new Date(today), -1), "yyyy-MM-dd"))
+      cycle = await createCycle(today)
     }
   } else {
-    cycle = createCycle(today)
+    cycle = await createCycle(today)
   }
+
+  if (!cycle) return
 
   for (let i = 0; i < periodDays; i++) {
     await upsertDayLog({
@@ -64,5 +66,5 @@ export async function logPeriodToday(flow: FlowIntensity = "medium", periodDays 
     })
   }
 
-  loadCycles()
+  await loadCycles()
 }

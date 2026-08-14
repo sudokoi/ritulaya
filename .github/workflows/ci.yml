@@ -15,7 +15,7 @@ jobs:
   ci:
     name: Lint, Format, Typecheck & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -31,6 +31,11 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-35 build-tools;35.0.0"
 
       - name: Enable corepack
         run: corepack enable
@@ -62,6 +67,16 @@ jobs:
           key: ${{ runner.os }}-ktlint-${{ hashFiles('scripts/lint-kotlin.sh') }}
           restore-keys: |
             ${{ runner.os }}-ktlint-
+
+      - name: Cache Gradle
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Install dependencies
         run: yarn install --immutable

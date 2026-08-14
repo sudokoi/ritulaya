@@ -49,6 +49,8 @@ export default tseslint.config(
       "*.config.*",
       "assets/",
       ".changeset/",
+      "**/build/",
+      "**/android/build/",
     ],
   },
   {

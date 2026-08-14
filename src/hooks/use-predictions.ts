@@ -1,33 +1,32 @@
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 import { useCycles } from "./use-cycles"
 import { useSettings } from "./use-settings"
 import { useDayLogs } from "./use-day-logs"
-import { averagePeriodLength } from "@/lib/cycle-derivation"
-import { predict } from "@/predictions"
+import { computePrediction } from "@/services/predictions"
 import type { PredictionResult } from "@/types/prediction"
 
 export function usePrediction(): {
-  prediction: PredictionResult
+  prediction: PredictionResult | null
   periodLength: number
 } {
   const { cycles } = useCycles()
   const { logs } = useDayLogs()
   const { avgCycleLength, avgPeriodLength, lutealPhaseLength } = useSettings()
 
-  const periodLength = useMemo(
-    () => averagePeriodLength(cycles, logs, avgPeriodLength),
-    [cycles, logs, avgPeriodLength],
-  )
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null)
+  const [periodLength, setPeriodLength] = useState<number>(avgPeriodLength)
 
-  const prediction = useMemo(
-    () =>
-      predict(cycles, {
-        avgCycleLength,
-        avgPeriodLength: periodLength,
-        lutealPhaseLength,
-      }),
-    [cycles, avgCycleLength, periodLength, lutealPhaseLength],
-  )
+  useEffect(() => {
+    let cancelled = false
+    computePrediction().then((bundle) => {
+      if (cancelled || !bundle) return
+      setPrediction(bundle.prediction)
+      setPeriodLength(bundle.periodLength)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [cycles, logs, avgCycleLength, avgPeriodLength, lutealPhaseLength])
 
   return { prediction, periodLength }
 }

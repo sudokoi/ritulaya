@@ -1,10 +1,5 @@
 import { createStore } from "@xstate/store"
-import {
-  findSettings,
-  insertSettings,
-  updateSettings,
-  type SettingsRow,
-} from "@/db/settings"
+import { findSettings, updateSettings, type SettingsRow } from "@/services/db"
 import { nowISO } from "@/utils/date"
 
 export interface SettingsState {
@@ -63,10 +58,10 @@ function toSettings(row: SettingsRow): SettingsState {
 
 export async function loadSettings() {
   try {
-    const row = findSettings()
+    const row = await findSettings()
     if (!row) {
       const now = nowISO()
-      insertSettings({
+      await updateSettings({
         id: "default",
         avgCycleLength: defaults.avgCycleLength,
         avgPeriodLength: defaults.avgPeriodLength,
@@ -110,7 +105,7 @@ export async function updateSettingsFn(patch: Partial<SettingsState>) {
     if (patch.reminderDailyLog !== undefined)
       data.reminderDailyLog = patch.reminderDailyLog ? 1 : 0
 
-    updateSettings(data)
+    await updateSettings(data)
     settingsStore.send({ type: "patch", settings: patch })
   } catch (e) {
     settingsStore.send({

@@ -3,11 +3,11 @@ plugins {
   id 'expo-module-gradle-plugin'
 }
 
-group = 'expo.modules.ritulayasync'
+group = 'expo.modules.ritulayapredictions'
 version = '0.1.0'
 
 android {
-  namespace "expo.modules.ritulayasync"
+  namespace "expo.modules.ritulayapredictions"
   compileSdk 35
   defaultConfig {
     minSdk 24
@@ -22,10 +22,17 @@ android {
   kotlinOptions {
     jvmTarget = "17"
   }
+  testOptions {
+    unitTests {
+      returnDefaultValues = true
+    }
+  }
 }
 
 dependencies {
   implementation "androidx.core:core-ktx:1.15.0"
-  implementation "androidx.work:work-runtime-ktx:2.9.0"
   implementation project(":ritulaya-db")
+
+  testImplementation "junit:junit:4.13.2"
+  testImplementation "com.google.truth:truth:1.1.3"
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import kotlinx.coroutines.runBlocking
 
 class RitulayaSyncModule : Module() {
     private lateinit var prefs: SharedPreferences
@@ -79,7 +80,7 @@ class RitulayaSyncModule : Module() {
             }
 
             AsyncFunction("syncNow") {
-                orchestrator.sync()
+                runBlocking { orchestrator.sync() }
             }
 
             AsyncFunction("scheduleBackgroundSync") { intervalMinutes: Int ->

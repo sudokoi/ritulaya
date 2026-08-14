@@ -1,0 +1,57 @@
+package expo.modules.ritulayadb
+
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
+import kotlinx.coroutines.runBlocking
+
+class RitulayaDbModule : Module() {
+    private lateinit var store: RitulayaDataStore
+
+    override fun definition() =
+        ModuleDefinition {
+            Name("RitulayaDb")
+
+            OnCreate {
+                val context =
+                    appContext.reactContext?.applicationContext
+                        ?: throw IllegalStateException("Application context not available")
+                store = RitulayaDataStore(context)
+            }
+
+            AsyncFunction("listCycles") {
+                runBlocking { store.listCycles().map { it.toMap() } }
+            }
+
+            AsyncFunction("createCycle") { startDate: String ->
+                runBlocking { store.createCycle(startDate).toMap() }
+            }
+
+            AsyncFunction("endCycle") { id: String, endDate: String ->
+                runBlocking { store.endCycle(id, endDate) }
+            }
+
+            AsyncFunction("listDayLogs") {
+                runBlocking { store.listDayLogs().map { it.toMap() } }
+            }
+
+            AsyncFunction("findLastFlowDate") {
+                runBlocking { store.findLastFlowDate() }
+            }
+
+            AsyncFunction("upsertDayLog") { input: Map<String, Any?> ->
+                runBlocking { store.upsertDayLog(input).toMap() }
+            }
+
+            AsyncFunction("deleteDayLog") { id: String ->
+                runBlocking { store.deleteDayLog(id) }
+            }
+
+            AsyncFunction("getSettings") {
+                runBlocking { store.getSettings()?.toMap() }
+            }
+
+            AsyncFunction("updateSettings") { patch: Map<String, Any?> ->
+                runBlocking { store.updateSettings(patch) }
+            }
+        }
+}

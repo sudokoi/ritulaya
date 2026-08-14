@@ -6,7 +6,7 @@ module.exports = function (api) {
       "nativewind/babel",
     ],
     plugins: [
-      ["inline-import", { extensions: [".sql", ".md"] }],
+      ["inline-import", { extensions: [".md"] }],
       "react-native-reanimated/plugin",
     ],
   }

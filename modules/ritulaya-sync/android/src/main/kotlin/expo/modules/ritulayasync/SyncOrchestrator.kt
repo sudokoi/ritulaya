@@ -2,15 +2,34 @@ package expo.modules.ritulayasync
 
 import android.content.Context
 import android.content.SharedPreferences
+import expo.modules.ritulayadb.CycleEntity
+import expo.modules.ritulayadb.DayLogEntity
+import expo.modules.ritulayadb.RitulayaDataStore
+import expo.modules.ritulayadb.SettingsEntity
+import expo.modules.ritulayasync.CsvHandler.CycleRow
+import expo.modules.ritulayasync.CsvHandler.DayLogRow
+
+data class SyncSettingsRow(
+    val avgCycleLength: Int,
+    val avgPeriodLength: Int,
+    val lutealPhaseLength: Int,
+    val theme: String,
+    val language: String,
+    val biometricLock: Int,
+    val discreetMode: Int,
+    val reminderPeriodAhead: Int,
+    val reminderDailyLog: Int,
+    val updatedAt: String,
+)
 
 class SyncOrchestrator(
     private val appContext: Context,
     private val prefs: SharedPreferences,
 ) {
     private val tokenStore = SecureTokenStore(appContext)
-    private val localData = LocalDataStore(appContext)
+    private val dataStore = RitulayaDataStore(appContext)
 
-    fun sync(): Map<String, Any> {
+    suspend fun sync(): Map<String, Any> {
         val token = tokenStore.load("github_token")
         if (token == null) return errorResult("Not authenticated")
 
@@ -34,7 +53,7 @@ class SyncOrchestrator(
         }
     }
 
-    private fun fetchMergePush(
+    private suspend fun fetchMergePush(
         api: GithubApiClient,
         owner: String,
         repo: String,
@@ -51,9 +70,9 @@ class SyncOrchestrator(
 
         val manifestFile = api.getFileContent(owner, repo, "ritulaya.json", branch)
 
-        val localCycles = localData.loadCycles()
-        val localLogs = localData.loadDayLogs()
-        val localSettings = localData.loadSettings()
+        val localCycles = loadCycles()
+        val localLogs = loadDayLogs()
+        val localSettings = loadSettings()
 
         val mergedCycles = MergeEngine.mergeCycles(localCycles, remoteCycles)
         val mergedLogs = MergeEngine.mergeDayLogs(localLogs, remoteLogs)
@@ -106,8 +125,8 @@ class SyncOrchestrator(
             )
         }
 
-        localData.persist(mergedCycles, mergedLogs)
-        mergedSettings?.let { localData.persistSettings(it) }
+        persist(mergedCycles, mergedLogs)
+        mergedSettings?.let { persistSettings(it) }
 
         prefs
             .edit()
@@ -122,19 +141,127 @@ class SyncOrchestrator(
         )
     }
 
+    private suspend fun loadCycles(): List<CycleRow> {
+        val rows = linkedMapOf<String, CycleRow>()
+        dataStore.listCycles().forEach {
+            rows[it.id] = CycleRow(it.id, it.startDate, it.endDate, it.createdAt, it.updatedAt, null)
+        }
+        dataStore
+            .listTombstones()
+            .filter { it.entity == "cycle" }
+            .forEach { rows[it.entityId] = CycleRow(it.entityId, "", null, "", it.deletedAt, it.deletedAt) }
+        return rows.values.toList()
+    }
+
+    private suspend fun loadDayLogs(): List<DayLogRow> {
+        val rows = linkedMapOf<String, DayLogRow>()
+        dataStore.listDayLogs().forEach {
+            rows[it.id] =
+                DayLogRow(
+                    it.id,
+                    it.date,
+                    it.cycleId,
+                    it.flowIntensity,
+                    it.symptoms,
+                    it.mood,
+                    it.notes,
+                    it.cervicalMucus,
+                    it.bbt,
+                    it.sexualActivity,
+                    it.createdAt,
+                    it.updatedAt,
+                    null,
+                )
+        }
+        dataStore
+            .listTombstones()
+            .filter { it.entity == "day_log" }
+            .forEach {
+                rows[it.entityId] =
+                    DayLogRow(it.entityId, "", null, null, "[]", null, null, null, null, 0, "", it.deletedAt, it.deletedAt)
+            }
+        return rows.values.toList()
+    }
+
+    private suspend fun loadSettings(): SyncSettingsRow? {
+        val settings = dataStore.getSettings() ?: return null
+        return SyncSettingsRow(
+            avgCycleLength = settings.avgCycleLength,
+            avgPeriodLength = settings.avgPeriodLength,
+            lutealPhaseLength = settings.lutealPhaseLength,
+            theme = settings.theme,
+            language = settings.language,
+            biometricLock = settings.biometricLock,
+            discreetMode = settings.discreetMode,
+            reminderPeriodAhead = settings.reminderPeriodAhead,
+            reminderDailyLog = settings.reminderDailyLog,
+            updatedAt = settings.updatedAt,
+        )
+    }
+
+    private suspend fun persist(
+        cycles: List<CycleRow>,
+        logs: List<DayLogRow>,
+    ) {
+        val cycleEntities =
+            cycles
+                .filter { it.deletedAt == null }
+                .map { CycleEntity(it.id, it.startDate, it.endDate, it.createdAt, it.updatedAt) }
+        val logEntities =
+            logs
+                .filter { it.deletedAt == null }
+                .map {
+                    DayLogEntity(
+                        it.id,
+                        it.date,
+                        it.cycleId,
+                        it.flowIntensity,
+                        it.symptoms,
+                        it.mood,
+                        it.notes,
+                        it.cervicalMucus,
+                        it.bbt,
+                        it.sexualActivity,
+                        it.createdAt,
+                        it.updatedAt,
+                    )
+                }
+        dataStore.replaceAll(cycleEntities, logEntities)
+    }
+
+    private suspend fun persistSettings(settings: SyncSettingsRow) {
+        val existing = dataStore.getSettings()
+        val entity =
+            SettingsEntity(
+                id = "default",
+                avgCycleLength = settings.avgCycleLength,
+                avgPeriodLength = settings.avgPeriodLength,
+                lutealPhaseLength = settings.lutealPhaseLength,
+                theme = settings.theme,
+                language = settings.language,
+                biometricLock = settings.biometricLock,
+                discreetMode = settings.discreetMode,
+                reminderPeriodAhead = settings.reminderPeriodAhead,
+                reminderDailyLog = settings.reminderDailyLog,
+                createdAt = existing?.createdAt ?: settings.updatedAt,
+                updatedAt = settings.updatedAt,
+            )
+        dataStore.saveSettings(entity)
+    }
+
     private fun mergeSettings(
-        local: SettingsRow?,
-        remote: SettingsRow?,
-    ): SettingsRow? {
+        local: SyncSettingsRow?,
+        remote: SyncSettingsRow?,
+    ): SyncSettingsRow? {
         if (local == null) return remote
         if (remote == null) return local
         return if (remote.updatedAt >= local.updatedAt) remote else local
     }
 
-    private fun parseSettings(json: String): SettingsRow? =
+    private fun parseSettings(json: String): SyncSettingsRow? =
         try {
             val o = org.json.JSONObject(json)
-            SettingsRow(
+            SyncSettingsRow(
                 avgCycleLength = o.optInt("avgCycleLength", 28),
                 avgPeriodLength = o.optInt("avgPeriodLength", 3),
                 lutealPhaseLength = o.optInt("lutealPhaseLength", 14),
@@ -150,7 +277,7 @@ class SyncOrchestrator(
             null
         }
 
-    private fun writeSettings(settings: SettingsRow): String =
+    private fun writeSettings(settings: SyncSettingsRow): String =
         org.json
             .JSONObject()
             .apply {

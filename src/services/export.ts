@@ -1,7 +1,6 @@
 import { File, Paths } from "expo-file-system"
 import * as Sharing from "expo-sharing"
-import { listCycles } from "@/db/cycles"
-import { listDayLogs } from "@/db/day-logs"
+import { listCycles, listDayLogs } from "@/services/db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog } from "@/types/day-log"
 
@@ -33,8 +32,8 @@ function writeCsv(name: string, content: string): File {
 }
 
 export async function exportData() {
-  const cycles = listCycles()
-  const logs = listDayLogs()
+  const cycles = await listCycles()
+  const logs = await listDayLogs()
 
   const cyclesFile = writeCsv("ritulaya-cycles.csv", toCyclesCsv(cycles))
   const logsFile = writeCsv("ritulaya-day-logs.csv", toLogsCsv(logs))

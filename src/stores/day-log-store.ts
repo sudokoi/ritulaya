@@ -3,7 +3,7 @@ import {
   listDayLogs,
   upsertDayLog as upsertDayLogInRepo,
   deleteDayLog as deleteDayLogInRepo,
-} from "@/db/day-logs"
+} from "@/services/db"
 import { todayISO } from "@/utils/date"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 
@@ -53,17 +53,17 @@ export const dayLogStore = createStore({
 })
 
 export async function loadDayLogs() {
-  const logs = listDayLogs()
+  const logs = await listDayLogs()
   dayLogStore.send({ type: "setLogs", logs })
 }
 
-export async function upsertDayLog(input: DayLogCreate): Promise<DayLog> {
-  const log = upsertDayLogInRepo(input)
-  dayLogStore.send({ type: "upsertLog", log })
+export async function upsertDayLog(input: DayLogCreate): Promise<DayLog | null> {
+  const log = await upsertDayLogInRepo(input)
+  if (log) dayLogStore.send({ type: "upsertLog", log })
   return log
 }
 
 export async function deleteDayLog(id: string) {
-  deleteDayLogInRepo(id)
+  await deleteDayLogInRepo(id)
   dayLogStore.send({ type: "removeLog", id })
 }

@@ -18,7 +18,7 @@ module.exports = {
         "node_modules/(?!(" +
           "expo-router|@react-native|react-native|" +
           "expo-font|expo-constants|expo-linking|expo-status-bar|" +
-          "expo-sqlite|drizzle-orm|@expo/vector-icons" +
+          "@expo/vector-icons" +
           ")/)",
       ],
       moduleNameMapper: {
