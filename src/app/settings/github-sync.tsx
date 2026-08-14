@@ -12,12 +12,14 @@ import { router } from "expo-router"
 import { ChevronLeft, Cloud, Trash2, RefreshCw, Plus } from "lucide-react-native"
 import { useSync } from "@/hooks/use-sync"
 import { useSettings } from "@/hooks/use-settings"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 import { discreetLabel } from "@/lib/discreet"
 import { cn } from "@/lib/utils"
 
 export default function GithubSyncScreen() {
   const sync = useSync()
   const { discreetMode: discreet } = useSettings()
+  const { muted, accent } = useThemeColors()
 
   const [repoName, setRepoName] = useState("ritulaya-data")
   const [existingOwner, setExistingOwner] = useState("")
@@ -41,7 +43,7 @@ export default function GithubSyncScreen() {
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="flex-row items-center gap-2 px-4 pt-14 pb-4">
         <TouchableOpacity onPress={() => router.back()} className="p-2">
-          <ChevronLeft size={24} color="#8E8C8A" />
+          <ChevronLeft size={24} color={muted} />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
           {discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
@@ -56,7 +58,7 @@ export default function GithubSyncScreen() {
 
       {!sync.connected && !sync.deviceFlow && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
-          <Cloud size={40} color="#8E8C8A" />
+          <Cloud size={40} color={muted} />
           <Text className="mt-4 text-lg font-semibold text-[var(--text-primary)]">
             {discreetLabel(discreet, "Back up to GitHub", "Back up your data")}
           </Text>
@@ -109,7 +111,7 @@ export default function GithubSyncScreen() {
             </Text>
           </TouchableOpacity>
           <View className="mt-4 flex-row items-center justify-center gap-2">
-            <ActivityIndicator size="small" color="#8E8C8A" />
+            <ActivityIndicator size="small" color={muted} />
             <Text className="text-sm text-[var(--text-muted)]">
               {discreetLabel(discreet, "Waiting for authorization…", "Waiting…")}
             </Text>
@@ -132,7 +134,7 @@ export default function GithubSyncScreen() {
               onChangeText={setRepoName}
               className="flex-1 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
               placeholder="repository-name"
-              placeholderTextColor="#8E8C8A"
+              placeholderTextColor={muted}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -153,7 +155,7 @@ export default function GithubSyncScreen() {
             onChangeText={setExistingOwner}
             className="mt-2 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
             placeholder={sync.username ?? "owner"}
-            placeholderTextColor="#8E8C8A"
+            placeholderTextColor={muted}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -162,7 +164,7 @@ export default function GithubSyncScreen() {
             onChangeText={setExistingRepo}
             className="mt-2 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
             placeholder="repository-name"
-            placeholderTextColor="#8E8C8A"
+            placeholderTextColor={muted}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -194,7 +196,7 @@ export default function GithubSyncScreen() {
       {sync.connected && sync.config && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <View className="flex-row items-center gap-3">
-            <Cloud size={24} color="#42725A" />
+            <Cloud size={24} color={accent} />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-[var(--text-primary)]">
                 {sync.config.repoOwner}/{sync.config.repoName}

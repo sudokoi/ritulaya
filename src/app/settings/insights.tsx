@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react-native"
 import { useCycles } from "@/hooks/use-cycles"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { useSettings } from "@/hooks/use-settings"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 import { usePrediction } from "@/hooks/use-predictions"
 import { discreetLabel } from "@/lib/discreet"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
@@ -23,6 +24,7 @@ export default function InsightsScreen() {
   const { cycles } = useCycles()
   const { logs } = useDayLogs()
   const { discreetMode: discreet } = useSettings()
+  const { muted } = useThemeColors()
   const { periodLength, avgCycleLength } = usePrediction()
 
   const symptomFreq = useMemo(() => frequency(logs.flatMap((l) => l.symptoms)), [logs])
@@ -32,7 +34,7 @@ export default function InsightsScreen() {
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="flex-row items-center gap-2 px-4 pt-14 pb-2">
         <TouchableOpacity onPress={() => router.back()} className="p-2">
-          <ChevronLeft size={24} color="#8E8C8A" />
+          <ChevronLeft size={24} color={muted} />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
           {discreetLabel(discreet, "Insights", "Details")}

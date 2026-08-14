@@ -3,9 +3,11 @@ import { AppState, Text, TouchableOpacity, View } from "react-native"
 import * as LocalAuthentication from "expo-local-authentication"
 import { Fingerprint } from "lucide-react-native"
 import { useSettings } from "@/hooks/use-settings"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 
 export function BiometricGate({ children }: { children: React.ReactNode }) {
   const { biometricLock, update } = useSettings()
+  const { accent } = useThemeColors()
   const [unlocked, setUnlocked] = useState(!biometricLock)
   const [prevBiometricLock, setPrevBiometricLock] = useState(biometricLock)
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +72,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
 
   return (
     <View className="flex-1 items-center justify-center bg-[var(--bg-primary)] px-6">
-      <Fingerprint size={48} color="#42725A" />
+      <Fingerprint size={48} color={accent} />
       <Text className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
         Ritulaya is locked
       </Text>

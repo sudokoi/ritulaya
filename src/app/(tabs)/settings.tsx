@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 import { discreetLabel } from "@/lib/discreet"
 import { useSettings } from "@/hooks/use-settings"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 import { usePrediction } from "@/hooks/use-predictions"
 import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
@@ -38,6 +39,7 @@ interface SettingsRowProps {
 }
 
 function SettingsRow({ icon, label, value, onPress, right, danger }: SettingsRowProps) {
+  const { muted } = useThemeColors()
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -57,7 +59,7 @@ function SettingsRow({ icon, label, value, onPress, right, danger }: SettingsRow
       </View>
       <View className="flex-row items-center gap-2">
         {value && <Text className="text-sm text-[var(--text-muted)]">{value}</Text>}
-        {right ?? (onPress ? <ChevronRight size={18} color="#8E8C8A" /> : null)}
+        {right ?? (onPress ? <ChevronRight size={18} color={muted} /> : null)}
       </View>
     </TouchableOpacity>
   )
@@ -82,6 +84,7 @@ export default function SettingsScreen() {
     load,
   } = useSettings()
   const { periodLength, avgCycleLength } = usePrediction()
+  const colors = useThemeColors()
 
   useEffect(() => {
     load()
@@ -135,7 +138,7 @@ export default function SettingsScreen() {
           onPress={() => router.push("/settings/insights")}
           className="mt-3 flex-row items-center justify-center gap-1"
         >
-          <BarChart3 size={14} color="#42725A" />
+          <BarChart3 size={14} color={colors.accent} />
           <Text className="text-sm font-medium text-follicular dark:text-follicular-dark">
             {discreetLabel(discreet, "View Full Insights", "View Details")}
           </Text>
@@ -145,24 +148,24 @@ export default function SettingsScreen() {
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Privacy", "Security")} />
         <SettingsRow
-          icon={<Shield size={20} color="#8E8C8A" />}
+          icon={<Shield size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Biometric Lock", "App Lock")}
           right={
             <Switch
               value={biometricLock}
               onValueChange={setBiometricLock}
-              trackColor={{ true: "#42725A" }}
+              trackColor={{ true: colors.accent }}
             />
           }
         />
         <SettingsRow
-          icon={<EyeOff size={20} color="#8E8C8A" />}
+          icon={<EyeOff size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Discreet Mode", "Simple Mode")}
           right={
             <Switch
               value={discreet}
               onValueChange={(v) => update({ discreetMode: v })}
-              trackColor={{ true: "#42725A" }}
+              trackColor={{ true: colors.accent }}
             />
           }
         />
@@ -171,13 +174,13 @@ export default function SettingsScreen() {
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Data", "Storage")} />
         <SettingsRow
-          icon={<Cloud size={20} color="#8E8C8A" />}
+          icon={<Cloud size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
           value={discreetLabel(discreet, "Not set up", "Off")}
           onPress={() => router.push("/settings/github-sync")}
         />
         <SettingsRow
-          icon={<Download size={20} color="#8E8C8A" />}
+          icon={<Download size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Export Data", "Export")}
           onPress={() => void exportData()}
         />
@@ -186,19 +189,19 @@ export default function SettingsScreen() {
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Reminders", "Alerts")} />
         <SettingsRow
-          icon={<Bell size={20} color="#8E8C8A" />}
+          icon={<Bell size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Period Ahead", "Alert Ahead")}
           value={reminderPeriodAhead > 0 ? `${reminderPeriodAhead} days` : "Off"}
           onPress={cyclePeriodAhead}
         />
         <SettingsRow
-          icon={<Bell size={20} color="#8E8C8A" />}
+          icon={<Bell size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Daily Log", "Daily Alert")}
           right={
             <Switch
               value={reminderDailyLog}
               onValueChange={(v) => update({ reminderDailyLog: v })}
-              trackColor={{ true: "#42725A" }}
+              trackColor={{ true: colors.accent }}
             />
           }
         />
@@ -207,7 +210,7 @@ export default function SettingsScreen() {
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Appearance", "Display")} />
         <SettingsRow
-          icon={<Smartphone size={20} color="#8E8C8A" />}
+          icon={<Smartphone size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Theme", "Appearance")}
           value={currentThemeLabel}
           onPress={cycleTheme}
@@ -217,18 +220,18 @@ export default function SettingsScreen() {
       <View className="mx-4 mt-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "About", "Info")} />
         <SettingsRow
-          icon={<Info size={20} color="#8E8C8A" />}
+          icon={<Info size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Privacy Policy", "Policy")}
           onPress={() => router.push("/settings/privacy")}
         />
         <SettingsRow
-          icon={<Bug size={20} color="#8E8C8A" />}
+          icon={<Bug size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Report Bug", "Diagnostics")}
           onPress={() => void reportBug()}
         />
         <View className="flex-row items-center justify-between py-4">
           <View className="flex-row items-center gap-3">
-            <Info size={20} color="#8E8C8A" />
+            <Info size={20} color={colors.muted} />
             <Text className="text-base text-[var(--text-primary)]">
               {discreetLabel(discreet, "Version", "Build")}
             </Text>

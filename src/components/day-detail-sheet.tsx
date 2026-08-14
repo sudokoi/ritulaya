@@ -13,6 +13,7 @@ import { X, Trash2 } from "lucide-react-native"
 import * as Haptics from "expo-haptics"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 import type { SymptomKey } from "@/constants/symptoms"
 import type { MoodKey } from "@/constants/moods"
 import type { FlowIntensity } from "@/types/day-log"
@@ -60,6 +61,7 @@ export function DayDetailSheet({
   const [symptoms, setSymptoms] = useState<SymptomKey[]>(existingSymptoms)
   const [mood, setMood] = useState<MoodKey | null>(existingMood ?? null)
   const [notes, setNotes] = useState(existingNotes ?? "")
+  const { muted } = useThemeColors()
 
   const toggleSymptom = useCallback((key: SymptomKey) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -112,7 +114,7 @@ export function DayDetailSheet({
                 <Text className="font-medium text-white">Save</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={onClose} className="p-2">
-                <X size={20} color="#8E8C8A" />
+                <X size={20} color={muted} />
               </TouchableOpacity>
             </View>
           </View>
@@ -218,7 +220,7 @@ export function DayDetailSheet({
                 value={notes}
                 onChangeText={setNotes}
                 placeholder="How are you feeling today?"
-                placeholderTextColor="#8E8C8A"
+                placeholderTextColor={muted}
                 multiline
                 numberOfLines={3}
                 className="min-h-[80px] rounded-card bg-[var(--bg-surface)] p-4 text-[var(--text-primary)]"

@@ -25,6 +25,7 @@ export default function PrivacyScreen() {
   const dark = colorScheme === "dark"
   const textColor = dark ? "#f2f1ee" : "#2d2d2f"
   const linkColor = dark ? "#A2CCB4" : "#42725A"
+  const muted = dark ? "#a9a8a4" : "#6f6b64"
 
   const styles = {
     ...markdownStyles,
@@ -39,16 +40,14 @@ export default function PrivacyScreen() {
     <View className="flex-1 bg-[var(--bg-primary)]">
       <View className="flex-row items-center gap-2 px-4 pt-14 pb-2">
         <TouchableOpacity onPress={() => router.back()} className="p-2">
-          <ChevronLeft size={24} color="#8E8C8A" />
+          <ChevronLeft size={24} color={muted} />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
           {discreetLabel(discreet, "Privacy Policy", "Policy")}
         </Text>
       </View>
       <ScrollView className="flex-1 px-6 pb-12">
-        <Markdown style={styles}>
-          {privacyMarkdown.replace(/\r\n/g, "\n")}
-        </Markdown>
+        <Markdown style={styles}>{privacyMarkdown.replace(/\r\n/g, "\n")}</Markdown>
       </ScrollView>
     </View>
   )

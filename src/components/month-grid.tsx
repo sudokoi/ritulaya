@@ -3,6 +3,7 @@ import { addMonths, subMonths, format, isSameMonth, isToday } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
 import { getDaysInMonthGrid } from "@/utils/date"
 import { cn } from "@/lib/utils"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 import { useState } from "react"
 
 interface CalendarDay {
@@ -51,6 +52,7 @@ export function MonthGrid({
   onDayPress,
 }: MonthGridProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const { muted } = useThemeColors()
   const days = getDaysInMonthGrid(currentMonth)
 
   const prevMonth = () => setCurrentMonth((d) => subMonths(d, 1))
@@ -62,13 +64,13 @@ export function MonthGrid({
     <View>
       <View className="flex-row items-center justify-between px-4 py-4">
         <TouchableOpacity onPress={prevMonth} className="p-2">
-          <ChevronLeft size={20} color="#8E8C8A" />
+          <ChevronLeft size={20} color={muted} />
         </TouchableOpacity>
         <Text className="text-lg font-semibold text-[var(--text-primary)]">
           {format(currentMonth, "MMMM yyyy")}
         </Text>
         <TouchableOpacity onPress={nextMonth} className="p-2">
-          <ChevronRight size={20} color="#8E8C8A" />
+          <ChevronRight size={20} color={muted} />
         </TouchableOpacity>
       </View>
 
