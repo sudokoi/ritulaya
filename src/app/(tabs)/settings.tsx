@@ -14,14 +14,21 @@ import {
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
 import { discreetLabel } from "@/lib/discreet"
+import { MenuView } from "@expo/ui/community/menu"
 import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
 import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
 import { useEffect } from "react"
 
-const THEME_OPTIONS = ["system", "light", "dark"] as const
+const THEME_OPTIONS = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+] as const
 const PERIOD_AHEAD_OPTIONS = [0, 1, 2, 3, 5, 7]
+
+type Theme = (typeof THEME_OPTIONS)[number]["value"]
 
 interface SettingsRowProps {
   icon: React.ReactNode
@@ -82,10 +89,15 @@ export default function SettingsScreen() {
     load()
   }, [load])
 
-  const cycleTheme = () => {
-    const idx = THEME_OPTIONS.indexOf(theme)
-    update({ theme: THEME_OPTIONS[(idx + 1) % THEME_OPTIONS.length] })
-  }
+  const selectTheme = (value: Theme) => update({ theme: value })
+
+  const themeActions = THEME_OPTIONS.map((option) => ({
+    id: option.value,
+    title: option.label,
+    state: (theme === option.value ? "on" : "off") as "on" | "off",
+  }))
+
+  const currentThemeLabel = THEME_OPTIONS.find((option) => option.value === theme)?.label
 
   const cyclePeriodAhead = () => {
     const idx = PERIOD_AHEAD_OPTIONS.indexOf(reminderPeriodAhead)
@@ -181,12 +193,23 @@ export default function SettingsScreen() {
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Appearance", "Display")} />
-        <SettingsRow
-          icon={<Smartphone size={20} color="#8E8C8A" />}
-          label={discreetLabel(discreet, "Theme", "Appearance")}
-          value={theme}
-          onPress={cycleTheme}
-        />
+        <MenuView
+          actions={themeActions}
+          onPressAction={(e) => selectTheme(e.nativeEvent.event as Theme)}
+        >
+          <View className="flex-row items-center justify-between border-b border-[var(--border-light)] py-4">
+            <View className="flex-row items-center gap-3">
+              <Smartphone size={20} color="#8E8C8A" />
+              <Text className="text-base text-[var(--text-primary)]">
+                {discreetLabel(discreet, "Theme", "Appearance")}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-sm text-[var(--text-muted)]">{currentThemeLabel}</Text>
+              <ChevronRight size={18} color="#8E8C8A" />
+            </View>
+          </View>
+        </MenuView>
       </View>
 
       <View className="mx-4 mt-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5">
