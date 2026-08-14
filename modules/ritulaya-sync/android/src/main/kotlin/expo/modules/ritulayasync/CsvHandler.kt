@@ -58,7 +58,19 @@ object CsvHandler {
         val writer = StringWriter()
         writer.write("id,start_date,end_date,created_at,updated_at,deleted_at\n")
         rows.forEach { row ->
-            writer.write("${row.id},${row.startDate},${row.endDate ?: ""},${row.createdAt},${row.updatedAt},${row.deletedAt ?: ""}\n")
+            writer.write(
+                writeCsvLine(
+                    listOf(
+                        row.id,
+                        row.startDate,
+                        row.endDate ?: "",
+                        row.createdAt,
+                        row.updatedAt,
+                        row.deletedAt ?: "",
+                    ),
+                ),
+            )
+            writer.write("\n")
         }
         return writer.toString()
     }
@@ -69,20 +81,45 @@ object CsvHandler {
             "id,date,cycle_id,flow_intensity,symptoms,mood,notes,cervical_mucus,bbt,sexual_activity,created_at,updated_at,deleted_at\n",
         )
         rows.forEach { row ->
-            val symptoms = FieldCodec.encode(row.symptoms)
-            val notes = FieldCodec.encode(row.notes ?: "")
+            val notes = (row.notes ?: "").replace(Regex("[\\r\\n]+"), " ")
             writer.write(
-                "${row.id},${row.date},${row.cycleId ?: ""},${row.flowIntensity ?: ""},$symptoms,${row.mood ?: ""},$notes,${row.cervicalMucus ?: ""},${row.bbt ?: ""},${row.sexualActivity},${row.createdAt},${row.updatedAt},${row.deletedAt ?: ""}\n",
+                writeCsvLine(
+                    listOf(
+                        row.id,
+                        row.date,
+                        row.cycleId ?: "",
+                        row.flowIntensity ?: "",
+                        row.symptoms,
+                        row.mood ?: "",
+                        notes,
+                        row.cervicalMucus ?: "",
+                        row.bbt?.toString() ?: "",
+                        row.sexualActivity.toString(),
+                        row.createdAt,
+                        row.updatedAt,
+                        row.deletedAt ?: "",
+                    ),
+                ),
             )
+            writer.write("\n")
         }
         return writer.toString()
     }
 
+    private fun writeCsvLine(fields: List<String>): String =
+        fields.joinToString(",") { field ->
+            if (field.contains(',') || field.contains('"') || field.contains('\n') || field.contains('\r')) {
+                "\"" + field.replace("\"", "\"\"") + "\""
+            } else {
+                field
+            }
+        }
+
     private fun parseCycleRow(line: String): CycleRow {
-        val parts = line.split(",")
+        val parts = parseCsvLine(line)
         return CycleRow(
-            id = parts[0],
-            startDate = parts[1],
+            id = parts.getOrNull(0) ?: "",
+            startDate = parts.getOrNull(1) ?: "",
             endDate = parts.getOrNull(2)?.ifEmpty { null },
             createdAt = parts.getOrNull(3) ?: "",
             updatedAt = parts.getOrNull(4) ?: "",
@@ -91,15 +128,15 @@ object CsvHandler {
     }
 
     private fun parseDayLogRow(line: String): DayLogRow {
-        val parts = line.split(",")
+        val parts = parseCsvLine(line)
         return DayLogRow(
-            id = parts[0],
-            date = parts[1],
+            id = parts.getOrNull(0) ?: "",
+            date = parts.getOrNull(1) ?: "",
             cycleId = parts.getOrNull(2)?.ifEmpty { null },
             flowIntensity = parts.getOrNull(3)?.ifEmpty { null },
-            symptoms = FieldCodec.decode(parts.getOrNull(4) ?: "[]"),
+            symptoms = parts.getOrNull(4) ?: "[]",
             mood = parts.getOrNull(5)?.ifEmpty { null },
-            notes = FieldCodec.decode(parts.getOrNull(6) ?: "").ifEmpty { null },
+            notes = parts.getOrNull(6)?.ifEmpty { null },
             cervicalMucus = parts.getOrNull(7)?.ifEmpty { null },
             bbt = parts.getOrNull(8)?.toDoubleOrNull(),
             sexualActivity = parts.getOrNull(9)?.toIntOrNull() ?: 0,
@@ -107,5 +144,47 @@ object CsvHandler {
             updatedAt = parts.getOrNull(11) ?: "",
             deletedAt = parts.getOrNull(12)?.ifEmpty { null },
         )
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val fields = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+        var i = 0
+
+        while (i < line.length) {
+            val c = line[i]
+            when {
+                inQuotes -> {
+                    if (c == '"') {
+                        if (i + 1 < line.length && line[i + 1] == '"') {
+                            current.append('"')
+                            i++
+                        } else {
+                            inQuotes = false
+                        }
+                    } else {
+                        current.append(c)
+                    }
+                }
+
+                c == '"' -> {
+                    inQuotes = true
+                }
+
+                c == ',' -> {
+                    fields.add(current.toString())
+                    current.setLength(0)
+                }
+
+                else -> {
+                    current.append(c)
+                }
+            }
+            i++
+        }
+
+        fields.add(current.toString())
+        return fields
     }
 }
