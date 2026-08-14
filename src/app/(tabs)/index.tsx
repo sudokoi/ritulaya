@@ -14,13 +14,13 @@ import { deriveCycleDays } from "@/lib/cycle-derivation"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
-  const { cycles, currentCycle, isLoaded, load } = useCycles()
+  const { currentCycle, isLoaded, load } = useCycles()
   const { avgCycleLength } = useSettings()
   const prediction = usePrediction()
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
-  const { loadDayLogs, todayLog } = useDayLogs()
+  const { loadDayLogs, todayLog, logs } = useDayLogs()
   const { logPeriodToday } = useLogPeriod()
 
   useEffect(() => {
@@ -35,9 +35,17 @@ export default function TodayScreen() {
   const phase = getPhase(daysUntilPeriod, avgCycleLength)
   const phaseColor = PHASE_COLORS[phase].hex
 
+  const flowDays = useMemo(
+    () =>
+      logs
+        .filter((log) => log.flowIntensity && log.flowIntensity !== "none")
+        .map((log) => log.date),
+    [logs],
+  )
+
   const { periodDays, predictedDays } = useMemo(
-    () => deriveCycleDays(cycles, prediction),
-    [cycles, prediction],
+    () => deriveCycleDays(prediction, flowDays),
+    [prediction, flowDays],
   )
 
   const weekDays = useMemo(() => {

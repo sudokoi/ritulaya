@@ -18,31 +18,29 @@ export function averageCycleLength(cycles: Cycle[], fallback: number): number {
 
   const total = completed.reduce(
     (sum, cycle) =>
-      sum + differenceInDays(new Date(cycle.endDate ?? cycle.startDate), cycle.startDate),
+      sum +
+      differenceInDays(new Date(cycle.endDate ?? cycle.startDate), cycle.startDate) +
+      1,
     0,
   )
   return Math.round(total / completed.length)
 }
 
 export function deriveCycleDays(
-  cycles: Cycle[],
   prediction: PredictionResult | null,
+  flowDays: string[],
 ): {
   periodDays: string[]
   predictedDays: string[]
   fertileDays: string[]
   ovulationDays: string[]
 } {
-  const periodDays = cycles.flatMap((cycle) =>
-    cycle.endDate ? expandDays(new Date(cycle.startDate), new Date(cycle.endDate)) : [],
-  )
-
   if (!prediction) {
-    return { periodDays, predictedDays: [], fertileDays: [], ovulationDays: [] }
+    return { periodDays: flowDays, predictedDays: [], fertileDays: [], ovulationDays: [] }
   }
 
   return {
-    periodDays,
+    periodDays: flowDays,
     predictedDays: expandDays(prediction.nextPeriodStart, prediction.nextPeriodEnd),
     fertileDays: expandDays(prediction.fertileWindow.start, prediction.fertileWindow.end),
     ovulationDays: [format(prediction.ovulationDay, "yyyy-MM-dd")],

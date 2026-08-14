@@ -24,9 +24,17 @@ export default function CalendarScreen() {
     return getLogForDate(format(selectedDate, "yyyy-MM-dd"))
   }, [selectedDate, getLogForDate])
 
+  const flowDays = useMemo(
+    () =>
+      logs
+        .filter((log) => log.flowIntensity && log.flowIntensity !== "none")
+        .map((log) => log.date),
+    [logs],
+  )
+
   const { periodDays, predictedDays, fertileDays, ovulationDays } = useMemo(
-    () => deriveCycleDays(cycles, prediction),
-    [cycles, prediction],
+    () => deriveCycleDays(prediction, flowDays),
+    [prediction, flowDays],
   )
 
   const loggedDays = useMemo(() => logs.map((log) => log.date), [logs])

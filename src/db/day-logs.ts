@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, ne } from "drizzle-orm"
 import { getDatabase } from "@/services/database"
 import { dayLogs as dayLogsTable } from "@/db/schema"
 import { nowISO, generateId } from "@/utils/date"
@@ -36,6 +36,18 @@ export function listDayLogs(): DayLog[] {
   const db = getDatabase()
   const rows = db.select().from(dayLogsTable).orderBy(desc(dayLogsTable.date)).all()
   return rows.map(toDayLog)
+}
+
+export function findLastFlowDate(): string | null {
+  const db = getDatabase()
+  const row = db
+    .select({ date: dayLogsTable.date })
+    .from(dayLogsTable)
+    .where(ne(dayLogsTable.flowIntensity, "none"))
+    .orderBy(desc(dayLogsTable.date))
+    .limit(1)
+    .get()
+  return row?.date ?? null
 }
 
 export function upsertDayLog(input: DayLogCreate): DayLog {

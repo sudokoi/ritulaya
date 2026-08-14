@@ -18,7 +18,7 @@ export function createWMAPredictor(): PredictionStrategy {
       const cycleLengths = completedCycles.map((c) => {
         const start = new Date(c.startDate)
         const end = new Date(c.endDate ?? c.startDate)
-        return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+        return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
       })
 
       const avgCycleLength = weightedMovingAverage(

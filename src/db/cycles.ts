@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm"
+import { desc, eq } from "drizzle-orm"
 import { getDatabase } from "@/services/database"
 import { cycles as cyclesTable } from "@/db/schema"
 import { nowISO, generateId } from "@/utils/date"
@@ -25,4 +25,12 @@ export function createCycle(startDate: string): Cycle {
   }
   db.insert(cyclesTable).values(cycle).run()
   return cycle
+}
+
+export function endCycle(id: string, endDate: string) {
+  const db = getDatabase()
+  db.update(cyclesTable)
+    .set({ endDate, updatedAt: nowISO() })
+    .where(eq(cyclesTable.id, id))
+    .run()
 }
