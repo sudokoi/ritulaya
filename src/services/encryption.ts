@@ -1,25 +1,24 @@
-import { requireOptionalNativeModule } from "expo"
+import RitulayaCrypto from "../../modules/ritulaya-crypto"
 
-interface RitulayaCryptoNativeModule {
-  initDatabase(path: string): Promise<string>
-  rotateKey(): Promise<void>
+export function getDatabaseKey(): string | null {
+  if (!RitulayaCrypto) return null
+  return RitulayaCrypto.getDatabaseKey()
 }
 
-const cryptoModule =
-  requireOptionalNativeModule<RitulayaCryptoNativeModule>("RitulayaCrypto")
-
-export async function initEncryptedDatabase(dbPath: string): Promise<string> {
-  if (!cryptoModule) {
-    return dbPath
-  }
-
+export async function encryptText(plaintext: string): Promise<string | null> {
+  if (!RitulayaCrypto) return null
   try {
-    return await cryptoModule.initDatabase(dbPath)
+    return await RitulayaCrypto.encrypt(plaintext)
   } catch {
-    return dbPath
+    return null
   }
 }
 
-export function isEncryptionAvailable(): boolean {
-  return cryptoModule !== null
+export async function decryptText(ciphertext: string): Promise<string | null> {
+  if (!RitulayaCrypto) return null
+  try {
+    return await RitulayaCrypto.decrypt(ciphertext)
+  } catch {
+    return null
+  }
 }

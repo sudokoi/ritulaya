@@ -1,7 +1,10 @@
 import { requireOptionalNativeModule } from "expo"
 
 interface RitulayaCryptoNativeModule {
-  initDatabase(path: string): Promise<string>
+  generateKey(): Promise<void>
+  encrypt(plaintext: string): Promise<string>
+  decrypt(ciphertext: string): Promise<string>
+  getDatabaseKey(): string
 }
 
 export default requireOptionalNativeModule<RitulayaCryptoNativeModule>("RitulayaCrypto")

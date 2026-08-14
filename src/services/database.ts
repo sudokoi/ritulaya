@@ -2,8 +2,16 @@ import { openDatabaseSync, type SQLiteDatabase } from "expo-sqlite"
 import { drizzle } from "drizzle-orm/expo-sqlite"
 import * as schema from "@/db/schema"
 import migrations from "@/db/migrations/migrations.js"
+import { getDatabaseKey } from "@/services/encryption"
 
 let dbInstance: ReturnType<typeof drizzle> | null = null
+
+function applyDatabaseKey(expoDb: SQLiteDatabase) {
+  const key = getDatabaseKey()
+  if (key) {
+    expoDb.execSync(`PRAGMA key = "${key}"`)
+  }
+}
 
 function hasTable(expoDb: SQLiteDatabase, name: string): boolean {
   return (
@@ -64,6 +72,7 @@ export function getDatabase(): ReturnType<typeof drizzle> {
   if (dbInstance) return dbInstance
 
   const expoDb = openDatabaseSync("ritulaya.db")
+  applyDatabaseKey(expoDb)
   applyMigrations(expoDb)
   dbInstance = drizzle(expoDb, { schema })
   return dbInstance

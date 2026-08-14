@@ -2,21 +2,36 @@ package expo.modules.ritulayasync
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
+import expo.modules.ritulayacrypto.CryptoKeys
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
+import net.sqlcipher.database.SQLiteDatabase
 import java.io.File
 
 class LocalDataStore(
     private val appContext: Context,
 ) {
+    companion object {
+        @Volatile
+        private var cipherLoaded = false
+    }
+
     private val dbFile: File
         get() = File(appContext.filesDir, "SQLite/ritulaya.db")
 
     private fun open(): SQLiteDatabase? {
         return try {
             if (!dbFile.exists()) return null
-            SQLiteDatabase.openDatabase(dbFile.canonicalPath, null, SQLiteDatabase.OPEN_READWRITE)
+            if (!cipherLoaded) {
+                synchronized(this) {
+                    if (!cipherLoaded) {
+                        SQLiteDatabase.loadLibs(appContext)
+                        cipherLoaded = true
+                    }
+                }
+            }
+            val key = CryptoKeys.getDatabaseKey(appContext)
+            SQLiteDatabase.openDatabase(dbFile.canonicalPath, key, null, SQLiteDatabase.OPEN_READWRITE)
         } catch (e: Exception) {
             null
         }

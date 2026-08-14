@@ -76,6 +76,7 @@ module.exports = {
     plugins: [
       "expo-router",
       "./plugins/withRitulayaWidget",
+      "./plugins/withSQLCipher",
       [
         "expo-splash-screen",
         {
