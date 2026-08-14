@@ -39,16 +39,16 @@ export default function CalendarScreen() {
   const handleSave = useCallback(
     (data: {
       flowIntensity: FlowIntensity | null
-      symptoms: string[]
-      mood: string | null
+      symptoms: SymptomKey[]
+      mood: MoodKey | null
       notes: string | null
     }) => {
       if (!selectedDate) return
       upsertDayLog({
         date: format(selectedDate, "yyyy-MM-dd"),
         flowIntensity: data.flowIntensity,
-        symptoms: data.symptoms as SymptomKey[],
-        mood: data.mood as MoodKey | null,
+        symptoms: data.symptoms,
+        mood: data.mood,
         notes: data.notes,
       })
       setSelectedDate(null)
@@ -86,9 +86,9 @@ export default function CalendarScreen() {
         <DayDetailSheet
           visible={selectedDate !== null}
           date={selectedDate ?? new Date()}
-          existingFlow={existingLog?.flowIntensity as FlowIntensity | null}
+          existingFlow={existingLog?.flowIntensity}
           existingSymptoms={existingLog?.symptoms ?? []}
-          existingMood={existingLog?.mood as MoodKey | null}
+          existingMood={existingLog?.mood}
           existingNotes={existingLog?.notes}
           onSave={handleSave}
           onClose={() => setSelectedDate(null)}

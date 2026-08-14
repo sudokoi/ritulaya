@@ -13,6 +13,8 @@ import { X } from "lucide-react-native"
 import * as Haptics from "expo-haptics"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
+import type { SymptomKey } from "@/constants/symptoms"
+import type { MoodKey } from "@/constants/moods"
 import type { FlowIntensity } from "@/types/day-log"
 import { cn } from "@/lib/utils"
 
@@ -28,13 +30,13 @@ interface DayDetailSheetProps {
   visible: boolean
   date: Date
   existingFlow?: FlowIntensity | null
-  existingSymptoms?: string[]
-  existingMood?: string | null
+  existingSymptoms?: SymptomKey[]
+  existingMood?: MoodKey | null
   existingNotes?: string | null
   onSave: (data: {
     flowIntensity: FlowIntensity | null
-    symptoms: string[]
-    mood: string | null
+    symptoms: SymptomKey[]
+    mood: MoodKey | null
     notes: string | null
   }) => void
   onClose: () => void
@@ -51,11 +53,11 @@ export function DayDetailSheet({
   onClose,
 }: DayDetailSheetProps) {
   const [flow, setFlow] = useState<FlowIntensity | null>(existingFlow ?? null)
-  const [symptoms, setSymptoms] = useState<string[]>(existingSymptoms)
-  const [mood, setMood] = useState<string | null>(existingMood ?? null)
+  const [symptoms, setSymptoms] = useState<SymptomKey[]>(existingSymptoms)
+  const [mood, setMood] = useState<MoodKey | null>(existingMood ?? null)
   const [notes, setNotes] = useState(existingNotes ?? "")
 
-  const toggleSymptom = useCallback((key: string) => {
+  const toggleSymptom = useCallback((key: SymptomKey) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     setSymptoms((prev) =>
       prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key],

@@ -4,11 +4,12 @@ import { dayLogs as dayLogsTable, syncTombstones } from "@/db/schema"
 import { nowISO, generateId } from "@/utils/date"
 import type { DayLog, DayLogCreate, DayLogUpdate, FlowIntensity } from "@/types/day-log"
 import type { MoodKey } from "@/constants/moods"
+import type { SymptomKey } from "@/constants/symptoms"
 
-function parseSymptoms(value: string | null | undefined): string[] {
+function parseSymptoms(value: string | null | undefined): SymptomKey[] {
   if (!value || value === "[]") return []
   try {
-    return JSON.parse(value) as string[]
+    return JSON.parse(value) as SymptomKey[]
   } catch {
     return []
   }
