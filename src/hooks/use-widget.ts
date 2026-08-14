@@ -8,7 +8,7 @@ import { getPhase } from "@/lib/phase"
 
 export function useWidget() {
   const { currentCycle } = useCycles()
-  const prediction = usePrediction()
+  const prediction = usePrediction().prediction
   const { avgCycleLength, discreetMode } = useSettings()
 
   useEffect(() => {

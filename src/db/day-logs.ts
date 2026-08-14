@@ -1,6 +1,6 @@
 import { eq, desc, ne } from "drizzle-orm"
 import { getDatabase } from "@/services/database"
-import { dayLogs as dayLogsTable } from "@/db/schema"
+import { dayLogs as dayLogsTable, syncTombstones } from "@/db/schema"
 import { nowISO, generateId } from "@/utils/date"
 import type { DayLog, DayLogCreate, FlowIntensity } from "@/types/day-log"
 import type { MoodKey } from "@/constants/moods"
@@ -125,4 +125,16 @@ export function upsertDayLog(input: DayLogCreate): DayLog {
     })
     .run()
   return log
+}
+
+export function deleteDayLog(id: string) {
+  const db = getDatabase()
+  db.delete(dayLogsTable).where(eq(dayLogsTable.id, id)).run()
+  db.insert(syncTombstones)
+    .values({ entity: "day_log", entityId: id, deletedAt: nowISO() })
+    .onConflictDoUpdate({
+      target: [syncTombstones.entity, syncTombstones.entityId],
+      set: { deletedAt: nowISO() },
+    })
+    .run()
 }

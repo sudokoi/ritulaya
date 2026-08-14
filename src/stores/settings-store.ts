@@ -22,7 +22,7 @@ export interface SettingsState {
 
 const defaults: SettingsState = {
   avgCycleLength: 28,
-  avgPeriodLength: 5,
+  avgPeriodLength: 3,
   lutealPhaseLength: 14,
   theme: "system",
   language: "en",

@@ -14,9 +14,9 @@ import type { MoodKey } from "@/constants/moods"
 
 export default function CalendarScreen() {
   const { cycles } = useCycles()
-  const { avgCycleLength, avgPeriodLength } = useSettings()
-  const prediction = usePrediction()
-  const { logs, upsertDayLog, getLogForDate } = useDayLogs()
+  const { avgCycleLength } = useSettings()
+  const { prediction, periodLength } = usePrediction()
+  const { logs, upsertDayLog, deleteDayLog, getLogForDate } = useDayLogs()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const existingLog = useMemo(() => {
@@ -64,6 +64,12 @@ export default function CalendarScreen() {
     [selectedDate, upsertDayLog],
   )
 
+  const handleDelete = useCallback(() => {
+    if (!existingLog) return
+    deleteDayLog(existingLog.id)
+    setSelectedDate(null)
+  }, [existingLog, deleteDayLog])
+
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="pt-12">
@@ -76,7 +82,7 @@ export default function CalendarScreen() {
           </View>
           <View className="flex-1 items-center">
             <Text className="text-2xl font-bold text-[var(--text-primary)]">
-              {avgPeriodLength}
+              {periodLength}
             </Text>
             <Text className="text-xs text-[var(--text-muted)]">period days</Text>
           </View>
@@ -99,6 +105,7 @@ export default function CalendarScreen() {
           existingMood={existingLog?.mood}
           existingNotes={existingLog?.notes}
           onSave={handleSave}
+          onDelete={existingLog ? handleDelete : undefined}
           onClose={() => setSelectedDate(null)}
         />
       </View>

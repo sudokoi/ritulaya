@@ -16,7 +16,7 @@ import { PHASE_COLORS } from "@/constants/phase-colors"
 export default function TodayScreen() {
   const { currentCycle, isLoaded, load } = useCycles()
   const { avgCycleLength } = useSettings()
-  const prediction = usePrediction()
+  const { prediction } = usePrediction()
   const today = useMemo(() => new Date(), [])
   useNotifications()
 

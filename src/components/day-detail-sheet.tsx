@@ -9,7 +9,7 @@ import {
 } from "react-native"
 import { useState, useCallback } from "react"
 import { format } from "date-fns"
-import { X } from "lucide-react-native"
+import { X, Trash2 } from "lucide-react-native"
 import * as Haptics from "expo-haptics"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
@@ -39,6 +39,7 @@ interface DayDetailSheetProps {
     mood: MoodKey | null
     notes: string | null
   }) => void
+  onDelete?: () => void
   onClose: () => void
 }
 
@@ -50,6 +51,7 @@ export function DayDetailSheet({
   existingMood,
   existingNotes,
   onSave,
+  onDelete,
   onClose,
 }: DayDetailSheetProps) {
   const [flow, setFlow] = useState<FlowIntensity | null>(existingFlow ?? null)
@@ -75,6 +77,12 @@ export function DayDetailSheet({
     onClose()
   }
 
+  const handleDelete = () => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    onDelete?.()
+    onClose()
+  }
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable className="flex-1 bg-black/30" onPress={onClose}>
@@ -84,6 +92,11 @@ export function DayDetailSheet({
               {format(date, "EEE, MMM d")}
             </Text>
             <View className="flex-row gap-2">
+              {onDelete && (
+                <TouchableOpacity onPress={handleDelete} className="p-2">
+                  <Trash2 size={20} color="#EF4444" />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={handleSave}
                 className="rounded-button bg-follicular px-5 py-2"

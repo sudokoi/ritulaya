@@ -1,5 +1,10 @@
 import { useSelector } from "@xstate/store-react"
-import { dayLogStore, loadDayLogs, upsertDayLog } from "@/stores/day-log-store"
+import {
+  dayLogStore,
+  loadDayLogs,
+  upsertDayLog,
+  deleteDayLog,
+} from "@/stores/day-log-store"
 import type { DayLogCreate, DayLog } from "@/types/day-log"
 
 export function useDayLogs() {
@@ -14,6 +19,9 @@ export function useDayLogs() {
     loadDayLogs,
     upsertDayLog: async (create: DayLogCreate) => {
       return await upsertDayLog(create)
+    },
+    deleteDayLog: async (id: string) => {
+      return await deleteDayLog(id)
     },
     getLogForDate: (date: string): DayLog | null => {
       return logs.find((l) => l.date === date) ?? null

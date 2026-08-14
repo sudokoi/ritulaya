@@ -8,7 +8,7 @@ import { usePrediction } from "./use-predictions"
 
 export function useNotifications() {
   const { reminderPeriodAhead, reminderDailyLog, discreetMode } = useSettings()
-  const prediction = usePrediction()
+  const prediction = usePrediction().prediction
 
   useEffect(() => {
     requestNotificationPermissions()

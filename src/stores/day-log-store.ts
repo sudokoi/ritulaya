@@ -1,5 +1,9 @@
 import { createStore } from "@xstate/store"
-import { listDayLogs, upsertDayLog as upsertDayLogInRepo } from "@/db/day-logs"
+import {
+  listDayLogs,
+  upsertDayLog as upsertDayLogInRepo,
+  deleteDayLog as deleteDayLogInRepo,
+} from "@/db/day-logs"
 import { todayISO } from "@/utils/date"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 
@@ -34,6 +38,17 @@ export const dayLogStore = createStore({
         todayLog: event.log.date === todayISO() ? event.log : ctx.todayLog,
       }
     },
+    removeLog: (ctx, event: { id: string }) => {
+      const filtered = ctx.logs.filter((l) => l.id !== event.id)
+      return {
+        ...ctx,
+        logs: filtered,
+        todayLog:
+          ctx.todayLog?.id === event.id
+            ? (filtered.find((l) => l.date === todayISO()) ?? null)
+            : ctx.todayLog,
+      }
+    },
   },
 })
 
@@ -46,4 +61,9 @@ export async function upsertDayLog(input: DayLogCreate): Promise<DayLog> {
   const log = upsertDayLogInRepo(input)
   dayLogStore.send({ type: "upsertLog", log })
   return log
+}
+
+export async function deleteDayLog(id: string) {
+  deleteDayLogInRepo(id)
+  dayLogStore.send({ type: "removeLog", id })
 }
