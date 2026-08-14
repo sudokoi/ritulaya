@@ -75,6 +75,7 @@ module.exports = {
     },
     plugins: [
       "expo-router",
+      "expo-local-authentication",
       "./plugins/withRitulayaWidget",
       [
         "expo-splash-screen",

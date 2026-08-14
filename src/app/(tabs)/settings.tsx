@@ -1,5 +1,6 @@
-import { View, Text, ScrollView, TouchableOpacity, Switch } from "react-native"
+import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from "react-native"
 import { router } from "expo-router"
+import * as LocalAuthentication from "expo-local-authentication"
 import {
   Shield,
   EyeOff,
@@ -91,6 +92,23 @@ export default function SettingsScreen() {
 
   const selectTheme = (value: Theme) => update({ theme: value })
 
+  const setBiometricLock = async (value: boolean) => {
+    if (!value) {
+      update({ biometricLock: false })
+      return
+    }
+    const hasHardware = await LocalAuthentication.hasHardwareAsync()
+    const enrolled = hasHardware && (await LocalAuthentication.isEnrolledAsync())
+    if (!enrolled) {
+      Alert.alert(
+        "Biometrics unavailable",
+        "Set up fingerprint or face unlock in your device settings to use the app lock.",
+      )
+      return
+    }
+    update({ biometricLock: true })
+  }
+
   const themeActions = THEME_OPTIONS.map((option) => ({
     id: option.value,
     title: option.label,
@@ -137,7 +155,7 @@ export default function SettingsScreen() {
           right={
             <Switch
               value={biometricLock}
-              onValueChange={(v) => update({ biometricLock: v })}
+              onValueChange={setBiometricLock}
               trackColor={{ true: "#7BA891" }}
             />
           }
