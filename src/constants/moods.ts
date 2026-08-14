@@ -11,11 +11,3 @@ export const MOOD_CATALOG = [
 ] as const
 
 export type MoodKey = (typeof MOOD_CATALOG)[number]["key"]
-
-export function getMoodEmoji(key: MoodKey): string {
-  return MOOD_CATALOG.find((m) => m.key === key)?.emoji ?? "❓"
-}
-
-export function getMoodLabel(key: MoodKey): string {
-  return MOOD_CATALOG.find((m) => m.key === key)?.label ?? key
-}

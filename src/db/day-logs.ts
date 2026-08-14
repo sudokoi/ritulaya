@@ -1,8 +1,8 @@
-import { eq, desc, and, gte, lte } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { getDatabase } from "@/services/database"
-import { dayLogs as dayLogsTable, syncTombstones } from "@/db/schema"
+import { dayLogs as dayLogsTable } from "@/db/schema"
 import { nowISO, generateId } from "@/utils/date"
-import type { DayLog, DayLogCreate, DayLogUpdate, FlowIntensity } from "@/types/day-log"
+import type { DayLog, DayLogCreate, FlowIntensity } from "@/types/day-log"
 import type { MoodKey } from "@/constants/moods"
 import type { SymptomKey } from "@/constants/symptoms"
 
@@ -35,17 +35,6 @@ function toDayLog(row: Record<string, unknown>): DayLog {
 export function listDayLogs(): DayLog[] {
   const db = getDatabase()
   const rows = db.select().from(dayLogsTable).orderBy(desc(dayLogsTable.date)).all()
-  return rows.map(toDayLog)
-}
-
-export function listDayLogsRange(startDate: string, endDate: string): DayLog[] {
-  const db = getDatabase()
-  const rows = db
-    .select()
-    .from(dayLogsTable)
-    .where(and(gte(dayLogsTable.date, startDate), lte(dayLogsTable.date, endDate)))
-    .orderBy(desc(dayLogsTable.date))
-    .all()
   return rows.map(toDayLog)
 }
 
@@ -124,37 +113,4 @@ export function upsertDayLog(input: DayLogCreate): DayLog {
     })
     .run()
   return log
-}
-
-export function updateDayLog(id: string, input: DayLogUpdate): DayLog | null {
-  const db = getDatabase()
-  const now = nowISO()
-
-  const data: Record<string, unknown> = { updatedAt: now }
-  if (input.flowIntensity !== undefined) data.flowIntensity = input.flowIntensity
-  if (input.symptoms !== undefined) data.symptoms = JSON.stringify(input.symptoms)
-  if (input.mood !== undefined) data.mood = input.mood
-  if (input.notes !== undefined) data.notes = input.notes
-  if (input.cervicalMucus !== undefined) data.cervicalMucus = input.cervicalMucus
-  if (input.bbt !== undefined) data.bbt = input.bbt
-  if (input.sexualActivity !== undefined)
-    data.sexualActivity = input.sexualActivity ? 1 : 0
-  if (input.cycleId !== undefined) data.cycleId = input.cycleId
-
-  db.update(dayLogsTable).set(data).where(eq(dayLogsTable.id, id)).run()
-
-  const existing = db.select().from(dayLogsTable).where(eq(dayLogsTable.id, id)).get()
-  return existing ? toDayLog(existing) : null
-}
-
-export function deleteDayLog(id: string) {
-  const db = getDatabase()
-  db.delete(dayLogsTable).where(eq(dayLogsTable.id, id)).run()
-  db.insert(syncTombstones)
-    .values({ entity: "day_log", entityId: id, deletedAt: nowISO() })
-    .onConflictDoUpdate({
-      target: [syncTombstones.entity, syncTombstones.entityId],
-      set: { deletedAt: nowISO() },
-    })
-    .run()
 }

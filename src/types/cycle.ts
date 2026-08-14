@@ -5,13 +5,3 @@ export interface Cycle {
   createdAt: string
   updatedAt: string
 }
-
-export interface CycleCreate {
-  startDate: string
-  endDate?: string | null
-}
-
-export interface CycleUpdate {
-  startDate?: string
-  endDate?: string | null
-}

@@ -10,9 +10,3 @@ export interface SyncStatus {
   consecutiveFailures: number
   status: "idle" | "syncing" | "inSync" | "error"
 }
-
-export interface SyncConflict {
-  conflictedRow: string
-  localValue: Record<string, unknown>
-  remoteValue: Record<string, unknown>
-}

@@ -17,7 +17,3 @@ export const SYMPTOM_CATALOG = [
 ] as const
 
 export type SymptomKey = (typeof SYMPTOM_CATALOG)[number]["key"]
-
-export function getSymptomLabel(key: SymptomKey): string {
-  return SYMPTOM_CATALOG.find((s) => s.key === key)?.label ?? key
-}

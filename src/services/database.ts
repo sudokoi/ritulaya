@@ -68,7 +68,3 @@ export function getDatabase(): ReturnType<typeof drizzle> {
   dbInstance = drizzle(expoDb, { schema })
   return dbInstance
 }
-
-export function resetDatabase() {
-  dbInstance = null
-}

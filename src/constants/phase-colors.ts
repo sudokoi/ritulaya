@@ -18,13 +18,3 @@ export const PHASE_COLORS = {
 } as const
 
 export type Phase = keyof typeof PHASE_COLORS
-
-export const FLOW_COLORS = {
-  none: "#E8E4DF",
-  spotting: "#D4C5C9",
-  light: "#C17B9D",
-  medium: "#A85D7D",
-  heavy: "#8B3F5E",
-} as const
-
-export const DISCREET_COLOR = "#8A8986"

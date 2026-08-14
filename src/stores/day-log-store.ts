@@ -1,13 +1,7 @@
 import { createStore } from "@xstate/store"
-import {
-  listDayLogs,
-  listDayLogsRange,
-  upsertDayLog as upsertDayLogInRepo,
-  updateDayLog as updateDayLogInRepo,
-  deleteDayLog as deleteDayLogInRepo,
-} from "@/db/day-logs"
+import { listDayLogs, upsertDayLog as upsertDayLogInRepo } from "@/db/day-logs"
 import { todayISO } from "@/utils/date"
-import type { DayLog, DayLogCreate, DayLogUpdate } from "@/types/day-log"
+import type { DayLog, DayLogCreate } from "@/types/day-log"
 
 interface DayLogState {
   logs: DayLog[]
@@ -40,17 +34,6 @@ export const dayLogStore = createStore({
         todayLog: event.log.date === todayISO() ? event.log : ctx.todayLog,
       }
     },
-    removeLog: (ctx, event: { id: string }) => {
-      const filtered = ctx.logs.filter((l) => l.id !== event.id)
-      return {
-        ...ctx,
-        logs: filtered,
-        todayLog:
-          ctx.todayLog?.id === event.id
-            ? (filtered.find((l) => l.date === todayISO()) ?? null)
-            : ctx.todayLog,
-      }
-    },
   },
 })
 
@@ -59,25 +42,8 @@ export async function loadDayLogs() {
   dayLogStore.send({ type: "setLogs", logs })
 }
 
-export async function loadDayLogsRange(startDate: string, endDate: string) {
-  const logs = listDayLogsRange(startDate, endDate)
-  dayLogStore.send({ type: "setLogs", logs })
-}
-
 export async function upsertDayLog(input: DayLogCreate): Promise<DayLog> {
   const log = upsertDayLogInRepo(input)
   dayLogStore.send({ type: "upsertLog", log })
   return log
-}
-
-export async function updateDayLog(id: string, input: DayLogUpdate): Promise<void> {
-  const updated = updateDayLogInRepo(id, input)
-  if (updated) {
-    dayLogStore.send({ type: "upsertLog", log: updated })
-  }
-}
-
-export async function deleteDayLog(id: string) {
-  deleteDayLogInRepo(id)
-  dayLogStore.send({ type: "removeLog", id })
 }
