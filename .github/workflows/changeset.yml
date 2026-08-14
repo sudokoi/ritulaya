@@ -21,13 +21,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".node-version"
 
@@ -39,7 +39,7 @@ jobs:
         run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Cache yarn downloads
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-cache-${{ hashFiles('yarn.lock') }}
@@ -51,20 +51,19 @@ jobs:
 
       - name: Create Release PR or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          version: yarn changeset:version
-          commit: "chore: version packages"
-          title: "chore: version packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          version-script: yarn changeset:version
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"
+          github-token: ${{ secrets.GH_PAT }}
 
       - name: Push tag on release
         id: check-release
         run: |
           CHANGESET_COUNT=$(find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | wc -l)
 
-          if [ "$CHANGESET_COUNT" -eq "0" ] && [ "${{ steps.changesets.outputs.hasChangesets }}" != "true" ]; then
+          if [ "$CHANGESET_COUNT" -eq "0" ] && [ "${{ steps.changesets.outputs.has-changesets }}" != "true" ]; then
             VERSION=$(node -p "require('./package.json').version")
             TAG="v$VERSION"
 
