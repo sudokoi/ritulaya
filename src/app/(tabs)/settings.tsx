@@ -4,20 +4,26 @@ import {
   Shield,
   EyeOff,
   Download,
-  Trash2,
   Bell,
   Smartphone,
   ChevronRight,
   Cloud,
   Info,
   Bug,
+  BarChart3,
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
 import { discreetLabel } from "@/lib/discreet"
 import { useSettings } from "@/hooks/use-settings"
 import { useCycles } from "@/hooks/use-cycles"
+import { usePrediction } from "@/hooks/use-predictions"
 import { averageCycleLength } from "@/lib/cycle-derivation"
+import { exportData } from "@/services/export"
+import { reportBug } from "@/services/bug-report"
 import { useMemo, useEffect } from "react"
+
+const THEME_OPTIONS = ["system", "light", "dark"] as const
+const PERIOD_AHEAD_OPTIONS = [0, 1, 2, 3, 5, 7]
 
 interface SettingsRowProps {
   icon: React.ReactNode
@@ -66,19 +72,31 @@ export default function SettingsScreen() {
   const {
     biometricLock,
     discreetMode: discreet,
-    avgPeriodLength,
+    theme,
     reminderPeriodAhead,
     reminderDailyLog,
     update,
     load,
   } = useSettings()
   const { cycles } = useCycles()
+  const { periodLength } = usePrediction()
 
   const avgLen = useMemo(() => averageCycleLength(cycles, 28), [cycles])
 
   useEffect(() => {
     load()
   }, [load])
+
+  const cycleTheme = () => {
+    const idx = THEME_OPTIONS.indexOf(theme)
+    update({ theme: THEME_OPTIONS[(idx + 1) % THEME_OPTIONS.length] })
+  }
+
+  const cyclePeriodAhead = () => {
+    const idx = PERIOD_AHEAD_OPTIONS.indexOf(reminderPeriodAhead)
+    const next = PERIOD_AHEAD_OPTIONS[(idx + 1) % PERIOD_AHEAD_OPTIONS.length]
+    update({ reminderPeriodAhead: next })
+  }
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
@@ -91,12 +109,17 @@ export default function SettingsScreen() {
       <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
           <StatItem value={`${avgLen}`} label="avg cycle" discreet={discreet} />
-          <StatItem
-            value={`${avgPeriodLength}`}
-            label="period days"
-            discreet={discreet}
-          />
+          <StatItem value={`${periodLength}`} label="period days" discreet={discreet} />
         </View>
+        <TouchableOpacity
+          onPress={() => router.push("/settings/insights")}
+          className="mt-3 flex-row items-center justify-center gap-1"
+        >
+          <BarChart3 size={14} color="#7BA891" />
+          <Text className="text-sm font-medium text-follicular">
+            {discreetLabel(discreet, "View Full Insights", "View Details")}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">
@@ -136,11 +159,7 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Download size={20} color="#8E8C8A" />}
           label={discreetLabel(discreet, "Export Data", "Export")}
-        />
-        <SettingsRow
-          icon={<Trash2 size={20} color="#EF4444" />}
-          label={discreetLabel(discreet, "Delete All Data", "Clear All")}
-          danger
+          onPress={() => void exportData()}
         />
       </View>
 
@@ -149,12 +168,19 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Bell size={20} color="#8E8C8A" />}
           label={discreetLabel(discreet, "Period Ahead", "Alert Ahead")}
-          value={`${reminderPeriodAhead} days`}
+          value={reminderPeriodAhead > 0 ? `${reminderPeriodAhead} days` : "Off"}
+          onPress={cyclePeriodAhead}
         />
         <SettingsRow
           icon={<Bell size={20} color="#8E8C8A" />}
           label={discreetLabel(discreet, "Daily Log", "Daily Alert")}
-          value={reminderDailyLog ? "On" : "Off"}
+          right={
+            <Switch
+              value={reminderDailyLog}
+              onValueChange={(v) => update({ reminderDailyLog: v })}
+              trackColor={{ true: "#7BA891" }}
+            />
+          }
         />
       </View>
 
@@ -163,7 +189,8 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Smartphone size={20} color="#8E8C8A" />}
           label={discreetLabel(discreet, "Theme", "Appearance")}
-          value="System"
+          value={theme}
+          onPress={cycleTheme}
         />
       </View>
 
@@ -172,10 +199,12 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Info size={20} color="#8E8C8A" />}
           label={discreetLabel(discreet, "Privacy Policy", "Policy")}
+          onPress={() => router.push("/settings/privacy")}
         />
         <SettingsRow
           icon={<Bug size={20} color="#8E8C8A" />}
-          label={discreetLabel(discreet, "Export Debug Logs", "Diagnostics")}
+          label={discreetLabel(discreet, "Report Bug", "Diagnostics")}
+          onPress={() => void reportBug()}
         />
         <View className="flex-row items-center justify-between py-4">
           <View className="flex-row items-center gap-3">
