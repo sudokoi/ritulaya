@@ -70,6 +70,18 @@ export default function CalendarScreen() {
     setSelectedDate(null)
   }, [existingLog, deleteDayLog])
 
+  const handleClearPeriod = useCallback(() => {
+    if (!existingLog) return
+    upsertDayLog({
+      date: existingLog.date,
+      flowIntensity: "none",
+      symptoms: existingLog.symptoms,
+      mood: existingLog.mood,
+      notes: existingLog.notes,
+    })
+    setSelectedDate(null)
+  }, [existingLog, upsertDayLog])
+
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="pt-12">
@@ -105,6 +117,7 @@ export default function CalendarScreen() {
           existingMood={existingLog?.mood}
           existingNotes={existingLog?.notes}
           onSave={handleSave}
+          onClearPeriod={existingLog ? handleClearPeriod : undefined}
           onDelete={existingLog ? handleDelete : undefined}
           onClose={() => setSelectedDate(null)}
         />

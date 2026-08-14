@@ -39,6 +39,7 @@ interface DayDetailSheetProps {
     mood: MoodKey | null
     notes: string | null
   }) => void
+  onClearPeriod?: () => void
   onDelete?: () => void
   onClose: () => void
 }
@@ -51,6 +52,7 @@ export function DayDetailSheet({
   existingMood,
   existingNotes,
   onSave,
+  onClearPeriod,
   onDelete,
   onClose,
 }: DayDetailSheetProps) {
@@ -80,6 +82,12 @@ export function DayDetailSheet({
   const handleDelete = () => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onDelete?.()
+    onClose()
+  }
+
+  const handleClearPeriod = () => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    onClearPeriod?.()
     onClose()
   }
 
@@ -140,6 +148,11 @@ export function DayDetailSheet({
                   </TouchableOpacity>
                 ))}
               </View>
+              {onClearPeriod && existingFlow && existingFlow !== "none" && (
+                <TouchableOpacity onPress={handleClearPeriod} className="mt-3 self-start">
+                  <Text className="text-sm font-medium text-red-500">Remove Period</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             <View className="px-6 py-4">
