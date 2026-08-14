@@ -1,16 +1,43 @@
 import RitulayaPredictions from "../../modules/ritulaya-predictions"
 import { parseISO } from "date-fns"
+import type { Cycle } from "@/types/cycle"
+import type { DayLog } from "@/types/day-log"
 import type { PredictionResult } from "@/types/prediction"
+import type { Phase } from "@/constants/phase-colors"
+
+export interface PredictionConfig {
+  avgCycleLength: number
+  avgPeriodLength: number
+  lutealPhaseLength: number
+}
 
 export interface PredictionBundle {
   prediction: PredictionResult
   periodLength: number
+  avgCycleLength: number
+  phase: Phase
 }
 
-export async function computePrediction(): Promise<PredictionBundle | null> {
+export async function computePrediction(
+  cycles: Cycle[],
+  logs: DayLog[],
+  config: PredictionConfig,
+): Promise<PredictionBundle | null> {
   if (!RitulayaPredictions) return null
 
-  const result = await RitulayaPredictions.predict()
+  const result = await RitulayaPredictions.predict(
+    cycles.map((cycle) => ({
+      id: cycle.id,
+      startDate: cycle.startDate,
+      endDate: cycle.endDate,
+    })),
+    logs.map((log) => ({
+      date: log.date,
+      cycleId: log.cycleId,
+      flowIntensity: log.flowIntensity,
+    })),
+    config,
+  )
   if (!result) return null
 
   return {
@@ -27,5 +54,7 @@ export async function computePrediction(): Promise<PredictionBundle | null> {
       engine: result.prediction.engine as PredictionResult["engine"],
     },
     periodLength: result.periodLength,
+    avgCycleLength: result.avgCycleLength,
+    phase: result.phase as Phase,
   }
 }

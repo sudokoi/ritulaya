@@ -11,16 +11,8 @@ export function toISODate(date: Date): string {
   return format(date, "yyyy-MM-dd")
 }
 
-export function nowISO(): string {
-  return new Date().toISOString()
-}
-
 export function todayISO(): string {
   return toISODate(new Date())
-}
-
-export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
 export function getDaysInMonthGrid(

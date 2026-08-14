@@ -15,12 +15,10 @@ import {
 import { cn } from "@/lib/utils"
 import { discreetLabel } from "@/lib/discreet"
 import { useSettings } from "@/hooks/use-settings"
-import { useCycles } from "@/hooks/use-cycles"
 import { usePrediction } from "@/hooks/use-predictions"
-import { averageCycleLength } from "@/lib/cycle-derivation"
 import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
-import { useMemo, useEffect } from "react"
+import { useEffect } from "react"
 
 const THEME_OPTIONS = ["system", "light", "dark"] as const
 const PERIOD_AHEAD_OPTIONS = [0, 1, 2, 3, 5, 7]
@@ -78,10 +76,7 @@ export default function SettingsScreen() {
     update,
     load,
   } = useSettings()
-  const { cycles } = useCycles()
-  const { periodLength } = usePrediction()
-
-  const avgLen = useMemo(() => averageCycleLength(cycles, 28), [cycles])
+  const { periodLength, avgCycleLength } = usePrediction()
 
   useEffect(() => {
     load()
@@ -108,7 +103,7 @@ export default function SettingsScreen() {
 
       <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <StatItem value={`${avgLen}`} label="avg cycle" discreet={discreet} />
+          <StatItem value={`${avgCycleLength}`} label="avg cycle" discreet={discreet} />
           <StatItem value={`${periodLength}`} label="period days" discreet={discreet} />
         </View>
         <TouchableOpacity

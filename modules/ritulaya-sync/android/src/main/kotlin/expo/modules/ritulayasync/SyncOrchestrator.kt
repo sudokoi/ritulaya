@@ -9,19 +9,6 @@ import expo.modules.ritulayadb.SettingsEntity
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
 
-data class SyncSettingsRow(
-    val avgCycleLength: Int,
-    val avgPeriodLength: Int,
-    val lutealPhaseLength: Int,
-    val theme: String,
-    val language: String,
-    val biometricLock: Int,
-    val discreetMode: Int,
-    val reminderPeriodAhead: Int,
-    val reminderDailyLog: Int,
-    val updatedAt: String,
-)
-
 class SyncOrchestrator(
     private val appContext: Context,
     private val prefs: SharedPreferences,
@@ -183,21 +170,7 @@ class SyncOrchestrator(
         return rows.values.toList()
     }
 
-    private suspend fun loadSettings(): SyncSettingsRow? {
-        val settings = dataStore.getSettings() ?: return null
-        return SyncSettingsRow(
-            avgCycleLength = settings.avgCycleLength,
-            avgPeriodLength = settings.avgPeriodLength,
-            lutealPhaseLength = settings.lutealPhaseLength,
-            theme = settings.theme,
-            language = settings.language,
-            biometricLock = settings.biometricLock,
-            discreetMode = settings.discreetMode,
-            reminderPeriodAhead = settings.reminderPeriodAhead,
-            reminderDailyLog = settings.reminderDailyLog,
-            updatedAt = settings.updatedAt,
-        )
-    }
+    private suspend fun loadSettings(): SettingsEntity? = dataStore.getSettings()
 
     private suspend fun persist(
         cycles: List<CycleRow>,
@@ -229,39 +202,25 @@ class SyncOrchestrator(
         dataStore.replaceAll(cycleEntities, logEntities)
     }
 
-    private suspend fun persistSettings(settings: SyncSettingsRow) {
+    private suspend fun persistSettings(settings: SettingsEntity) {
         val existing = dataStore.getSettings()
-        val entity =
-            SettingsEntity(
-                id = "default",
-                avgCycleLength = settings.avgCycleLength,
-                avgPeriodLength = settings.avgPeriodLength,
-                lutealPhaseLength = settings.lutealPhaseLength,
-                theme = settings.theme,
-                language = settings.language,
-                biometricLock = settings.biometricLock,
-                discreetMode = settings.discreetMode,
-                reminderPeriodAhead = settings.reminderPeriodAhead,
-                reminderDailyLog = settings.reminderDailyLog,
-                createdAt = existing?.createdAt ?: settings.updatedAt,
-                updatedAt = settings.updatedAt,
-            )
-        dataStore.saveSettings(entity)
+        dataStore.saveSettings(settings.copy(createdAt = existing?.createdAt ?: settings.updatedAt))
     }
 
     private fun mergeSettings(
-        local: SyncSettingsRow?,
-        remote: SyncSettingsRow?,
-    ): SyncSettingsRow? {
+        local: SettingsEntity?,
+        remote: SettingsEntity?,
+    ): SettingsEntity? {
         if (local == null) return remote
         if (remote == null) return local
         return if (remote.updatedAt >= local.updatedAt) remote else local
     }
 
-    private fun parseSettings(json: String): SyncSettingsRow? =
+    private fun parseSettings(json: String): SettingsEntity? =
         try {
             val o = org.json.JSONObject(json)
-            SyncSettingsRow(
+            SettingsEntity(
+                id = "default",
                 avgCycleLength = o.optInt("avgCycleLength", 28),
                 avgPeriodLength = o.optInt("avgPeriodLength", 3),
                 lutealPhaseLength = o.optInt("lutealPhaseLength", 14),
@@ -271,13 +230,14 @@ class SyncOrchestrator(
                 discreetMode = o.optInt("discreetMode", 0),
                 reminderPeriodAhead = o.optInt("reminderPeriodAhead", 2),
                 reminderDailyLog = o.optInt("reminderDailyLog", 0),
+                createdAt = "",
                 updatedAt = o.optString("updatedAt", ""),
             )
         } catch (e: Exception) {
             null
         }
 
-    private fun writeSettings(settings: SyncSettingsRow): String =
+    private fun writeSettings(settings: SettingsEntity): String =
         org.json
             .JSONObject()
             .apply {

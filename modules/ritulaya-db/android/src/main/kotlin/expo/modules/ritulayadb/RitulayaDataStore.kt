@@ -39,23 +39,22 @@ class RitulayaDataStore(
 
     suspend fun findLastFlowDate(): String? = dao.findLastFlowDate()
 
-    suspend fun upsertDayLog(input: Map<String, Any?>): DayLogEntity {
+    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity {
         val now = nowISO()
-        val date = input["date"] as? String ?: throw IllegalArgumentException("date is required")
-        val existing = dao.getDayLogByDate(date)
-        val symptomsJson = symptomsJson(input["symptoms"] as? List<*>)
+        val existing = dao.getDayLogByDate(input.date)
+        val symptomsJson = symptomsJson(input.symptoms)
 
         if (existing != null) {
             val updated =
                 existing.copy(
-                    flowIntensity = input["flowIntensity"] as? String ?: existing.flowIntensity,
+                    flowIntensity = input.flowIntensity ?: existing.flowIntensity,
                     symptoms = symptomsJson,
-                    mood = input["mood"] as? String ?: existing.mood,
-                    notes = input["notes"] as? String ?: existing.notes,
-                    cervicalMucus = input["cervicalMucus"] as? String ?: existing.cervicalMucus,
-                    bbt = (input["bbt"] as? Number)?.toDouble() ?: existing.bbt,
-                    sexualActivity = sexualActivityValue(input["sexualActivity"], existing.sexualActivity),
-                    cycleId = input["cycleId"] as? String ?: existing.cycleId,
+                    mood = input.mood ?: existing.mood,
+                    notes = input.notes ?: existing.notes,
+                    cervicalMucus = input.cervicalMucus ?: existing.cervicalMucus,
+                    bbt = input.bbt ?: existing.bbt,
+                    sexualActivity = if (input.sexualActivity == true) 1 else existing.sexualActivity,
+                    cycleId = input.cycleId ?: existing.cycleId,
                     updatedAt = now,
                 )
             dao.upsertDayLog(updated)
@@ -65,15 +64,15 @@ class RitulayaDataStore(
         val log =
             DayLogEntity(
                 id = generateId(),
-                date = date,
-                cycleId = input["cycleId"] as? String,
-                flowIntensity = input["flowIntensity"] as? String,
+                date = input.date,
+                cycleId = input.cycleId,
+                flowIntensity = input.flowIntensity,
                 symptoms = symptomsJson,
-                mood = input["mood"] as? String,
-                notes = input["notes"] as? String,
-                cervicalMucus = input["cervicalMucus"] as? String,
-                bbt = (input["bbt"] as? Number)?.toDouble(),
-                sexualActivity = sexualActivityValue(input["sexualActivity"], 0),
+                mood = input.mood,
+                notes = input.notes,
+                cervicalMucus = input.cervicalMucus,
+                bbt = input.bbt,
+                sexualActivity = if (input.sexualActivity == true) 1 else 0,
                 createdAt = now,
                 updatedAt = now,
             )
@@ -94,26 +93,26 @@ class RitulayaDataStore(
         dao.upsertSettings(settings)
     }
 
-    suspend fun updateSettings(patch: Map<String, Any?>) {
+    suspend fun updateSettings(patch: SettingsPatch) {
         val existing = dao.getSettings()
         val base =
             existing
                 ?: SettingsEntity(
                     id = "default",
-                    createdAt = patch["createdAt"] as? String ?: nowISO(),
+                    createdAt = patch.createdAt ?: nowISO(),
                     updatedAt = nowISO(),
                 )
         val merged =
             base.copy(
-                avgCycleLength = (patch["avgCycleLength"] as? Number)?.toInt() ?: base.avgCycleLength,
-                avgPeriodLength = (patch["avgPeriodLength"] as? Number)?.toInt() ?: base.avgPeriodLength,
-                lutealPhaseLength = (patch["lutealPhaseLength"] as? Number)?.toInt() ?: base.lutealPhaseLength,
-                theme = patch["theme"] as? String ?: base.theme,
-                language = patch["language"] as? String ?: base.language,
-                biometricLock = (patch["biometricLock"] as? Number)?.toInt() ?: base.biometricLock,
-                discreetMode = (patch["discreetMode"] as? Number)?.toInt() ?: base.discreetMode,
-                reminderPeriodAhead = (patch["reminderPeriodAhead"] as? Number)?.toInt() ?: base.reminderPeriodAhead,
-                reminderDailyLog = (patch["reminderDailyLog"] as? Number)?.toInt() ?: base.reminderDailyLog,
+                avgCycleLength = patch.avgCycleLength ?: base.avgCycleLength,
+                avgPeriodLength = patch.avgPeriodLength ?: base.avgPeriodLength,
+                lutealPhaseLength = patch.lutealPhaseLength ?: base.lutealPhaseLength,
+                theme = patch.theme ?: base.theme,
+                language = patch.language ?: base.language,
+                biometricLock = patch.biometricLock ?: base.biometricLock,
+                discreetMode = patch.discreetMode ?: base.discreetMode,
+                reminderPeriodAhead = patch.reminderPeriodAhead ?: base.reminderPeriodAhead,
+                reminderDailyLog = patch.reminderDailyLog ?: base.reminderDailyLog,
                 updatedAt = nowISO(),
             )
         dao.upsertSettings(merged)
@@ -134,20 +133,10 @@ class RitulayaDataStore(
         }
     }
 
-    private fun symptomsJson(symptoms: List<*>?): String {
+    private fun symptomsJson(symptoms: List<String>?): String {
         if (symptoms.isNullOrEmpty()) return "[]"
-        return org.json.JSONArray(symptoms.mapNotNull { it?.toString() }).toString()
+        return org.json.JSONArray(symptoms).toString()
     }
-
-    private fun sexualActivityValue(
-        value: Any?,
-        fallback: Int,
-    ): Int =
-        when (value) {
-            is Boolean -> if (value) 1 else fallback
-            is Number -> if (value.toInt() > 0) 1 else fallback
-            else -> fallback
-        }
 
     companion object {
         private val ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"

@@ -2,7 +2,9 @@
 
 Date: 2026-08-12
 
-Status: Accepted
+Status: Superseded by ADR-0010
+
+> Superseded by ADR-0010 on 2026-08-14. The drizzle/expo-sqlite layer was replaced by the native `ritulaya-db` module (Room + SQLCipher).
 
 ## Context
 

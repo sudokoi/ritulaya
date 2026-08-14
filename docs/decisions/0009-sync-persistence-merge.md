@@ -2,7 +2,9 @@
 
 Date: 2026-08-14
 
-Status: Accepted
+Status: Superseded by ADR-0010
+
+> Superseded by ADR-0010 on 2026-08-14. The sync semantics (one pipeline, tombstones, delete-wins) remain, but `LocalDataStore` was replaced by the shared `RitulayaDataStore` facade in `ritulaya-db`.
 
 ## Context
 

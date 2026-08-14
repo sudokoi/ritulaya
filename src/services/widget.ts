@@ -1,11 +1,6 @@
 import RitulayaWidget from "../../modules/ritulaya-widget"
 
-export async function updateWidget(
-  dayNumber: number,
-  phaseName: string,
-  daysUntilNext: number,
-  discreetMode: boolean,
-) {
+export async function refreshWidget() {
   if (!RitulayaWidget) return
-  await RitulayaWidget.updateWidget(dayNumber, phaseName, daysUntilNext, discreetMode)
+  await RitulayaWidget.refreshWidget()
 }

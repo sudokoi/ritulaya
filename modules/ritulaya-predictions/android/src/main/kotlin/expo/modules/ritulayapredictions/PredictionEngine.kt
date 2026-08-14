@@ -62,6 +62,34 @@ object PredictionEngine {
         return Math.round(total / weight).toInt()
     }
 
+    fun averageCycleLength(
+        cycles: List<CycleInput>,
+        fallback: Int,
+    ): Int {
+        val completed = cycles.filter { it.endDate != null }
+        if (completed.isEmpty()) return fallback
+
+        val total =
+            completed.sumOf { cycle ->
+                val start = LocalDate.parse(cycle.startDate)
+                val end = LocalDate.parse(cycle.endDate ?: cycle.startDate)
+                ChronoUnit.DAYS.between(start, end).toInt() + 1
+            }
+        return Math.round(total.toDouble() / completed.size).toInt()
+    }
+
+    fun phase(
+        daysUntilNext: Int,
+        avgCycleLength: Int,
+    ): String {
+        if (daysUntilNext <= 5) return "menstrual"
+        val dayInCycle = avgCycleLength - daysUntilNext
+        if (dayInCycle <= 5) return "menstrual"
+        if (dayInCycle <= 13) return "follicular"
+        if (dayInCycle <= 15) return "ovulation"
+        return "luteal"
+    }
+
     fun predict(
         cycles: List<CycleInput>,
         config: Config,

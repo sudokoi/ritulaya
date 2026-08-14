@@ -1,5 +1,4 @@
-import { differenceInDays, format } from "date-fns"
-import type { Cycle } from "@/types/cycle"
+import { format } from "date-fns"
 import type { PredictionResult } from "@/types/prediction"
 
 function expandDays(start: Date, end: Date): string[] {
@@ -10,20 +9,6 @@ function expandDays(start: Date, end: Date): string[] {
     current.setDate(current.getDate() + 1)
   }
   return days
-}
-
-export function averageCycleLength(cycles: Cycle[], fallback: number): number {
-  const completed = cycles.filter((cycle) => cycle.endDate !== null)
-  if (completed.length === 0) return fallback
-
-  const total = completed.reduce(
-    (sum, cycle) =>
-      sum +
-      differenceInDays(new Date(cycle.endDate ?? cycle.startDate), cycle.startDate) +
-      1,
-    0,
-  )
-  return Math.round(total / completed.length)
 }
 
 export function deriveCycleDays(

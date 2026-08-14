@@ -9,14 +9,14 @@ import { useNotifications } from "@/hooks/use-notifications"
 import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { cn } from "@/lib/utils"
-import { getPhase, PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
+import { PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
 import { deriveCycleDays } from "@/lib/cycle-derivation"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
   const { currentCycle, isLoaded, load } = useCycles()
   const { avgCycleLength } = useSettings()
-  const { prediction } = usePrediction()
+  const { prediction, phase } = usePrediction()
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
@@ -32,7 +32,6 @@ export default function TodayScreen() {
     ? differenceInDays(prediction.nextPeriodStart, today)
     : 14
 
-  const phase = getPhase(daysUntilPeriod, avgCycleLength)
   const phaseColor = PHASE_COLORS[phase].hex
 
   const flowDays = useMemo(

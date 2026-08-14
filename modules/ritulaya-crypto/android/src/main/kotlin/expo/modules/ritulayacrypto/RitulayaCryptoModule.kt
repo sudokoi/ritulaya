@@ -3,28 +3,14 @@ package expo.modules.ritulayacrypto
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
+/**
+ * Key management lives in [CryptoKeys] and is consumed directly by
+ * `ritulaya-db` in Kotlin. This module is kept only so autolinking exposes
+ * `:ritulaya-crypto` as a Gradle project; it exposes no JS surface.
+ */
 class RitulayaCryptoModule : Module() {
     override fun definition() =
         ModuleDefinition {
             Name("RitulayaCrypto")
-
-            AsyncFunction("generateKey") {
-                CryptoKeys.generateKey()
-            }
-
-            AsyncFunction("encrypt") { plaintext: String ->
-                CryptoKeys.encrypt(plaintext)
-            }
-
-            AsyncFunction("decrypt") { ciphertext: String ->
-                CryptoKeys.decrypt(ciphertext)
-            }
-
-            Function("getDatabaseKey") {
-                val context =
-                    appContext.reactContext?.applicationContext
-                        ?: throw IllegalStateException("Context not available")
-                CryptoKeys.getDatabaseKey(context)
-            }
         }
 }

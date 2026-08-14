@@ -94,4 +94,25 @@ class PredictionEngineTest {
         assertThat(PredictionEngine.averagePeriodLength(cycles, logs, 3)).isEqualTo(5)
         assertThat(PredictionEngine.averagePeriodLength(emptyList(), emptyList(), 3)).isEqualTo(3)
     }
+
+    @Test
+    fun `averageCycleLength is the simple mean and returns fallback when empty`() {
+        val cycles =
+            listOf(
+                PredictionEngine.CycleInput("a", "2026-03-01", "2026-03-28"),
+                PredictionEngine.CycleInput("b", "2026-03-29", "2026-04-25"),
+                PredictionEngine.CycleInput("c", "2026-04-26", "2026-05-23"),
+            )
+
+        assertThat(PredictionEngine.averageCycleLength(cycles, 28)).isEqualTo(28)
+        assertThat(PredictionEngine.averageCycleLength(emptyList(), 28)).isEqualTo(28)
+    }
+
+    @Test
+    fun `phase derives from days until next period`() {
+        assertThat(PredictionEngine.phase(3, 28)).isEqualTo("menstrual")
+        assertThat(PredictionEngine.phase(20, 28)).isEqualTo("follicular")
+        assertThat(PredictionEngine.phase(14, 28)).isEqualTo("ovulation")
+        assertThat(PredictionEngine.phase(6, 28)).isEqualTo("luteal")
+    }
 }

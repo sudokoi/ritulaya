@@ -3,19 +3,15 @@ import { useState, useMemo, useCallback } from "react"
 import { format } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
-import { useCycles } from "@/hooks/use-cycles"
-import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
-import { averageCycleLength, deriveCycleDays } from "@/lib/cycle-derivation"
+import { deriveCycleDays } from "@/lib/cycle-derivation"
 import type { FlowIntensity } from "@/types/day-log"
 import type { SymptomKey } from "@/constants/symptoms"
 import type { MoodKey } from "@/constants/moods"
 
 export default function CalendarScreen() {
-  const { cycles } = useCycles()
-  const { avgCycleLength } = useSettings()
-  const { prediction, periodLength } = usePrediction()
+  const { prediction, periodLength, avgCycleLength } = usePrediction()
   const { logs, upsertDayLog, deleteDayLog, getLogForDate } = useDayLogs()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
@@ -38,11 +34,6 @@ export default function CalendarScreen() {
   )
 
   const loggedDays = useMemo(() => logs.map((log) => log.date), [logs])
-
-  const avgLen = useMemo(
-    () => averageCycleLength(cycles, avgCycleLength),
-    [cycles, avgCycleLength],
-  )
 
   const handleSave = useCallback(
     (data: {
@@ -88,7 +79,7 @@ export default function CalendarScreen() {
         <View className="flex-row px-4 py-2">
           <View className="flex-1 items-center">
             <Text className="text-2xl font-bold text-[var(--text-primary)]">
-              {avgLen}
+              {avgCycleLength}
             </Text>
             <Text className="text-xs text-[var(--text-muted)]">avg cycle</Text>
           </View>

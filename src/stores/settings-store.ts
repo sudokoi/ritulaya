@@ -1,6 +1,5 @@
 import { createStore } from "@xstate/store"
 import { findSettings, updateSettings, type SettingsRow } from "@/services/db"
-import { nowISO } from "@/utils/date"
 
 export interface SettingsState {
   avgCycleLength: number
@@ -60,7 +59,6 @@ export async function loadSettings() {
   try {
     const row = await findSettings()
     if (!row) {
-      const now = nowISO()
       await updateSettings({
         id: "default",
         avgCycleLength: defaults.avgCycleLength,
@@ -72,8 +70,6 @@ export async function loadSettings() {
         discreetMode: 0,
         reminderPeriodAhead: defaults.reminderPeriodAhead,
         reminderDailyLog: 0,
-        createdAt: now,
-        updatedAt: now,
       })
       settingsStore.send({ type: "set", settings: defaults })
       return
@@ -89,8 +85,7 @@ export async function loadSettings() {
 
 export async function updateSettingsFn(patch: Partial<SettingsState>) {
   try {
-    const now = nowISO()
-    const data: Record<string, unknown> = { updatedAt: now }
+    const data: Record<string, unknown> = {}
     if (patch.avgCycleLength !== undefined) data.avgCycleLength = patch.avgCycleLength
     if (patch.avgPeriodLength !== undefined) data.avgPeriodLength = patch.avgPeriodLength
     if (patch.lutealPhaseLength !== undefined)

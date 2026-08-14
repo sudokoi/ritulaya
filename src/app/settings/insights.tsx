@@ -6,7 +6,6 @@ import { useCycles } from "@/hooks/use-cycles"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
-import { averageCycleLength } from "@/lib/cycle-derivation"
 import { discreetLabel } from "@/lib/discreet"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
@@ -23,13 +22,8 @@ function frequency(items: (string | null)[]): [string, number][] {
 export default function InsightsScreen() {
   const { cycles } = useCycles()
   const { logs } = useDayLogs()
-  const { avgCycleLength, discreetMode: discreet } = useSettings()
-  const { periodLength } = usePrediction()
-
-  const avgLen = useMemo(
-    () => averageCycleLength(cycles, avgCycleLength),
-    [cycles, avgCycleLength],
-  )
+  const { discreetMode: discreet } = useSettings()
+  const { periodLength, avgCycleLength } = usePrediction()
 
   const symptomFreq = useMemo(() => frequency(logs.flatMap((l) => l.symptoms)), [logs])
   const moodFreq = useMemo(() => frequency(logs.map((l) => l.mood)), [logs])
@@ -47,7 +41,7 @@ export default function InsightsScreen() {
 
       <View className="mx-4 mt-2 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <Stat value={`${avgLen}`} label={discreetLabel(discreet, "avg cycle", "avg")} />
+          <Stat value={`${avgCycleLength}`} label={discreetLabel(discreet, "avg cycle", "avg")} />
           <Stat
             value={`${periodLength}`}
             label={discreetLabel(discreet, "period days", "days")}

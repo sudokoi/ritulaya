@@ -38,7 +38,7 @@ class RitulayaDbModule : Module() {
                 runBlocking { store.findLastFlowDate() }
             }
 
-            AsyncFunction("upsertDayLog") { input: Map<String, Any?> ->
+            AsyncFunction("upsertDayLog") { input: DayLogInput ->
                 runBlocking { store.upsertDayLog(input).toMap() }
             }
 
@@ -50,7 +50,7 @@ class RitulayaDbModule : Module() {
                 runBlocking { store.getSettings()?.toMap() }
             }
 
-            AsyncFunction("updateSettings") { patch: Map<String, Any?> ->
+            AsyncFunction("updateSettings") { patch: SettingsPatch ->
                 runBlocking { store.updateSettings(patch) }
             }
         }
