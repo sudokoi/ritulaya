@@ -23,8 +23,8 @@ export function WeekStrip({ days }: WeekStripProps) {
             className={cn(
               "h-2.5 w-2.5 rounded-full",
               day.isPeriod && "bg-menstrual",
-              day.isPredicted && "border-2 border-menstrual",
-              !day.isPeriod && !day.isPredicted && "bg-[var(--border-light)]",
+              day.isPredicted && "border-2 border-menstrual dark:border-menstrual-dark",
+              !day.isPeriod && !day.isPredicted && "bg-[var(--bg-muted)]",
             )}
           />
           {day.isToday && (

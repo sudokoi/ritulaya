@@ -95,7 +95,7 @@ export function DayDetailSheet({
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable className="flex-1 bg-black/30" onPress={onClose}>
         <Pressable className="mt-auto rounded-t-3xl bg-[var(--bg-primary)] pb-8">
-          <View className="flex-row items-center justify-between border-b border-[var(--border-light)] px-6 py-4">
+          <View className="flex-row items-center justify-between border-b border-[var(--border)] px-6 py-4">
             <Text className="text-lg font-semibold text-[var(--text-primary)]">
               {format(date, "EEE, MMM d")}
             </Text>
@@ -132,7 +132,7 @@ export function DayDetailSheet({
                     }}
                     className={cn(
                       "flex-1 rounded-button py-2.5",
-                      flow === level.key ? "bg-menstrual" : "bg-[var(--border-light)]",
+                      flow === level.key ? "bg-menstrual" : "bg-[var(--bg-muted)]",
                     )}
                   >
                     <Text
@@ -192,7 +192,7 @@ export function DayDetailSheet({
                       "rounded-pill px-4 py-2",
                       symptoms.includes(symptom.key)
                         ? "bg-luteal"
-                        : "bg-[var(--border-light)]",
+                        : "bg-[var(--bg-muted)]",
                     )}
                   >
                     <Text

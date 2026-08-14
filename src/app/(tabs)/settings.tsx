@@ -15,7 +15,6 @@ import {
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
 import { discreetLabel } from "@/lib/discreet"
-import { MenuView } from "@expo/ui/community/menu"
 import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
 import { exportData } from "@/services/export"
@@ -28,8 +27,6 @@ const THEME_OPTIONS = [
   { value: "dark", label: "Dark" },
 ] as const
 const PERIOD_AHEAD_OPTIONS = [0, 1, 2, 3, 5, 7]
-
-type Theme = (typeof THEME_OPTIONS)[number]["value"]
 
 interface SettingsRowProps {
   icon: React.ReactNode
@@ -45,7 +42,7 @@ function SettingsRow({ icon, label, value, onPress, right, danger }: SettingsRow
     <TouchableOpacity
       onPress={onPress}
       disabled={!onPress && !right}
-      className="flex-row items-center justify-between border-b border-[var(--border-light)] py-4"
+      className="flex-row items-center justify-between border-b border-[var(--border)] py-4"
     >
       <View className="flex-row items-center gap-3">
         {icon}
@@ -90,7 +87,11 @@ export default function SettingsScreen() {
     load()
   }, [load])
 
-  const selectTheme = (value: Theme) => update({ theme: value })
+  const cycleTheme = () => {
+    const values = THEME_OPTIONS.map((option) => option.value)
+    const idx = values.indexOf(theme)
+    update({ theme: values[(idx + 1) % values.length] })
+  }
 
   const setBiometricLock = async (value: boolean) => {
     if (!value) {
@@ -108,12 +109,6 @@ export default function SettingsScreen() {
     }
     update({ biometricLock: true })
   }
-
-  const themeActions = THEME_OPTIONS.map((option) => ({
-    id: option.value,
-    title: option.label,
-    state: (theme === option.value ? "on" : "off") as "on" | "off",
-  }))
 
   const currentThemeLabel = THEME_OPTIONS.find((option) => option.value === theme)?.label
 
@@ -140,8 +135,8 @@ export default function SettingsScreen() {
           onPress={() => router.push("/settings/insights")}
           className="mt-3 flex-row items-center justify-center gap-1"
         >
-          <BarChart3 size={14} color="#7BA891" />
-          <Text className="text-sm font-medium text-follicular">
+          <BarChart3 size={14} color="#42725A" />
+          <Text className="text-sm font-medium text-follicular dark:text-follicular-dark">
             {discreetLabel(discreet, "View Full Insights", "View Details")}
           </Text>
         </TouchableOpacity>
@@ -156,7 +151,7 @@ export default function SettingsScreen() {
             <Switch
               value={biometricLock}
               onValueChange={setBiometricLock}
-              trackColor={{ true: "#7BA891" }}
+              trackColor={{ true: "#42725A" }}
             />
           }
         />
@@ -167,7 +162,7 @@ export default function SettingsScreen() {
             <Switch
               value={discreet}
               onValueChange={(v) => update({ discreetMode: v })}
-              trackColor={{ true: "#7BA891" }}
+              trackColor={{ true: "#42725A" }}
             />
           }
         />
@@ -203,7 +198,7 @@ export default function SettingsScreen() {
             <Switch
               value={reminderDailyLog}
               onValueChange={(v) => update({ reminderDailyLog: v })}
-              trackColor={{ true: "#7BA891" }}
+              trackColor={{ true: "#42725A" }}
             />
           }
         />
@@ -211,25 +206,12 @@ export default function SettingsScreen() {
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Appearance", "Display")} />
-        <MenuView
-          actions={themeActions}
-          onPressAction={(e) => selectTheme(e.nativeEvent.event as Theme)}
-        >
-          <View className="flex-row items-center justify-between border-b border-[var(--border-light)] py-4">
-            <View className="flex-row items-center gap-3">
-              <Smartphone size={20} color="#8E8C8A" />
-              <Text className="text-base text-[var(--text-primary)]">
-                {discreetLabel(discreet, "Theme", "Appearance")}
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <Text className="text-sm text-[var(--text-muted)]">
-                {currentThemeLabel}
-              </Text>
-              <ChevronRight size={18} color="#8E8C8A" />
-            </View>
-          </View>
-        </MenuView>
+        <SettingsRow
+          icon={<Smartphone size={20} color="#8E8C8A" />}
+          label={discreetLabel(discreet, "Theme", "Appearance")}
+          value={currentThemeLabel}
+          onPress={cycleTheme}
+        />
       </View>
 
       <View className="mx-4 mt-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5">

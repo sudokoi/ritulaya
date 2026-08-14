@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router"
 import { Calendar, Home, Settings } from "lucide-react-native"
 import { Pressable } from "react-native"
+import { useColorScheme } from "nativewind"
 import type { BottomTabBarButtonProps } from "expo-router/build/react-navigation/bottom-tabs"
 
 function TabBarButton({
@@ -33,6 +34,9 @@ function TabBarButton({
 }
 
 export default function TabLayout() {
+  const { colorScheme } = useColorScheme()
+  const dark = colorScheme === "dark"
+
   return (
     <Tabs
       screenOptions={{
@@ -45,14 +49,14 @@ export default function TabLayout() {
           justifyContent: "center",
         },
         tabBarStyle: {
-          backgroundColor: "#faf8f5",
-          borderTopColor: "#e8e4df",
+          backgroundColor: dark ? "#141416" : "#faf8f5",
+          borderTopColor: dark ? "#2f2f33" : "#e8e4df",
           elevation: 0,
           shadowOpacity: 0,
           shadowColor: "transparent",
         },
-        tabBarActiveTintColor: "#7BA891",
-        tabBarInactiveTintColor: "#8E8C8A",
+        tabBarActiveTintColor: dark ? "#A2CCB4" : "#42725A",
+        tabBarInactiveTintColor: dark ? "#a9a8a4" : "#6f6b64",
       }}
     >
       <Tabs.Screen

@@ -6,19 +6,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        menstrual: "#C17B9D",
-        follicular: "#7BA891",
-        ovulation: "#C9A96E",
-        luteal: "#9B8EC4",
-        surface: {
-          light: "#FAF8F5",
-          dark: "#1A1A1C",
-        },
-        muted: "#8E8C8A",
-        border: {
-          light: "#E8E4DF",
-          dark: "#3A3835",
-        },
+        menstrual: "#A15878",
+        "menstrual-dark": "#DFA9C0",
+        follicular: "#42725A",
+        "follicular-dark": "#A2CCB4",
+        ovulation: "#8C6A24",
+        "ovulation-dark": "#E4C585",
+        luteal: "#67589C",
+        "luteal-dark": "#BDA9E2",
       },
       borderRadius: {
         card: "20px",

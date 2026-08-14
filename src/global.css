@@ -6,16 +6,18 @@
   :root {
     --bg-primary: #faf8f5;
     --bg-surface: #ffffff;
+    --bg-muted: #ece7e1;
     --text-primary: #2d2d2f;
-    --text-muted: #8e8c8a;
-    --border-light: #e8e4df;
-    --border-dark: #3a3835;
+    --text-muted: #6f6b64;
+    --border: #e8e4df;
   }
 
   .dark:root {
-    --bg-primary: #1a1a1c;
-    --bg-surface: #2a2a2d;
-    --text-primary: #eae8e4;
-    --text-muted: #8a8986;
+    --bg-primary: #141416;
+    --bg-surface: #1e1e21;
+    --bg-muted: #2c2c30;
+    --text-primary: #f2f1ee;
+    --text-muted: #a9a8a4;
+    --border: #2f2f33;
   }
 }

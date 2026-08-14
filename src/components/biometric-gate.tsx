@@ -70,7 +70,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
 
   return (
     <View className="flex-1 items-center justify-center bg-[var(--bg-primary)] px-6">
-      <Fingerprint size={48} color="#7BA891" />
+      <Fingerprint size={48} color="#42725A" />
       <Text className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
         Ritulaya is locked
       </Text>

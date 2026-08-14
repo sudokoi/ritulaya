@@ -1,18 +1,22 @@
 export const PHASE_COLORS = {
   menstrual: {
-    hex: "#C17B9D",
+    hex: "#A15878",
+    darkHex: "#DFA9C0",
     name: "Deep Mauve",
   },
   follicular: {
-    hex: "#7BA891",
+    hex: "#42725A",
+    darkHex: "#A2CCB4",
     name: "Sage Green",
   },
   ovulation: {
-    hex: "#C9A96E",
+    hex: "#8C6A24",
+    darkHex: "#E4C585",
     name: "Warm Amber",
   },
   luteal: {
-    hex: "#9B8EC4",
+    hex: "#67589C",
+    darkHex: "#BDA9E2",
     name: "Dusty Lavender",
   },
 } as const

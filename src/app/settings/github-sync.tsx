@@ -176,7 +176,7 @@ export default function GithubSyncScreen() {
             disabled={sync.busy || !existingRepo.trim()}
             className={cn(
               "mt-4 rounded-button px-6 py-3",
-              existingRepo.trim() ? "bg-follicular" : "bg-[var(--border-light)]",
+              existingRepo.trim() ? "bg-follicular" : "bg-[var(--bg-muted)]",
             )}
           >
             <Text
@@ -194,7 +194,7 @@ export default function GithubSyncScreen() {
       {sync.connected && sync.config && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <View className="flex-row items-center gap-3">
-            <Cloud size={24} color="#7BA891" />
+            <Cloud size={24} color="#42725A" />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-[var(--text-primary)]">
                 {sync.config.repoOwner}/{sync.config.repoName}
@@ -226,7 +226,7 @@ export default function GithubSyncScreen() {
           <TouchableOpacity
             onPress={() => handleDisconnect()}
             disabled={sync.busy}
-            className="mt-3 flex-row items-center justify-center gap-2 rounded-button bg-[var(--border-light)] px-6 py-4"
+            className="mt-3 flex-row items-center justify-center gap-2 rounded-button bg-[var(--bg-muted)] px-6 py-4"
           >
             <Trash2 size={18} color="#EF4444" />
             <Text className="font-semibold text-red-500">

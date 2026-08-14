@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native"
 import { useMemo, useEffect } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
+import { useColorScheme } from "nativewind"
 import { WeekStrip } from "@/components/week-strip"
 import { useCycles } from "@/hooks/use-cycles"
 import { useSettings } from "@/hooks/use-settings"
@@ -17,6 +18,8 @@ export default function TodayScreen() {
   const { currentCycle, isLoaded, load } = useCycles()
   const { avgCycleLength } = useSettings()
   const { prediction, phase } = usePrediction()
+  const { colorScheme } = useColorScheme()
+  const dark = colorScheme === "dark"
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
@@ -33,6 +36,7 @@ export default function TodayScreen() {
     : 14
 
   const phaseColor = PHASE_COLORS[phase].hex
+  const phaseTextColor = dark ? PHASE_COLORS[phase].darkHex : phaseColor
 
   const flowDays = useMemo(
     () =>
@@ -76,11 +80,11 @@ export default function TodayScreen() {
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: phaseColor }}
           />
-          <Text className="text-lg font-medium" style={{ color: phaseColor }}>
+          <Text className="text-lg font-medium" style={{ color: phaseTextColor }}>
             {PHASE_NAMES[phase]}
           </Text>
         </View>
-        <View className="mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-[var(--border-light)]">
+        <View className="mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-[var(--bg-muted)]">
           <View
             className="h-full rounded-full"
             style={{
@@ -124,7 +128,7 @@ export default function TodayScreen() {
                       "h-8 w-8 rounded-full",
                       todayLog.flowIntensity === level
                         ? "bg-menstrual"
-                        : "bg-[var(--border-light)]",
+                        : "bg-[var(--bg-muted)]",
                     )}
                   />
                 ),
@@ -135,7 +139,7 @@ export default function TodayScreen() {
                 ? todayLog.symptoms.map((symptom) => (
                     <View
                       key={symptom}
-                      className="rounded-pill bg-[var(--border-light)] px-4 py-2"
+                      className="rounded-pill bg-[var(--bg-muted)] px-4 py-2"
                     >
                       <Text className="text-sm text-[var(--text-primary)]">
                         {symptom}
@@ -164,9 +168,9 @@ export default function TodayScreen() {
 
       <View
         className="mx-4 mt-4 mb-8 rounded-card px-5 py-4"
-        style={{ backgroundColor: `${phaseColor}15` }}
+        style={{ backgroundColor: `${phaseTextColor}1f` }}
       >
-        <Text className="text-sm font-medium" style={{ color: phaseColor }}>
+        <Text className="text-sm font-medium" style={{ color: phaseTextColor }}>
           {PHASE_TIPS[phase]}
         </Text>
       </View>
