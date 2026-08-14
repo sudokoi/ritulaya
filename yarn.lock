@@ -4054,22 +4054,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xstate/react@npm:6.1.0":
-  version: 6.1.0
-  resolution: "@xstate/react@npm:6.1.0"
-  dependencies:
-    use-isomorphic-layout-effect: "npm:^1.1.2"
-    use-sync-external-store: "npm:^1.2.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    xstate: ^5.28.0
-  peerDependenciesMeta:
-    xstate:
-      optional: true
-  checksum: 10/9991312ca6b938a9390aa7d051e42fcd784286b1edeaccb1aaa1c27333fd368ef2c78377d76e4fae6f07597f33e2b6888dd3160a81b6e0711886752855171701
-  languageName: node
-  linkType: hard
-
 "@xstate/store-react@npm:2.0.0":
   version: 2.0.0
   resolution: "@xstate/store-react@npm:2.0.0"
@@ -11411,7 +11395,6 @@ __metadata:
     "@testing-library/react-native": "npm:14.0.1"
     "@types/jest": "npm:29.5.14"
     "@types/react": "npm:19.2.2"
-    "@xstate/react": "npm:6.1.0"
     "@xstate/store": "npm:4.2.3"
     "@xstate/store-react": "npm:2.0.0"
     babel-preset-expo: "npm:57.0.6"
@@ -11468,7 +11451,6 @@ __metadata:
     tailwindcss-animate: "npm:1.0.7"
     typescript: "npm:6.0.3"
     typescript-eslint: "npm:8.67.0"
-    xstate: "npm:5.32.5"
   languageName: unknown
   linkType: soft
 
@@ -12710,18 +12692,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-isomorphic-layout-effect@npm:^1.1.2":
-  version: 1.2.1
-  resolution: "use-isomorphic-layout-effect@npm:1.2.1"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10/a52155ffa7d67a5107ef2033ae2c63f5290c3e3b198de30d4d4f78cd7921e1ab1ea31eeec387defb67ef61adb672d3b8d25b54b7dcc089bacc4f885abde96e9d
-  languageName: node
-  linkType: hard
-
 "use-latest-callback@npm:^0.2.4":
   version: 0.2.6
   resolution: "use-latest-callback@npm:0.2.6"
@@ -12747,7 +12717,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.2.0, use-sync-external-store@npm:^1.6.0":
+"use-sync-external-store@npm:^1.6.0":
   version: 1.6.0
   resolution: "use-sync-external-store@npm:1.6.0"
   peerDependencies:
@@ -13114,13 +13084,6 @@ __metadata:
   version: 2.2.0
   resolution: "xmlchars@npm:2.2.0"
   checksum: 10/4ad5924974efd004a47cce6acf5c0269aee0e62f9a805a426db3337af7bcbd331099df174b024ace4fb18971b8a56de386d2e73a1c4b020e3abd63a4a9b917f1
-  languageName: node
-  linkType: hard
-
-"xstate@npm:5.32.5":
-  version: 5.32.5
-  resolution: "xstate@npm:5.32.5"
-  checksum: 10/e390e0efcd0499b1a2020a108a8ac9ff75c025ea7c70c0106bdb4e48704dc8be07632a7ce4121c4472cd777f15926d6afb4efb263731145634d2791b2cdf47f9
   languageName: node
   linkType: hard
 
