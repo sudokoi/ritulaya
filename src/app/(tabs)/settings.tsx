@@ -96,11 +96,6 @@ export default function SettingsScreen() {
             label="period days"
             discreet={discreet}
           />
-          <StatItem
-            value={cycles.length > 2 ? "85%" : "--"}
-            label="regular"
-            discreet={discreet}
-          />
         </View>
         <TouchableOpacity className="mt-3 flex-row items-center justify-center gap-1">
           <Text className="text-sm font-medium text-follicular">

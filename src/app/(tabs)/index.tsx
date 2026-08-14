@@ -124,8 +124,8 @@ export default function TodayScreen() {
               )}
             </View>
             <View className="flex-row flex-wrap gap-2">
-              {todayLog.symptoms !== "[]" && JSON.parse(todayLog.symptoms).length > 0
-                ? (JSON.parse(todayLog.symptoms) as string[]).map((symptom: string) => (
+              {todayLog.symptoms.length > 0
+                ? todayLog.symptoms.map((symptom) => (
                     <View
                       key={symptom}
                       className="rounded-pill bg-[var(--border-light)] px-4 py-2"

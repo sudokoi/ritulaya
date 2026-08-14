@@ -5,13 +5,22 @@ import { nowISO, generateId } from "@/utils/date"
 import type { DayLog, DayLogCreate, DayLogUpdate, FlowIntensity } from "@/types/day-log"
 import type { MoodKey } from "@/constants/moods"
 
+function parseSymptoms(value: string | null | undefined): string[] {
+  if (!value || value === "[]") return []
+  try {
+    return JSON.parse(value) as string[]
+  } catch {
+    return []
+  }
+}
+
 function toDayLog(row: Record<string, unknown>): DayLog {
   return {
     id: row.id as string,
     date: row.date as string,
     cycleId: (row.cycleId as string) ?? null,
     flowIntensity: (row.flowIntensity as FlowIntensity) ?? null,
-    symptoms: (row.symptoms as string) ?? "[]",
+    symptoms: parseSymptoms(row.symptoms as string | null),
     mood: (row.mood as MoodKey) ?? null,
     notes: (row.notes as string) ?? null,
     cervicalMucus: (row.cervicalMucus as string) ?? null,
@@ -49,13 +58,14 @@ export function upsertDayLog(input: DayLogCreate): DayLog {
     .where(eq(dayLogsTable.date, input.date))
     .get()
 
-  const symptoms = JSON.stringify(input.symptoms ?? [])
+  const symptoms = input.symptoms ?? []
+  const symptomsJson = JSON.stringify(symptoms)
 
   if (existing) {
     db.update(dayLogsTable)
       .set({
         flowIntensity: input.flowIntensity ?? existing.flowIntensity,
-        symptoms,
+        symptoms: symptomsJson,
         mood: input.mood ?? existing.mood,
         notes: input.notes ?? existing.notes,
         cervicalMucus: input.cervicalMucus ?? existing.cervicalMucus,
@@ -70,7 +80,7 @@ export function upsertDayLog(input: DayLogCreate): DayLog {
     return toDayLog({
       ...existing,
       flowIntensity: input.flowIntensity ?? existing.flowIntensity,
-      symptoms,
+      symptoms: symptomsJson,
       mood: input.mood ?? existing.mood,
       notes: input.notes ?? existing.notes,
       cervicalMucus: input.cervicalMucus ?? existing.cervicalMucus,
@@ -96,7 +106,22 @@ export function upsertDayLog(input: DayLogCreate): DayLog {
     updatedAt: now,
   }
 
-  db.insert(dayLogsTable).values(log).run()
+  db.insert(dayLogsTable)
+    .values({
+      id: log.id,
+      date: log.date,
+      cycleId: log.cycleId,
+      flowIntensity: log.flowIntensity,
+      symptoms: symptomsJson,
+      mood: log.mood,
+      notes: log.notes,
+      cervicalMucus: log.cervicalMucus,
+      bbt: log.bbt,
+      sexualActivity: log.sexualActivity,
+      createdAt: log.createdAt,
+      updatedAt: log.updatedAt,
+    })
+    .run()
   return log
 }
 

@@ -8,7 +8,7 @@ export interface DayLog {
   date: string
   cycleId: string | null
   flowIntensity: FlowIntensity | null
-  symptoms: string
+  symptoms: string[]
   mood: MoodKey | null
   notes: string | null
   cervicalMucus: string | null

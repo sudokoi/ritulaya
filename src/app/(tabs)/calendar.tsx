@@ -72,12 +72,6 @@ export default function CalendarScreen() {
             </Text>
             <Text className="text-xs text-[var(--text-muted)]">period days</Text>
           </View>
-          <View className="flex-1 items-center">
-            <Text className="text-2xl font-bold text-[var(--text-primary)]">
-              {cycles.length > 2 ? "85%" : "--"}
-            </Text>
-            <Text className="text-xs text-[var(--text-muted)]">regular</Text>
-          </View>
         </View>
 
         <MonthGrid
@@ -93,9 +87,7 @@ export default function CalendarScreen() {
           visible={selectedDate !== null}
           date={selectedDate ?? new Date()}
           existingFlow={existingLog?.flowIntensity as FlowIntensity | null}
-          existingSymptoms={
-            existingLog ? (JSON.parse(existingLog.symptoms) as SymptomKey[]) : []
-          }
+          existingSymptoms={existingLog?.symptoms ?? []}
           existingMood={existingLog?.mood as MoodKey | null}
           existingNotes={existingLog?.notes}
           onSave={handleSave}
