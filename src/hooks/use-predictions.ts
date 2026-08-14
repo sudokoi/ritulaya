@@ -1,11 +1,11 @@
 import { useMemo } from "react"
 import { useCycles } from "./use-cycles"
-import { useSettingsActor } from "./use-settings-actor"
+import { useSettings } from "./use-settings"
 import { predict } from "@/predictions"
 
 export function usePrediction() {
   const { cycles } = useCycles()
-  const { avgCycleLength, avgPeriodLength, lutealPhaseLength } = useSettingsActor()
+  const { avgCycleLength, avgPeriodLength, lutealPhaseLength } = useSettings()
 
   return useMemo(
     () =>

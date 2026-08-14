@@ -3,40 +3,18 @@ import { useMemo, useEffect } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
 import { WeekStrip } from "@/components/week-strip"
 import { useCycles } from "@/hooks/use-cycles"
-import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useNotifications } from "@/hooks/use-notifications"
 import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { cn } from "@/lib/utils"
-import { PHASE_COLORS, type Phase } from "@/constants/phase-colors"
-
-function getPhase(daysUntilPeriod: number, avgCycleLength: number): Phase {
-  if (daysUntilPeriod <= 5) return "menstrual"
-  const dayInCycle = avgCycleLength - daysUntilPeriod
-  if (dayInCycle <= 5) return "menstrual"
-  if (dayInCycle <= 13) return "follicular"
-  if (dayInCycle <= 15) return "ovulation"
-  return "luteal"
-}
-
-const PHASE_TIPS: Record<Phase, string> = {
-  menstrual: "Gentle movement and extra rest help. Be kind to yourself this week.",
-  follicular: "Your energy is rising. Great time for new projects and planning.",
-  ovulation: "Your energy peaks now. Great time for intense workouts & social plans.",
-  luteal: "A good time to wrap things up. Prioritize rest and comfort.",
-}
-
-const PHASE_NAMES: Record<Phase, string> = {
-  menstrual: "Menstrual Phase",
-  follicular: "Follicular Phase",
-  ovulation: "Ovulation Phase",
-  luteal: "Luteal Phase",
-}
+import { getPhase, PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
+import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
   const { currentCycle, isLoaded, load } = useCycles()
-  const { avgCycleLength } = useSettingsActor()
+  const { avgCycleLength } = useSettings()
   const prediction = usePrediction()
   const today = useMemo(() => new Date(), [])
   useNotifications()

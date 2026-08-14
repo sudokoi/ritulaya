@@ -10,22 +10,37 @@ import {
 import { useState } from "react"
 import { router } from "expo-router"
 import { ChevronLeft, Cloud, Trash2, RefreshCw, Plus } from "lucide-react-native"
-import { useSync } from "@/hooks/use-sync"
+import { useDeviceFlow } from "@/hooks/use-device-flow"
+import { useSyncConnection } from "@/hooks/use-sync-connection"
+import { useSyncStatus } from "@/hooks/use-sync-status"
 import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
 import { cn } from "@/lib/utils"
 
 export default function GithubSyncScreen() {
-  const sync = useSync()
+  const deviceFlow = useDeviceFlow()
+  const connection = useSyncConnection()
+  const syncStatus = useSyncStatus()
   const discreet = useDiscreet()
 
   const [repoName, setRepoName] = useState("ritulaya-data")
   const [existingOwner, setExistingOwner] = useState("")
   const [existingRepo, setExistingRepo] = useState("")
 
+  const error = deviceFlow.error ?? connection.error ?? syncStatus.error
+
   const openVerification = () => {
-    if (sync.deviceFlow) {
-      void Linking.openURL(sync.deviceFlow.verificationUrl)
+    if (deviceFlow.deviceFlow) {
+      void Linking.openURL(deviceFlow.deviceFlow.verificationUrl)
     }
+  }
+
+  const handleConnect = async () => {
+    const authorized = await deviceFlow.connect()
+    if (authorized) await connection.refresh()
+  }
+
+  const handleDisconnect = async () => {
+    await syncStatus.disconnect()
   }
 
   return (
@@ -39,13 +54,13 @@ export default function GithubSyncScreen() {
         </Text>
       </View>
 
-      {sync.error && (
+      {error && (
         <View className="mx-4 mb-4 rounded-card bg-red-500/10 px-5 py-3">
-          <Text className="text-sm text-red-500">{sync.error}</Text>
+          <Text className="text-sm text-red-500">{error}</Text>
         </View>
       )}
 
-      {!sync.connected && !sync.deviceFlow && (
+      {!connection.connected && !deviceFlow.deviceFlow && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Cloud size={40} color="#8E8C8A" />
           <Text className="mt-4 text-lg font-semibold text-[var(--text-primary)]">
@@ -59,11 +74,11 @@ export default function GithubSyncScreen() {
             )}
           </Text>
           <TouchableOpacity
-            onPress={() => sync.connect()}
-            disabled={sync.connecting}
+            onPress={() => handleConnect()}
+            disabled={deviceFlow.connecting}
             className="mt-6 rounded-button bg-follicular px-6 py-4"
           >
-            {sync.connecting ? (
+            {deviceFlow.connecting ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text className="text-center font-semibold text-white">
@@ -74,7 +89,7 @@ export default function GithubSyncScreen() {
         </View>
       )}
 
-      {sync.deviceFlow && (
+      {deviceFlow.deviceFlow && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
             {discreetLabel(discreet, "Authorize on GitHub", "Authorize")}
@@ -88,7 +103,7 @@ export default function GithubSyncScreen() {
           </Text>
           <View className="mt-4 rounded-card bg-[var(--bg-primary)] px-6 py-4">
             <Text className="text-center text-3xl font-bold tracking-[0.3em] text-[var(--text-primary)]">
-              {sync.deviceFlow.userCode}
+              {deviceFlow.deviceFlow.userCode}
             </Text>
           </View>
           <TouchableOpacity
@@ -108,7 +123,7 @@ export default function GithubSyncScreen() {
         </View>
       )}
 
-      {sync.connected && !sync.config && (
+      {connection.connected && !connection.config && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
             {discreetLabel(discreet, "Choose a repository", "Choose a repository")}
@@ -128,8 +143,8 @@ export default function GithubSyncScreen() {
               autoCorrect={false}
             />
             <TouchableOpacity
-              onPress={() => sync.createNewRepo(repoName.trim() || "ritulaya-data")}
-              disabled={sync.busy}
+              onPress={() => connection.createNewRepo(repoName.trim() || "ritulaya-data")}
+              disabled={connection.busy}
               className="rounded-button bg-follicular px-5 py-3"
             >
               <Plus size={20} color="#fff" />
@@ -143,7 +158,7 @@ export default function GithubSyncScreen() {
             value={existingOwner}
             onChangeText={setExistingOwner}
             className="mt-2 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
-            placeholder={sync.username ?? "owner"}
+            placeholder={connection.username ?? "owner"}
             placeholderTextColor="#8E8C8A"
             autoCapitalize="none"
             autoCorrect={false}
@@ -159,12 +174,12 @@ export default function GithubSyncScreen() {
           />
           <TouchableOpacity
             onPress={() =>
-              sync.useExistingRepo(
-                existingOwner.trim() || sync.username || "",
+              connection.useExistingRepo(
+                existingOwner.trim() || connection.username || "",
                 existingRepo.trim(),
               )
             }
-            disabled={sync.busy || !existingRepo.trim()}
+            disabled={connection.busy || !existingRepo.trim()}
             className={cn(
               "mt-4 rounded-button px-6 py-3",
               existingRepo.trim() ? "bg-follicular" : "bg-[var(--border-light)]",
@@ -182,16 +197,16 @@ export default function GithubSyncScreen() {
         </View>
       )}
 
-      {sync.connected && sync.config && (
+      {connection.connected && connection.config && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <View className="flex-row items-center gap-3">
             <Cloud size={24} color="#7BA891" />
             <View className="flex-1">
               <Text className="text-lg font-semibold text-[var(--text-primary)]">
-                {sync.config.repoOwner}/{sync.config.repoName}
+                {connection.config.repoOwner}/{connection.config.repoName}
               </Text>
               <Text className="text-sm text-[var(--text-muted)]">
-                {sync.status?.syncedAt
+                {syncStatus.status?.syncedAt
                   ? discreetLabel(discreet, "Synced", "Synced")
                   : discreetLabel(discreet, "Not synced yet", "Not synced yet")}
               </Text>
@@ -200,11 +215,11 @@ export default function GithubSyncScreen() {
           </View>
 
           <TouchableOpacity
-            onPress={() => sync.syncNow()}
-            disabled={sync.syncing}
+            onPress={() => syncStatus.syncNow()}
+            disabled={syncStatus.syncing}
             className="mt-6 flex-row items-center justify-center gap-2 rounded-button bg-follicular px-6 py-4"
           >
-            {sync.syncing ? (
+            {syncStatus.syncing ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <RefreshCw size={18} color="#fff" />
@@ -215,8 +230,8 @@ export default function GithubSyncScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => sync.disconnect()}
-            disabled={sync.busy}
+            onPress={() => handleDisconnect()}
+            disabled={connection.busy}
             className="mt-3 flex-row items-center justify-center gap-2 rounded-button bg-[var(--border-light)] px-6 py-4"
           >
             <Trash2 size={18} color="#EF4444" />

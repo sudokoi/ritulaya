@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react"
-import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { useSettings } from "@/hooks/use-settings"
 
 interface DiscreetGuardContext {
   discreet: boolean
@@ -10,7 +10,7 @@ const DiscreetGuardContext = createContext<DiscreetGuardContext>({
 })
 
 export function DiscreetGuard({ children }: { children: ReactNode }) {
-  const { discreetMode } = useSettingsActor()
+  const { discreetMode } = useSettings()
   return (
     <DiscreetGuardContext.Provider value={{ discreet: discreetMode }}>
       {children}

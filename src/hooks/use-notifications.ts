@@ -3,11 +3,11 @@ import {
   requestNotificationPermissions,
   updateAllReminders,
 } from "@/services/notifications"
-import { useSettingsActor } from "./use-settings-actor"
+import { useSettings } from "./use-settings"
 import { usePrediction } from "./use-predictions"
 
 export function useNotifications() {
-  const { reminderPeriodAhead, reminderDailyLog, discreetMode } = useSettingsActor()
+  const { reminderPeriodAhead, reminderDailyLog, discreetMode } = useSettings()
   const prediction = usePrediction()
 
   useEffect(() => {

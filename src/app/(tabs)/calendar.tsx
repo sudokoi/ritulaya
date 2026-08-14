@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { useCycles } from "@/hooks/use-cycles"
-import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { averageCycleLength, deriveCycleDays } from "@/lib/cycle-derivation"
@@ -14,7 +14,7 @@ import type { MoodKey } from "@/constants/moods"
 
 export default function CalendarScreen() {
   const { cycles } = useCycles()
-  const { avgCycleLength, avgPeriodLength } = useSettingsActor()
+  const { avgCycleLength, avgPeriodLength } = useSettings()
   const prediction = usePrediction()
   const { logs, upsertDayLog, getLogForDate } = useDayLogs()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

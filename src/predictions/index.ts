@@ -5,22 +5,12 @@ import type {
 } from "@/types/prediction"
 import { createWMAPredictor } from "./weighted-moving-average"
 
-let currentStrategy: PredictionStrategy | null = null
-
-export function getPredictionStrategy(): PredictionStrategy {
-  if (!currentStrategy) {
-    currentStrategy = createWMAPredictor()
-  }
-  return currentStrategy
-}
-
-export function setPredictionStrategy(strategy: PredictionStrategy): void {
-  currentStrategy = strategy
-}
+const defaultStrategy: PredictionStrategy = createWMAPredictor()
 
 export function predict(
   cycles: { startDate: string; endDate: string | null }[],
   config: PredictionConfig,
+  strategy: PredictionStrategy = defaultStrategy,
 ): PredictionResult {
-  return getPredictionStrategy().predict(cycles, config)
+  return strategy.predict(cycles, config)
 }

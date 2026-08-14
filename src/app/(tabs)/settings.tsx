@@ -13,7 +13,7 @@ import {
   Bug,
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
-import { useSettingsActor } from "@/hooks/use-settings-actor"
+import { useSettings } from "@/hooks/use-settings"
 import { useCycles } from "@/hooks/use-cycles"
 import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
 import { averageCycleLength } from "@/lib/cycle-derivation"
@@ -70,7 +70,7 @@ export default function SettingsScreen() {
     reminderDailyLog,
     update,
     load,
-  } = useSettingsActor()
+  } = useSettings()
   const { cycles } = useCycles()
   const discreet = useDiscreet()
 
