@@ -54,16 +54,6 @@ class GithubApiClient(
         put(url, body.toString())
     }
 
-    fun getRepoDefaultBranch(
-        owner: String,
-        repo: String,
-    ): String {
-        val url = "https://api.github.com/repos/$owner/$repo"
-        val response = get(url)
-        val json = org.json.JSONObject(response)
-        return json.optString("default_branch", "main")
-    }
-
     fun createRepo(
         name: String,
         isPrivate: Boolean,
