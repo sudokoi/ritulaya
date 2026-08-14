@@ -1,66 +1,70 @@
 import { openDatabaseSync, type SQLiteDatabase } from "expo-sqlite"
 import { drizzle } from "drizzle-orm/expo-sqlite"
 import * as schema from "@/db/schema"
+import migrations from "@/db/migrations/migrations.js"
 
 let dbInstance: ReturnType<typeof drizzle> | null = null
 
-function runMigrations(db: SQLiteDatabase) {
-  db.execSync(`
-    CREATE TABLE IF NOT EXISTS cycles (
-      id TEXT PRIMARY KEY NOT NULL,
-      start_date TEXT NOT NULL,
-      end_date TEXT,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
+function hasTable(expoDb: SQLiteDatabase, name: string): boolean {
+  return (
+    expoDb.getAllSync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+      name,
+    ).length > 0
+  )
+}
 
-    CREATE TABLE IF NOT EXISTS day_logs (
-      id TEXT PRIMARY KEY NOT NULL,
-      date TEXT NOT NULL,
-      cycle_id TEXT,
-      flow_intensity TEXT,
-      symptoms TEXT DEFAULT '[]',
-      mood TEXT,
-      notes TEXT,
-      cervical_mucus TEXT,
-      bbt REAL,
-      sexual_activity INTEGER DEFAULT 0,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      FOREIGN KEY (cycle_id) REFERENCES cycles(id)
-    );
+function applyMigrations(expoDb: SQLiteDatabase) {
+  expoDb.execSync(
+    `CREATE TABLE IF NOT EXISTS __drizzle_migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      hash text NOT NULL,
+      created_at numeric
+    )`,
+  )
 
-    CREATE UNIQUE INDEX IF NOT EXISTS day_logs_date_unique ON day_logs (date);
+  const migrationsByName = migrations.migrations as Record<string, string>
+  const applied = expoDb.getAllSync<{ created_at: number }>(
+    "SELECT created_at FROM __drizzle_migrations",
+  )
 
-    CREATE TABLE IF NOT EXISTS settings (
-      id TEXT PRIMARY KEY DEFAULT 'default' NOT NULL,
-      avg_cycle_length INTEGER DEFAULT 28,
-      avg_period_length INTEGER DEFAULT 5,
-      luteal_phase_length INTEGER DEFAULT 14,
-      theme TEXT DEFAULT 'system',
-      language TEXT DEFAULT 'en',
-      biometric_lock INTEGER DEFAULT 0,
-      discreet_mode INTEGER DEFAULT 0,
-      reminder_period_ahead INTEGER DEFAULT 2,
-      reminder_daily_log INTEGER DEFAULT 0,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
+  if (applied.length === 0 && hasTable(expoDb, "cycles")) {
+    expoDb.withTransactionSync(() => {
+      for (const entry of migrations.journal.entries) {
+        expoDb.runSync(
+          "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
+          "",
+          entry.when,
+        )
+      }
+    })
+    return
+  }
 
-    CREATE TABLE IF NOT EXISTS sync_tombstones (
-      entity TEXT NOT NULL,
-      entity_id TEXT NOT NULL,
-      deleted_at TEXT NOT NULL,
-      PRIMARY KEY (entity, entity_id)
-    );
-  `)
+  const lastApplied = applied.reduce((max, row) => Math.max(max, row.created_at), 0)
+
+  expoDb.withTransactionSync(() => {
+    for (const entry of migrations.journal.entries) {
+      if (entry.when <= lastApplied) continue
+      const query = migrationsByName[`m${String(entry.idx).padStart(4, "0")}`]
+      if (!query) throw new Error(`Missing migration: ${entry.tag}`)
+      for (const statement of query.split("--> statement-breakpoint")) {
+        expoDb.execSync(statement)
+      }
+      expoDb.runSync(
+        "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
+        "",
+        entry.when,
+      )
+    }
+  })
 }
 
 export function getDatabase(): ReturnType<typeof drizzle> {
   if (dbInstance) return dbInstance
 
   const expoDb = openDatabaseSync("ritulaya.db")
-  runMigrations(expoDb)
+  applyMigrations(expoDb)
   dbInstance = drizzle(expoDb, { schema })
   return dbInstance
 }

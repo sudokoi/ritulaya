@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback } from "react"
 import { format, differenceInDays } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
-import { useCycleActor } from "@/hooks/use-cycle-actor"
+import { useCycles } from "@/hooks/use-cycles"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
@@ -12,7 +12,7 @@ import type { SymptomKey } from "@/constants/symptoms"
 import type { MoodKey } from "@/constants/moods"
 
 export default function CalendarScreen() {
-  const { cycles } = useCycleActor()
+  const { cycles } = useCycles()
   const { avgCycleLength, avgPeriodLength } = useSettingsActor()
   const prediction = usePrediction()
   const { logs, upsertDayLog, getLogForDate } = useDayLogs()

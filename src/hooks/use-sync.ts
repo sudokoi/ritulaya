@@ -14,13 +14,12 @@ import {
   type RepoInfo,
 } from "@/services/sync"
 import { loadDayLogs } from "@/stores/day-log-store"
-import { useStoreActors } from "@/providers/store-provider"
+import { loadCycles } from "@/stores/cycle-store"
 import type { SyncConfig, SyncStatus } from "@/types/sync"
 
 const SYNC_INTERVAL_MINUTES = 24 * 60
 
 export function useSync() {
-  const { cycleActor } = useStoreActors()
   const [config, setConfig] = useState<SyncConfig | null>(null)
   const [status, setStatus] = useState<SyncStatus | null>(null)
   const [deviceFlow, setDeviceFlow] = useState<{
@@ -118,7 +117,7 @@ export function useSync() {
       setStatus(result)
       if (result?.status === "inSync") {
         await loadDayLogs()
-        cycleActor.send({ type: "load" })
+        loadCycles()
       }
       await load()
     } catch (e) {
@@ -126,7 +125,7 @@ export function useSync() {
     } finally {
       setSyncing(false)
     }
-  }, [load, cycleActor])
+  }, [load])
 
   const disconnectAction = useCallback(async () => {
     setBusy(true)

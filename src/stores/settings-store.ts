@@ -1,7 +1,5 @@
 import { setup, assign, fromPromise } from "xstate"
-import { eq } from "drizzle-orm"
-import { getDatabase } from "@/services/database"
-import { settings as settingsTable } from "@/db/schema"
+import { findSettings, insertSettings, updateSettings } from "@/db/settings"
 import { nowISO } from "@/utils/date"
 
 interface SettingsContext {
@@ -34,27 +32,24 @@ const defaults: SettingsContext = {
 }
 
 const loadSettings = fromPromise(async () => {
-  const db = getDatabase()
-  const row = db.select().from(settingsTable).where(eq(settingsTable.id, "default")).get()
+  const row = findSettings()
 
   if (!row) {
     const now = nowISO()
-    db.insert(settingsTable)
-      .values({
-        id: "default",
-        avgCycleLength: defaults.avgCycleLength,
-        avgPeriodLength: defaults.avgPeriodLength,
-        lutealPhaseLength: defaults.lutealPhaseLength,
-        theme: defaults.theme,
-        language: defaults.language,
-        biometricLock: 0,
-        discreetMode: 0,
-        reminderPeriodAhead: defaults.reminderPeriodAhead,
-        reminderDailyLog: 0,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .run()
+    insertSettings({
+      id: "default",
+      avgCycleLength: defaults.avgCycleLength,
+      avgPeriodLength: defaults.avgPeriodLength,
+      lutealPhaseLength: defaults.lutealPhaseLength,
+      theme: defaults.theme,
+      language: defaults.language,
+      biometricLock: 0,
+      discreetMode: 0,
+      reminderPeriodAhead: defaults.reminderPeriodAhead,
+      reminderDailyLog: 0,
+      createdAt: now,
+      updatedAt: now,
+    })
     return defaults
   }
 
@@ -74,7 +69,6 @@ const loadSettings = fromPromise(async () => {
 
 const updateSettingsFn = fromPromise(
   async ({ input }: { input: Partial<SettingsContext> }) => {
-    const db = getDatabase()
     const now = nowISO()
 
     const data: Record<string, unknown> = { updatedAt: now }
@@ -92,7 +86,7 @@ const updateSettingsFn = fromPromise(
     if (input.reminderDailyLog !== undefined)
       data.reminderDailyLog = input.reminderDailyLog ? 1 : 0
 
-    db.update(settingsTable).set(data).where(eq(settingsTable.id, "default")).run()
+    updateSettings(data)
     return input
   },
 )

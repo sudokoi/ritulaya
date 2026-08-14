@@ -14,7 +14,7 @@ import {
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
-import { useCycleActor } from "@/hooks/use-cycle-actor"
+import { useCycles } from "@/hooks/use-cycles"
 import { useDiscreet, discreetLabel } from "@/providers/discreet-guard"
 import { useMemo, useEffect } from "react"
 import { differenceInDays } from "date-fns"
@@ -71,7 +71,7 @@ export default function SettingsScreen() {
     update,
     load,
   } = useSettingsActor()
-  const { cycles } = useCycleActor()
+  const { cycles } = useCycles()
   const discreet = useDiscreet()
 
   const stats = useMemo(() => {

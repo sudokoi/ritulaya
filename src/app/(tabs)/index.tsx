@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native"
 import { useMemo, useEffect } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
 import { WeekStrip } from "@/components/week-strip"
-import { useCycleActor } from "@/hooks/use-cycle-actor"
+import { useCycles } from "@/hooks/use-cycles"
 import { useSettingsActor } from "@/hooks/use-settings-actor"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -35,7 +35,7 @@ const PHASE_NAMES: Record<Phase, string> = {
 }
 
 export default function TodayScreen() {
-  const { currentCycle, isLoaded, load } = useCycleActor()
+  const { currentCycle, isLoaded, load } = useCycles()
   const { avgCycleLength } = useSettingsActor()
   const prediction = usePrediction()
   const today = useMemo(() => new Date(), [])
