@@ -1,4 +1,7 @@
-import RitulayaDb, { type SettingsRow, type SettingsPatch } from "../../modules/ritulaya-db"
+import RitulayaDb, {
+  type SettingsRow,
+  type SettingsPatch,
+} from "../../modules/ritulaya-db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 

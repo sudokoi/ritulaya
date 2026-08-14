@@ -14,7 +14,11 @@ export function usePrediction(): {
 } {
   const { cycles } = useCycles()
   const { logs } = useDayLogs()
-  const { avgCycleLength: avgCycleSetting, avgPeriodLength, lutealPhaseLength } = useSettings()
+  const {
+    avgCycleLength: avgCycleSetting,
+    avgPeriodLength,
+    lutealPhaseLength,
+  } = useSettings()
 
   const [prediction, setPrediction] = useState<PredictionResult | null>(null)
   const [periodLength, setPeriodLength] = useState<number>(avgPeriodLength)

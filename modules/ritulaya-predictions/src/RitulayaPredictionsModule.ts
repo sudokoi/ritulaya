@@ -43,4 +43,6 @@ interface RitulayaPredictionsNativeModule {
   ): Promise<NativePredictionResult>
 }
 
-export default requireOptionalNativeModule<RitulayaPredictionsNativeModule>("RitulayaPredictions")
+export default requireOptionalNativeModule<RitulayaPredictionsNativeModule>(
+  "RitulayaPredictions",
+)

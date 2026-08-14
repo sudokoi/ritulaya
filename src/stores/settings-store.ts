@@ -1,5 +1,10 @@
 import { createStore } from "@xstate/store"
-import { findSettings, updateSettings, type SettingsRow, type SettingsPatch } from "@/services/db"
+import {
+  findSettings,
+  updateSettings,
+  type SettingsRow,
+  type SettingsPatch,
+} from "@/services/db"
 
 export interface SettingsState {
   avgCycleLength: number

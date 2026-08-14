@@ -223,7 +223,9 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Text className="text-sm text-[var(--text-muted)]">{currentThemeLabel}</Text>
+              <Text className="text-sm text-[var(--text-muted)]">
+                {currentThemeLabel}
+              </Text>
               <ChevronRight size={18} color="#8E8C8A" />
             </View>
           </View>

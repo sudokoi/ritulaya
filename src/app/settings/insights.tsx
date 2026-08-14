@@ -41,7 +41,10 @@ export default function InsightsScreen() {
 
       <View className="mx-4 mt-2 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <Stat value={`${avgCycleLength}`} label={discreetLabel(discreet, "avg cycle", "avg")} />
+          <Stat
+            value={`${avgCycleLength}`}
+            label={discreetLabel(discreet, "avg cycle", "avg")}
+          />
           <Stat
             value={`${periodLength}`}
             label={discreetLabel(discreet, "period days", "days")}

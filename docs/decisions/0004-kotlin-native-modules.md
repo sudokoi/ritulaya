@@ -32,11 +32,11 @@ Implement the full sync pipeline in Kotlin (`ritulaya-sync`), along with separat
 
 ### Module Breakdown
 
-| Module            | Lines (Kotlin) | Purpose                                                                               |
-| ----------------- | -------------- | ------------------------------------------------------------------------------------- |
-| `ritulaya-sync`   | ~800           | GitHub OAuth, API client, CSV handler, merge engine, orchestrator, WorkManager worker |
-| `ritulaya-db`     | ~300           | Room + SQLCipher persistence, typed facade used by app, sync, and predictions         |
-| `ritulaya-predictions` | ~150       | Pure-Kotlin prediction engine (WMA + period length) with a thin bridge                |
-| `ritulaya-crypto` | ~80            | Keystore key generation (consumed directly by `ritulaya-db`, no JS bridge)             |
-| `ritulaya-logger` | ~120           | Room DB logger with 1000-entry cap, auto-prune                                        |
-| `ritulaya-widget` | ~100           | AppWidgetProvider, cycle data display                                                 |
+| Module                 | Lines (Kotlin) | Purpose                                                                               |
+| ---------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| `ritulaya-sync`        | ~800           | GitHub OAuth, API client, CSV handler, merge engine, orchestrator, WorkManager worker |
+| `ritulaya-db`          | ~300           | Room + SQLCipher persistence, typed facade used by app, sync, and predictions         |
+| `ritulaya-predictions` | ~150           | Pure-Kotlin prediction engine (WMA + period length) with a thin bridge                |
+| `ritulaya-crypto`      | ~80            | Keystore key generation (consumed directly by `ritulaya-db`, no JS bridge)            |
+| `ritulaya-logger`      | ~120           | Room DB logger with 1000-entry cap, auto-prune                                        |
+| `ritulaya-widget`      | ~100           | AppWidgetProvider, cycle data display                                                 |
