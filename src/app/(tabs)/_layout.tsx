@@ -21,7 +21,11 @@ function TabBarButton({
       onPress={onPress}
       onLongPress={onLongPress}
       android_ripple={null}
-      style={({ pressed }) => [style, pressed && { opacity: 0.55 }]}
+      style={({ pressed }) => [
+        style,
+        { flex: 1, alignItems: "center", justifyContent: "center" },
+        pressed && { opacity: 0.55 },
+      ]}
     >
       {children}
     </Pressable>
@@ -34,6 +38,12 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: TabBarButton,
+        tabBarLabelPosition: "below-icon",
+        tabBarItemStyle: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        },
         tabBarStyle: {
           backgroundColor: "#faf8f5",
           borderTopColor: "#e8e4df",
