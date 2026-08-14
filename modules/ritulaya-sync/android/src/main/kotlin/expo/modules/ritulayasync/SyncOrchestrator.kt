@@ -67,7 +67,7 @@ class SyncOrchestrator(
 
         val cyclesCsv = CsvHandler.writeCycles(mergedCycles)
         val logsCsv = CsvHandler.writeDayLogs(mergedLogs)
-        val manifest = SyncManifest.write()
+        val manifest = SyncManifest.write(appVersion())
 
         val message = "Sync: ritulaya data update"
 
@@ -128,47 +128,41 @@ class SyncOrchestrator(
         )
     }
 
-    private suspend fun loadCycles(): List<CycleRow> {
-        val rows = linkedMapOf<String, CycleRow>()
-        dataStore.listCycles().forEach {
-            rows[it.id] = CycleRow(it.id, it.startDate, it.endDate, it.createdAt, it.updatedAt, null)
+    private suspend fun loadCycles(): List<CycleRow> =
+        dataStore.listCyclesIncludingTombstones().map { row ->
+            val deletedAt = row.deletedAt
+            if (deletedAt != null) {
+                CycleRow(row.id, "", null, "", deletedAt, deletedAt)
+            } else {
+                val entity = requireNotNull(row.value)
+                CycleRow(entity.id, entity.startDate, entity.endDate, entity.createdAt, entity.updatedAt, null)
+            }
         }
-        dataStore
-            .listTombstones()
-            .filter { it.entity == "cycle" }
-            .forEach { rows[it.entityId] = CycleRow(it.entityId, "", null, "", it.deletedAt, it.deletedAt) }
-        return rows.values.toList()
-    }
 
-    private suspend fun loadDayLogs(): List<DayLogRow> {
-        val rows = linkedMapOf<String, DayLogRow>()
-        dataStore.listDayLogs().forEach {
-            rows[it.id] =
+    private suspend fun loadDayLogs(): List<DayLogRow> =
+        dataStore.listDayLogsIncludingTombstones().map { row ->
+            val deletedAt = row.deletedAt
+            if (deletedAt != null) {
+                DayLogRow(row.id, "", null, null, "[]", null, null, null, null, 0, "", deletedAt, deletedAt)
+            } else {
+                val entity = requireNotNull(row.value)
                 DayLogRow(
-                    it.id,
-                    it.date,
-                    it.cycleId,
-                    it.flowIntensity,
-                    it.symptoms,
-                    it.mood,
-                    it.notes,
-                    it.cervicalMucus,
-                    it.bbt,
-                    it.sexualActivity,
-                    it.createdAt,
-                    it.updatedAt,
+                    entity.id,
+                    entity.date,
+                    entity.cycleId,
+                    entity.flowIntensity,
+                    entity.symptoms,
+                    entity.mood,
+                    entity.notes,
+                    entity.cervicalMucus,
+                    entity.bbt,
+                    entity.sexualActivity,
+                    entity.createdAt,
+                    entity.updatedAt,
                     null,
                 )
-        }
-        dataStore
-            .listTombstones()
-            .filter { it.entity == "day_log" }
-            .forEach {
-                rows[it.entityId] =
-                    DayLogRow(it.entityId, "", null, null, "[]", null, null, null, null, 0, "", it.deletedAt, it.deletedAt)
             }
-        return rows.values.toList()
-    }
+        }
 
     private suspend fun loadSettings(): SettingsEntity? = dataStore.getSettings()
 
@@ -252,6 +246,13 @@ class SyncOrchestrator(
                 put("reminderDailyLog", settings.reminderDailyLog)
                 put("updatedAt", settings.updatedAt)
             }.toString()
+
+    private fun appVersion(): String =
+        try {
+            appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName ?: "0.1.0"
+        } catch (e: Exception) {
+            "0.1.0"
+        }
 
     private fun errorResult(message: String): Map<String, Any> =
         mapOf(

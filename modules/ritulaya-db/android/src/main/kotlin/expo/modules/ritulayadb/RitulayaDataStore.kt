@@ -3,8 +3,10 @@ package expo.modules.ritulayadb
 import android.content.Context
 import androidx.room.withTransaction
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 class RitulayaDataStore(
     context: Context,
@@ -39,22 +41,79 @@ class RitulayaDataStore(
 
     suspend fun findLastFlowDate(): String? = dao.findLastFlowDate()
 
-    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity {
+    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
+        writeDayLog(
+            date = input.date,
+            cycleId = input.cycleId,
+            flowIntensity = input.flowIntensity,
+            symptoms = input.symptoms,
+            mood = input.mood,
+            notes = input.notes,
+            cervicalMucus = input.cervicalMucus,
+            bbt = input.bbt,
+            sexualActivity = input.sexualActivity,
+        )
+
+    suspend fun logPeriod(
+        flow: String,
+        periodDays: Int,
+    ) {
+        val today = LocalDate.now()
+        var cycle = dao.listCycles().firstOrNull { it.endDate == null }
+
+        if (cycle != null) {
+            val lastFlowDate = dao.findLastFlowDate()
+            if (lastFlowDate != null && ChronoUnit.DAYS.between(LocalDate.parse(lastFlowDate), today) >= NEW_CYCLE_GAP_DAYS) {
+                dao.updateCycleEndDate(cycle.id, today.minusDays(1).toString(), nowISO())
+                cycle = createCycle(today.toString())
+            }
+        } else {
+            cycle = createCycle(today.toString())
+        }
+
+        val cycleId = cycle?.id ?: return
+
+        for (i in 0 until periodDays) {
+            writeDayLog(
+                date = today.plusDays(i.toLong()).toString(),
+                cycleId = cycleId,
+                flowIntensity = flow,
+                symptoms = emptyList(),
+                mood = null,
+                notes = null,
+                cervicalMucus = null,
+                bbt = null,
+                sexualActivity = null,
+            )
+        }
+    }
+
+    private suspend fun writeDayLog(
+        date: String,
+        cycleId: String?,
+        flowIntensity: String?,
+        symptoms: List<String>?,
+        mood: String?,
+        notes: String?,
+        cervicalMucus: String?,
+        bbt: Double?,
+        sexualActivity: Boolean?,
+    ): DayLogEntity {
         val now = nowISO()
-        val existing = dao.getDayLogByDate(input.date)
-        val symptomsJson = symptomsJson(input.symptoms)
+        val existing = dao.getDayLogByDate(date)
+        val symptomsJson = symptomsJson(symptoms)
 
         if (existing != null) {
             val updated =
                 existing.copy(
-                    flowIntensity = input.flowIntensity ?: existing.flowIntensity,
+                    flowIntensity = flowIntensity ?: existing.flowIntensity,
                     symptoms = symptomsJson,
-                    mood = input.mood ?: existing.mood,
-                    notes = input.notes ?: existing.notes,
-                    cervicalMucus = input.cervicalMucus ?: existing.cervicalMucus,
-                    bbt = input.bbt ?: existing.bbt,
-                    sexualActivity = if (input.sexualActivity == true) 1 else existing.sexualActivity,
-                    cycleId = input.cycleId ?: existing.cycleId,
+                    mood = mood ?: existing.mood,
+                    notes = notes ?: existing.notes,
+                    cervicalMucus = cervicalMucus ?: existing.cervicalMucus,
+                    bbt = bbt ?: existing.bbt,
+                    sexualActivity = if (sexualActivity == true) 1 else existing.sexualActivity,
+                    cycleId = cycleId ?: existing.cycleId,
                     updatedAt = now,
                 )
             dao.upsertDayLog(updated)
@@ -64,15 +123,15 @@ class RitulayaDataStore(
         val log =
             DayLogEntity(
                 id = generateId(),
-                date = input.date,
-                cycleId = input.cycleId,
-                flowIntensity = input.flowIntensity,
+                date = date,
+                cycleId = cycleId,
+                flowIntensity = flowIntensity,
                 symptoms = symptomsJson,
-                mood = input.mood,
-                notes = input.notes,
-                cervicalMucus = input.cervicalMucus,
-                bbt = input.bbt,
-                sexualActivity = if (input.sexualActivity == true) 1 else 0,
+                mood = mood,
+                notes = notes,
+                cervicalMucus = cervicalMucus,
+                bbt = bbt,
+                sexualActivity = if (sexualActivity == true) 1 else 0,
                 createdAt = now,
                 updatedAt = now,
             )
@@ -120,6 +179,21 @@ class RitulayaDataStore(
 
     suspend fun listTombstones(): List<SyncTombstoneEntity> = dao.listTombstones()
 
+    suspend fun listCyclesIncludingTombstones(): List<SyncRow<CycleEntity>> = mergeWithTombstones(dao.listCycles(), "cycle") { it.id }
+
+    suspend fun listDayLogsIncludingTombstones(): List<SyncRow<DayLogEntity>> = mergeWithTombstones(dao.listDayLogs(), "day_log") { it.id }
+
+    private suspend fun <T> mergeWithTombstones(
+        rows: List<T>,
+        entity: String,
+        idOf: (T) -> String,
+    ): List<SyncRow<T>> {
+        val byId = rows.associateBy(idOf)
+        val tombstones = dao.listTombstones().filter { it.entity == entity }.associateBy { it.entityId }
+        val ids = byId.keys + tombstones.keys
+        return ids.map { id -> SyncRow(id, byId[id], tombstones[id]?.deletedAt) }
+    }
+
     suspend fun replaceAll(
         cycles: List<CycleEntity>,
         dayLogs: List<DayLogEntity>,
@@ -139,6 +213,7 @@ class RitulayaDataStore(
     }
 
     companion object {
+        private const val NEW_CYCLE_GAP_DAYS = 7
         private val ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"
         private val ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
@@ -147,3 +222,9 @@ class RitulayaDataStore(
         fun nowISO(): String = Instant.now().atOffset(ZoneOffset.UTC).format(ISO_FORMATTER)
     }
 }
+
+data class SyncRow<T>(
+    val id: String,
+    val value: T?,
+    val deletedAt: String?,
+)

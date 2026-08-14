@@ -34,12 +34,15 @@ class RitulayaSyncModule : Module() {
                 )
             }
 
-            AsyncFunction("pollForToken") { clientId: String ->
-                val token = authFlow.pollForToken(clientId)
-                if (token != null) {
-                    tokenStore.save("github_token", token)
+            AsyncFunction("pollOnce") { clientId: String ->
+                val result = authFlow.pollOnce(clientId)
+                if (result.token != null) {
+                    tokenStore.save("github_token", result.token)
                 }
-                token
+                mapOf(
+                    "token" to result.token,
+                    "status" to result.status,
+                )
             }
 
             AsyncFunction("disconnect") {

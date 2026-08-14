@@ -6,6 +6,11 @@ export interface DeviceFlowResult {
   verificationUrl: string
 }
 
+export interface PollResult {
+  token: string | null
+  status: "granted" | "pending" | "slow_down" | "error"
+}
+
 export interface SyncConfig {
   repoOwner: string
   repoName: string
@@ -14,7 +19,7 @@ export interface SyncConfig {
 
 interface RitulayaSyncNativeModule {
   initiateDeviceFlow(clientId: string): Promise<DeviceFlowResult>
-  pollForToken(clientId: string): Promise<string | null>
+  pollOnce(clientId: string): Promise<PollResult>
   disconnect(): Promise<void>
   getUsername(): Promise<string | null>
   listRepos(): Promise<{ name: string; private: boolean }[] | null>

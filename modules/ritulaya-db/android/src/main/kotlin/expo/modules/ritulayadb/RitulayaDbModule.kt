@@ -26,6 +26,10 @@ class RitulayaDbModule : Module() {
                 runBlocking { store.createCycle(startDate).toMap() }
             }
 
+            AsyncFunction("logPeriod") { flow: String, periodDays: Int ->
+                runBlocking { store.logPeriod(flow, periodDays) }
+            }
+
             AsyncFunction("endCycle") { id: String, endDate: String ->
                 runBlocking { store.endCycle(id, endDate) }
             }

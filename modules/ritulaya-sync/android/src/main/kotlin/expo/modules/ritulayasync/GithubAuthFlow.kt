@@ -2,12 +2,15 @@ package expo.modules.ritulayasync
 
 import android.content.Context
 import expo.modules.kotlin.AppContext
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+
+data class PollResult(
+    val token: String?,
+    val status: String,
+)
 
 class GithubAuthFlow(
     private val appContext: AppContext,
@@ -15,8 +18,6 @@ class GithubAuthFlow(
     companion object {
         private const val DEVICE_CODE_URL = "https://github.com/login/device/code"
         private const val ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
-        private const val POLL_INTERVAL_MS = 5000L
-        private const val MAX_POLLS = 60
     }
 
     private var deviceCode: String = ""
@@ -36,8 +37,8 @@ class GithubAuthFlow(
         return Pair(userCode, verificationUrl)
     }
 
-    fun pollForToken(clientId: String): String? {
-        if (deviceCode.isEmpty()) return null
+    fun pollOnce(clientId: String): PollResult {
+        if (deviceCode.isEmpty()) return PollResult(null, "error")
 
         val json =
             JSONObject().apply {
@@ -46,26 +47,22 @@ class GithubAuthFlow(
                 put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
             }
 
-        for (i in 0 until MAX_POLLS) {
-            runBlocking { delay(POLL_INTERVAL_MS) }
-
-            try {
-                val response = postJson(ACCESS_TOKEN_URL, json, "application/json")
-                val error = response.optString("error", "")
-                if (error == "authorization_pending") continue
-                if (error == "slow_down") {
-                    runBlocking { delay(POLL_INTERVAL_MS * 2) }
-                    continue
+        return try {
+            val response = postJson(ACCESS_TOKEN_URL, json, "application/json")
+            val token = response.optString("access_token", "")
+            if (token.isNotEmpty()) {
+                PollResult(token, "granted")
+            } else {
+                when (response.optString("error", "")) {
+                    "authorization_pending" -> PollResult(null, "pending")
+                    "slow_down" -> PollResult(null, "slow_down")
+                    "access_denied", "expired_token" -> PollResult(null, "error")
+                    else -> PollResult(null, "pending")
                 }
-
-                val token = response.optString("access_token", "")
-                if (token.isNotEmpty()) return token
-            } catch (e: Exception) {
-                // Continue polling on transient errors
             }
+        } catch (e: Exception) {
+            PollResult(null, "pending")
         }
-
-        return null
     }
 
     private fun postJson(

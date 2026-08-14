@@ -1,6 +1,14 @@
 import RitulayaSync from "../../modules/ritulaya-sync"
 import { GITHUB_OAUTH_CLIENT_ID } from "@/constants/app-config"
 
+const MAX_POLLS = 60
+const POLL_INTERVAL_MS = 5000
+const SLOW_DOWN_MS = 10000
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export interface RepoInfo {
   name: string
   private: boolean
@@ -11,9 +19,20 @@ export async function initiateDeviceFlow() {
   return RitulayaSync.initiateDeviceFlow(GITHUB_OAUTH_CLIENT_ID)
 }
 
-export async function pollForToken() {
+export async function pollForToken(isCancelled?: () => boolean): Promise<string | null> {
   if (!RitulayaSync) return null
-  return RitulayaSync.pollForToken(GITHUB_OAUTH_CLIENT_ID)
+
+  for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
+    if (isCancelled?.()) return null
+
+    const result = await RitulayaSync.pollOnce(GITHUB_OAUTH_CLIENT_ID)
+    if (result?.status === "granted") return result.token ?? null
+    if (result?.status === "error") return null
+
+    await sleep(result?.status === "slow_down" ? SLOW_DOWN_MS : POLL_INTERVAL_MS)
+  }
+
+  return null
 }
 
 export async function getUsername() {

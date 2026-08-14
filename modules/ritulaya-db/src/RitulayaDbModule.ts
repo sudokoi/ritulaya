@@ -20,6 +20,7 @@ export interface SettingsRow {
 interface RitulayaDbNativeModule {
   listCycles(): Promise<Cycle[]>
   createCycle(startDate: string): Promise<Cycle>
+  logPeriod(flow: string, periodDays: number): Promise<void>
   endCycle(id: string, endDate: string): Promise<void>
   listDayLogs(): Promise<DayLog[]>
   findLastFlowDate(): Promise<string | null>
