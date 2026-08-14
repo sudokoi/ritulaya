@@ -55,14 +55,14 @@ jobs:
           else
             VERSION="${GITHUB_SHA:0:7}"
           fi
-          echo "version_name=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_name=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build with EAS
         id: build
         run: |
           eas build --platform android --profile ${{ matrix.profile }} --non-interactive --json > build-output.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' build-output.json)
-          echo "build_url=$BUILD_URL" >> $GITHUB_OUTPUT
+          echo "build_url=$BUILD_URL" >> "$GITHUB_OUTPUT"
 
       - name: Download artifact
         run: |
