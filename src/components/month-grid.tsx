@@ -104,7 +104,7 @@ export function MonthGrid({
                   className={cn(
                     "h-9 w-9 items-center justify-center rounded-full",
                     info.period && "bg-menstrual",
-                    info.predictedPeriod && "border-2 border-menstrual",
+                    info.predictedPeriod && "bg-menstrual/30",
                     today && "ring-2 ring-[var(--text-primary)]",
                   )}
                 >
@@ -112,6 +112,7 @@ export function MonthGrid({
                     className={cn(
                       "text-sm font-medium",
                       info.period && "text-white",
+                      info.predictedPeriod && "text-menstrual",
                       !info.period &&
                         !info.predictedPeriod &&
                         "text-[var(--text-primary)]",
@@ -158,7 +159,7 @@ export function MonthGrid({
 
       <View className="flex-row justify-center gap-6 px-4 py-3">
         <Legend color="bg-menstrual" label="Period" />
-        <Legend color="border-2 border-menstrual" label="Predicted" />
+        <Legend color="bg-menstrual/30" label="Predicted" />
         <Legend color="bg-ovulation rounded-full" label="Fertile" />
       </View>
     </View>

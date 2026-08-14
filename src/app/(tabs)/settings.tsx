@@ -97,12 +97,6 @@ export default function SettingsScreen() {
             discreet={discreet}
           />
         </View>
-        <TouchableOpacity className="mt-3 flex-row items-center justify-center gap-1">
-          <Text className="text-sm font-medium text-follicular">
-            {discreetLabel(discreet, "View Full Insights", "View Details")}
-          </Text>
-          <ChevronRight size={14} color="#7BA891" />
-        </TouchableOpacity>
       </View>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">
