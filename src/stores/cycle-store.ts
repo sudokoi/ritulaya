@@ -7,7 +7,6 @@ import { addDays, differenceInDays, format } from "date-fns"
 import type { Cycle } from "@/types/cycle"
 import type { FlowIntensity } from "@/types/day-log"
 
-const DEFAULT_PERIOD_DAYS = 3
 const NEW_CYCLE_GAP_DAYS = 7
 
 interface CycleState {
@@ -38,7 +37,7 @@ export function loadCycles() {
   cycleStore.send({ type: "setCycles", cycles, currentCycle })
 }
 
-export async function logPeriodToday(flow: FlowIntensity = "medium") {
+export async function logPeriodToday(flow: FlowIntensity = "medium", periodDays = 3) {
   const today = todayISO()
   let cycle = findCurrentCycle()
 
@@ -55,7 +54,7 @@ export async function logPeriodToday(flow: FlowIntensity = "medium") {
     cycle = createCycle(today)
   }
 
-  for (let i = 0; i < DEFAULT_PERIOD_DAYS; i++) {
+  for (let i = 0; i < periodDays; i++) {
     await upsertDayLog({
       date: format(addDays(new Date(today), i), "yyyy-MM-dd"),
       cycleId: cycle.id,
