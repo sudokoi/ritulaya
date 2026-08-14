@@ -8,8 +8,9 @@
 
 ## Checklist
 
-- [ ] TypeScript compiles (`pnpm typecheck`)
-- [ ] Lint passes (`pnpm lint`)
-- [ ] Formatting is clean (`pnpm format:check`)
-- [ ] Tests pass (`pnpm test`)
-- [ ] Added a changeset if this is a user-facing change (`pnpm changeset`)
+- [ ] TypeScript compiles (`yarn typecheck`)
+- [ ] Lint passes (`yarn lint`)
+- [ ] Formatting is clean (`yarn format:check`)
+- [ ] Tests pass (`yarn test`)
+- [ ] Added a changeset if this is a user-facing change (`yarn changeset`)
+- [ ] Signed the CLA if required

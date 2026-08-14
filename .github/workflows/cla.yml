@@ -1,0 +1,37 @@
+name: CLA Signature Bot
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, closed, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  contents: write
+  actions: write
+
+jobs:
+  cla:
+    name: CLA Signature
+    if: |
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.html_url, '/pull/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "CLA Signature Bot"
+        uses: sudokoi/cla-signature-bot@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path-to-signatures: "signatures/cla.json"
+          url-to-cladocument: "https://github.com/sudokoi/ritulaya/blob/main/CLA.md"
+          branch: "cla-signatures"
+          allowlist: "sudokoi,dependabot[bot],github-actions[bot],pullfrog[bot]"
+          allow-organization-members: false
+          blockchain-storage-flag: false
