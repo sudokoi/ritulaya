@@ -46,6 +46,13 @@ function runMigrations(db: SQLiteDatabase) {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS sync_tombstones (
+      entity TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      deleted_at TEXT NOT NULL,
+      PRIMARY KEY (entity, entity_id)
+    );
   `)
 }
 

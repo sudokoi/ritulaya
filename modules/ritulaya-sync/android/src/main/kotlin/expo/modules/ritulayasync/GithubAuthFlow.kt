@@ -9,8 +9,9 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-class GithubAuthFlow(private val appContext: AppContext) {
-
+class GithubAuthFlow(
+    private val appContext: AppContext,
+) {
     companion object {
         private const val DEVICE_CODE_URL = "https://github.com/login/device/code"
         private const val ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
@@ -21,10 +22,11 @@ class GithubAuthFlow(private val appContext: AppContext) {
     private var deviceCode: String = ""
 
     fun initiateDeviceFlow(clientId: String): Pair<String, String> {
-        val json = JSONObject().apply {
-            put("client_id", clientId)
-            put("scope", "repo")
-        }
+        val json =
+            JSONObject().apply {
+                put("client_id", clientId)
+                put("scope", "repo")
+            }
 
         val response = postJson(DEVICE_CODE_URL, json)
         deviceCode = response.getString("device_code")
@@ -37,11 +39,12 @@ class GithubAuthFlow(private val appContext: AppContext) {
     fun pollForToken(clientId: String): String? {
         if (deviceCode.isEmpty()) return null
 
-        val json = JSONObject().apply {
-            put("client_id", clientId)
-            put("device_code", deviceCode)
-            put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
-        }
+        val json =
+            JSONObject().apply {
+                put("client_id", clientId)
+                put("device_code", deviceCode)
+                put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+            }
 
         for (i in 0 until MAX_POLLS) {
             runBlocking { delay(POLL_INTERVAL_MS) }
@@ -65,7 +68,11 @@ class GithubAuthFlow(private val appContext: AppContext) {
         return null
     }
 
-    private fun postJson(urlStr: String, json: JSONObject, accept: String = "application/json"): JSONObject {
+    private fun postJson(
+        urlStr: String,
+        json: JSONObject,
+        accept: String = "application/json",
+    ): JSONObject {
         val url = URL(urlStr)
         val conn = url.openConnection() as HttpURLConnection
         conn.requestMethod = "POST"

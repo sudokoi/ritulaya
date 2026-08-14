@@ -1,7 +1,7 @@
 import { setup, assign, fromPromise } from "xstate"
 import { eq, desc } from "drizzle-orm"
 import { getDatabase } from "@/services/database"
-import { cycles as cyclesTable } from "@/db/schema"
+import { cycles as cyclesTable, syncTombstones } from "@/db/schema"
 import { nowISO, generateId } from "@/utils/date"
 import type { Cycle, CycleCreate, CycleUpdate } from "@/types/cycle"
 
@@ -55,6 +55,13 @@ const updateCycleFn = fromPromise(
 const deleteCycleFn = fromPromise(async ({ input }: { input: { id: string } }) => {
   const db = getDatabase()
   db.delete(cyclesTable).where(eq(cyclesTable.id, input.id)).run()
+  db.insert(syncTombstones)
+    .values({ entity: "cycle", entityId: input.id, deletedAt: nowISO() })
+    .onConflictDoUpdate({
+      target: [syncTombstones.entity, syncTombstones.entityId],
+      set: { deletedAt: nowISO() },
+    })
+    .run()
   return input.id
 })
 

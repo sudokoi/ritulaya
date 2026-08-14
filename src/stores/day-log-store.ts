@@ -1,7 +1,7 @@
 import { createStore } from "@xstate/store"
 import { eq, desc, and, gte, lte } from "drizzle-orm"
 import { getDatabase } from "@/services/database"
-import { dayLogs as dayLogsTable } from "@/db/schema"
+import { dayLogs as dayLogsTable, syncTombstones } from "@/db/schema"
 import { nowISO, generateId, todayISO } from "@/utils/date"
 import type { DayLog, DayLogCreate, DayLogUpdate, FlowIntensity } from "@/types/day-log"
 import type { MoodKey } from "@/constants/moods"
@@ -178,5 +178,12 @@ export async function updateDayLog(id: string, input: DayLogUpdate): Promise<voi
 export async function deleteDayLog(id: string) {
   const db = getDatabase()
   db.delete(dayLogsTable).where(eq(dayLogsTable.id, id)).run()
+  db.insert(syncTombstones)
+    .values({ entity: "day_log", entityId: id, deletedAt: nowISO() })
+    .onConflictDoUpdate({
+      target: [syncTombstones.entity, syncTombstones.entityId],
+      set: { deletedAt: nowISO() },
+    })
+    .run()
   dayLogStore.send({ type: "removeLog", id })
 }

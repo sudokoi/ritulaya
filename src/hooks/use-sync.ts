@@ -8,13 +8,19 @@ import {
   configureRepo,
   getConfig,
   syncNow,
+  scheduleBackgroundSync,
   getSyncStatus,
   disconnect,
   type RepoInfo,
 } from "@/services/sync"
+import { loadDayLogs } from "@/stores/day-log-store"
+import { useStoreActors } from "@/providers/store-provider"
 import type { SyncConfig, SyncStatus } from "@/types/sync"
 
+const SYNC_INTERVAL_MINUTES = 24 * 60
+
 export function useSync() {
+  const { cycleActor } = useStoreActors()
   const [config, setConfig] = useState<SyncConfig | null>(null)
   const [status, setStatus] = useState<SyncStatus | null>(null)
   const [deviceFlow, setDeviceFlow] = useState<{
@@ -76,6 +82,7 @@ export function useSync() {
       try {
         await createRepo(name)
         await configureRepo(username ?? "", name, "main")
+        await scheduleBackgroundSync(SYNC_INTERVAL_MINUTES)
         await load()
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to create repository")
@@ -92,6 +99,7 @@ export function useSync() {
       setError(null)
       try {
         await configureRepo(owner, repo, "main")
+        await scheduleBackgroundSync(SYNC_INTERVAL_MINUTES)
         await load()
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to configure repository")
@@ -108,13 +116,17 @@ export function useSync() {
     try {
       const result = await syncNow()
       setStatus(result)
+      if (result?.status === "inSync") {
+        await loadDayLogs()
+        cycleActor.send({ type: "load" })
+      }
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sync failed")
     } finally {
       setSyncing(false)
     }
-  }, [load])
+  }, [load, cycleActor])
 
   const disconnectAction = useCallback(async () => {
     setBusy(true)

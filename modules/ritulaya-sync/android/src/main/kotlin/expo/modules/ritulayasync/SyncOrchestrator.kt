@@ -2,14 +2,13 @@ package expo.modules.ritulayasync
 
 import android.content.Context
 import android.content.SharedPreferences
-import expo.modules.ritulayasync.CsvHandler.CycleRow
-import expo.modules.ritulayasync.CsvHandler.DayLogRow
 
 class SyncOrchestrator(
     private val appContext: Context,
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
 ) {
     private val tokenStore = SecureTokenStore(appContext)
+    private val localData = LocalDataStore(appContext)
 
     fun sync(): Map<String, Any> {
         val token = tokenStore.load("github_token")
@@ -36,7 +35,10 @@ class SyncOrchestrator(
     }
 
     private fun fetchMergePush(
-        api: GithubApiClient, owner: String, repo: String, branch: String
+        api: GithubApiClient,
+        owner: String,
+        repo: String,
+        branch: String,
     ): Map<String, Any> {
         val cyclesFile = api.getFileContent(owner, repo, "ritulaya-cycles.csv", branch)
         val remoteCycles = if (cyclesFile != null) CsvHandler.parseCycles(cyclesFile.content) else emptyList()
@@ -46,8 +48,8 @@ class SyncOrchestrator(
 
         val manifestFile = api.getFileContent(owner, repo, "ritulaya.json", branch)
 
-        val localCycles = loadLocalCycles()
-        val localLogs = loadLocalDayLogs()
+        val localCycles = localData.loadCycles()
+        val localLogs = localData.loadDayLogs()
 
         val mergedCycles = MergeEngine.mergeCycles(localCycles, remoteCycles)
         val mergedLogs = MergeEngine.mergeDayLogs(localLogs, remoteLogs)
@@ -58,16 +60,40 @@ class SyncOrchestrator(
 
         val message = "Sync: ritulaya data update"
 
-        api.updateOrCreateFile(owner, repo, "ritulaya-cycles.csv",
-            cyclesCsv, cyclesFile?.sha, branch, message)
-        api.updateOrCreateFile(owner, repo, "ritulaya-day-logs.csv",
-            logsCsv, logsFile?.sha, branch, message)
+        api.updateOrCreateFile(
+            owner,
+            repo,
+            "ritulaya-cycles.csv",
+            cyclesCsv,
+            cyclesFile?.sha,
+            branch,
+            message,
+        )
+        api.updateOrCreateFile(
+            owner,
+            repo,
+            "ritulaya-day-logs.csv",
+            logsCsv,
+            logsFile?.sha,
+            branch,
+            message,
+        )
         if (manifestFile == null) {
-            api.updateOrCreateFile(owner, repo, "ritulaya.json",
-                manifest, null, branch, "Sync: add manifest")
+            api.updateOrCreateFile(
+                owner,
+                repo,
+                "ritulaya.json",
+                manifest,
+                null,
+                branch,
+                "Sync: add manifest",
+            )
         }
 
-        prefs.edit()
+        localData.persist(mergedCycles, mergedLogs)
+
+        prefs
+            .edit()
             .putLong("last_sync_at", System.currentTimeMillis())
             .putInt("consecutive_failures", 0)
             .putBoolean("sync_warning", false)
@@ -75,20 +101,15 @@ class SyncOrchestrator(
 
         return mapOf(
             "status" to "inSync",
-            "syncedAt" to System.currentTimeMillis().toString()
+            "syncedAt" to System.currentTimeMillis().toString(),
         )
     }
 
-    private fun loadLocalCycles(): List<CycleRow> = emptyList()
-
-    private fun loadLocalDayLogs(): List<DayLogRow> = emptyList()
-
-    private fun errorResult(message: String): Map<String, Any> {
-        return mapOf(
+    private fun errorResult(message: String): Map<String, Any> =
+        mapOf(
             "status" to "error",
             "syncedAt" to (prefs.getLong("last_sync_at", 0L).toString()),
             "warning" to prefs.getBoolean("sync_warning", false),
-            "consecutiveFailures" to prefs.getInt("consecutive_failures", 0)
+            "consecutiveFailures" to prefs.getInt("consecutive_failures", 0),
         )
-    }
 }

@@ -11,5 +11,5 @@ data class LogEntry(
     val tag: String,
     val message: String,
     val metadata: String? = null,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
 )

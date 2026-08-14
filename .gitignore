@@ -8,6 +8,9 @@ node_modules/
 .yarn/install-state.gz
 pnp-debug.log*
 
+# tool caches (ktlint, etc.)
+.cache/
+
 # Expo
 .expo/
 dist/

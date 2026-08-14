@@ -6,9 +6,8 @@ import androidx.work.WorkerParameters
 
 class SyncWork(
     context: Context,
-    params: WorkerParameters
+    params: WorkerParameters,
 ) : CoroutineWorker(context, params) {
-
     override suspend fun doWork(): Result {
         val prefs = applicationContext.getSharedPreferences("ritulaya_sync", Context.MODE_PRIVATE)
         val orchestrator = SyncOrchestrator(applicationContext, prefs)

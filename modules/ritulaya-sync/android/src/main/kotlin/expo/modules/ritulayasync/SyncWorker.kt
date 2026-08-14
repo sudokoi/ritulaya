@@ -11,7 +11,10 @@ import java.util.concurrent.TimeUnit
 object SyncWorker {
     private const val WORK_NAME = "ritulaya_sync"
 
-    fun schedule(context: Context, intervalMinutes: Int) {
+    fun schedule(
+        context: Context,
+        intervalMinutes: Int,
+    ) {
         val workManager = WorkManager.getInstance(context)
 
         if (intervalMinutes <= 0) {
@@ -19,19 +22,22 @@ object SyncWorker {
             return
         }
 
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
-            .build()
+        val constraints =
+            Constraints
+                .Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .build()
 
-        val request = PeriodicWorkRequestBuilder<SyncWork>(intervalMinutes.toLong(), TimeUnit.MINUTES)
-            .setConstraints(constraints)
-            .build()
+        val request =
+            PeriodicWorkRequestBuilder<SyncWork>(intervalMinutes.toLong(), TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
 
         workManager.enqueueUniquePeriodicWork(
             WORK_NAME,
             ExistingPeriodicWorkPolicy.UPDATE,
-            request
+            request,
         )
     }
 

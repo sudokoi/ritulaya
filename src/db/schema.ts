@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, real, primaryKey } from "drizzle-orm/sqlite-core"
 
 export const cycles = sqliteTable("cycles", {
   id: text("id").primaryKey(),
@@ -37,3 +37,13 @@ export const settings = sqliteTable("settings", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 })
+
+export const syncTombstones = sqliteTable(
+  "sync_tombstones",
+  {
+    entity: text("entity").notNull(),
+    entityId: text("entity_id").notNull(),
+    deletedAt: text("deleted_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.entity, table.entityId] })],
+)

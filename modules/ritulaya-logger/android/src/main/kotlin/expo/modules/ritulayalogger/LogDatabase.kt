@@ -14,17 +14,16 @@ abstract class LogDatabase : RoomDatabase() {
         private const val DATABASE_NAME = "ritulaya_logs.db"
 
         @Volatile
-        private var INSTANCE: LogDatabase? = null
+        private var instance: LogDatabase? = null
 
-        fun getInstance(context: Context): LogDatabase {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room
+        fun getInstance(context: Context): LogDatabase =
+            instance ?: synchronized(this) {
+                instance ?: Room
                     .databaseBuilder(context.applicationContext, LogDatabase::class.java, DATABASE_NAME)
                     .fallbackToDestructiveMigration()
                     .build()
-                    .also { INSTANCE = it }
+                    .also { instance = it }
             }
-        }
 
         fun getMaxEntries() = MAX_ENTRIES
     }

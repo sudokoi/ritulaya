@@ -15,8 +15,9 @@ import javax.crypto.spec.GCMParameterSpec
  * Key-value store where values are encrypted with a hardware-backed key held
  * in the Android Keystore. The raw values never touch disk in plaintext.
  */
-class SecureTokenStore(context: Context) {
-
+class SecureTokenStore(
+    context: Context,
+) {
     companion object {
         private const val KEY_ALIAS = "ritulaya_sync_token_key"
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
@@ -28,7 +29,10 @@ class SecureTokenStore(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("ritulaya_secure", Context.MODE_PRIVATE)
 
-    fun save(key: String, value: String) {
+    fun save(
+        key: String,
+        value: String,
+    ) {
         prefs.edit().putString(key, encrypt(value)).apply()
     }
 
@@ -52,19 +56,20 @@ class SecureTokenStore(context: Context) {
             return entry.secretKey
         }
 
-        val generator = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
-            ANDROID_KEYSTORE
-        )
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        val generator =
+            KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES,
+                ANDROID_KEYSTORE,
             )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        generator.init(
+            KeyGenParameterSpec
+                .Builder(
+                    KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setKeySize(256)
-                .build()
+                .build(),
         )
         return generator.generateKey()
     }
@@ -86,7 +91,7 @@ class SecureTokenStore(context: Context) {
         cipher.init(
             Cipher.DECRYPT_MODE,
             getOrCreateKey(),
-            GCMParameterSpec(GCM_TAG_LENGTH, combined, 0, GCM_IV_LENGTH)
+            GCMParameterSpec(GCM_TAG_LENGTH, combined, 0, GCM_IV_LENGTH),
         )
         val decrypted = cipher.doFinal(combined, GCM_IV_LENGTH, combined.size - GCM_IV_LENGTH)
         return String(decrypted, Charsets.UTF_8)

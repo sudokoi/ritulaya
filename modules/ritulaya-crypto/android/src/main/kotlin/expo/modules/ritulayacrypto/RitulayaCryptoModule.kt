@@ -12,7 +12,6 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 class RitulayaCryptoModule : Module() {
-
     companion object {
         private const val KEY_ALIAS = "ritulaya_master_key"
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
@@ -20,22 +19,25 @@ class RitulayaCryptoModule : Module() {
         private const val GCM_TAG_LENGTH = 128
     }
 
-    override fun definition() = ModuleDefinition {
-        Name("RitulayaCrypto")
+    override fun definition() =
+        ModuleDefinition {
+            Name("RitulayaCrypto")
 
-        AsyncFunction("generateKey") {
-            ensureKeyExists()
+            AsyncFunction("generateKey") {
+                ensureKeyExists()
+            }
+
+            AsyncFunction("encrypt") { plaintext: String ->
+                mapOf(
+                    "ciphertext" to encryptData(plaintext),
+                    "iv" to "", // IV is prepended in the output
+                )
+            }
+
+            AsyncFunction("decrypt") { ciphertext: String ->
+                decryptData(ciphertext)
+            }
         }
-
-        AsyncFunction("encrypt") { plaintext: String -> mapOf(
-            "ciphertext" to encryptData(plaintext),
-            "iv" to "" // IV is prepended in the output
-        )}
-
-        AsyncFunction("decrypt") { ciphertext: String ->
-            decryptData(ciphertext)
-        }
-    }
 
     private fun ensureKeyExists(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
@@ -46,19 +48,21 @@ class RitulayaCryptoModule : Module() {
             return entry.secretKey
         }
 
-        val keyGenerator = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
-            ANDROID_KEYSTORE
-        )
+        val keyGenerator =
+            KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES,
+                ANDROID_KEYSTORE,
+            )
 
-        val spec = KeyGenParameterSpec.Builder(
-            KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(256)
-            .build()
+        val spec =
+            KeyGenParameterSpec
+                .Builder(
+                    KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(256)
+                .build()
 
         keyGenerator.init(spec)
         return keyGenerator.generateKey()

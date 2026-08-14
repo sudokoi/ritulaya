@@ -1,20 +1,19 @@
 package expo.modules.ritulayasync
 
-import org.json.JSONArray
+import android.util.Base64
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.StringReader
 import java.io.StringWriter
 
 object CsvHandler {
-
     data class CycleRow(
         val id: String,
         val startDate: String,
         val endDate: String?,
         val createdAt: String,
         val updatedAt: String,
-        val deletedAt: String?
+        val deletedAt: String?,
     )
 
     data class DayLogRow(
@@ -30,7 +29,7 @@ object CsvHandler {
         val sexualActivity: Int,
         val createdAt: String,
         val updatedAt: String,
-        val deletedAt: String?
+        val deletedAt: String?,
     )
 
     fun parseCycles(csv: String): List<CycleRow> {
@@ -38,7 +37,8 @@ object CsvHandler {
         val headers = reader.readLine()?.split(",") ?: return emptyList()
         if (headers.isEmpty() || headers[0] != "id") return emptyList()
 
-        return reader.lineSequence()
+        return reader
+            .lineSequence()
             .filter { it.isNotBlank() }
             .map { parseCycleRow(it) }
             .toList()
@@ -49,7 +49,8 @@ object CsvHandler {
         val headers = reader.readLine()?.split(",") ?: return emptyList()
         if (headers.isEmpty() || headers[0] != "id") return emptyList()
 
-        return reader.lineSequence()
+        return reader
+            .lineSequence()
             .filter { it.isNotBlank() }
             .map { parseDayLogRow(it) }
             .toList()
@@ -66,23 +67,27 @@ object CsvHandler {
 
     fun writeDayLogs(rows: List<DayLogRow>): String {
         val writer = StringWriter()
-        writer.write("id,date,cycle_id,flow_intensity,symptoms,mood,notes,cervical_mucus,bbt,sexual_activity,created_at,updated_at,deleted_at\n")
+        writer.write(
+            "id,date,cycle_id,flow_intensity,symptoms,mood,notes,cervical_mucus,bbt,sexual_activity,created_at,updated_at,deleted_at\n",
+        )
         rows.forEach { row ->
-            val symptoms = row.symptoms.replace(",", ";")
-            val notes = (row.notes ?: "").replace(",", ";").replace("\"", "'")
-            writer.write("${row.id},${row.date},${row.cycleId ?: ""},${row.flowIntensity ?: ""},$symptoms,${row.mood ?: ""},$notes,${row.cervicalMucus ?: ""},${row.bbt ?: ""},${row.sexualActivity},${row.createdAt},${row.updatedAt},${row.deletedAt ?: ""}\n")
+            val symptoms = encode(row.symptoms)
+            val notes = encode(row.notes ?: "")
+            writer.write(
+                "${row.id},${row.date},${row.cycleId ?: ""},${row.flowIntensity ?: ""},$symptoms,${row.mood ?: ""},$notes,${row.cervicalMucus ?: ""},${row.bbt ?: ""},${row.sexualActivity},${row.createdAt},${row.updatedAt},${row.deletedAt ?: ""}\n",
+            )
         }
         return writer.toString()
     }
 
-    fun writeManifest(): String {
-        return JSONObject().apply {
-            put("app", "ritulaya")
-            put("appVersion", "0.1.0")
-            put("schemaVersion", 1)
-            put("sharing", JSONObject.NULL)
-        }.toString(2)
-    }
+    fun writeManifest(): String =
+        JSONObject()
+            .apply {
+                put("app", "ritulaya")
+                put("appVersion", "0.1.0")
+                put("schemaVersion", 1)
+                put("sharing", JSONObject.NULL)
+            }.toString(2)
 
     private fun parseCycleRow(line: String): CycleRow {
         val parts = line.split(",")
@@ -92,7 +97,7 @@ object CsvHandler {
             endDate = parts.getOrNull(2)?.ifEmpty { null },
             createdAt = parts.getOrNull(3) ?: "",
             updatedAt = parts.getOrNull(4) ?: "",
-            deletedAt = parts.getOrNull(5)?.ifEmpty { null }
+            deletedAt = parts.getOrNull(5)?.ifEmpty { null },
         )
     }
 
@@ -103,15 +108,24 @@ object CsvHandler {
             date = parts[1],
             cycleId = parts.getOrNull(2)?.ifEmpty { null },
             flowIntensity = parts.getOrNull(3)?.ifEmpty { null },
-            symptoms = parts.getOrNull(4) ?: "[]",
+            symptoms = decode(parts.getOrNull(4) ?: "[]"),
             mood = parts.getOrNull(5)?.ifEmpty { null },
-            notes = parts.getOrNull(6)?.ifEmpty { null },
+            notes = decode(parts.getOrNull(6) ?: "").ifEmpty { null },
             cervicalMucus = parts.getOrNull(7)?.ifEmpty { null },
             bbt = parts.getOrNull(8)?.toDoubleOrNull(),
             sexualActivity = parts.getOrNull(9)?.toIntOrNull() ?: 0,
             createdAt = parts.getOrNull(10) ?: "",
             updatedAt = parts.getOrNull(11) ?: "",
-            deletedAt = parts.getOrNull(12)?.ifEmpty { null }
+            deletedAt = parts.getOrNull(12)?.ifEmpty { null },
         )
     }
+
+    private fun encode(value: String): String = Base64.encodeToString(value.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+
+    private fun decode(value: String): String =
+        try {
+            String(Base64.decode(value, Base64.DEFAULT), Charsets.UTF_8)
+        } catch (e: Exception) {
+            value
+        }
 }

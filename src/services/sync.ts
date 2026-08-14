@@ -47,6 +47,11 @@ export async function syncNow() {
   return RitulayaSync.syncNow()
 }
 
+export async function scheduleBackgroundSync(intervalMinutes: number) {
+  if (!RitulayaSync) return
+  await RitulayaSync.scheduleBackgroundSync(intervalMinutes)
+}
+
 export async function getSyncStatus() {
   if (!RitulayaSync) return null
   return RitulayaSync.getSyncStatus()

@@ -26,6 +26,12 @@ jobs:
         with:
           node-version-file: ".node-version"
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
       - name: Enable corepack
         run: corepack enable
 
@@ -49,13 +55,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
+      - name: Cache ktlint
+        uses: actions/cache@v5
+        with:
+          path: .cache/ktlint
+          key: ${{ runner.os }}-ktlint-${{ hashFiles('scripts/lint-kotlin.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-ktlint-
+
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Check formatting
+      - name: Check formatting (Prettier)
         run: yarn format:check
 
-      - name: Lint
+      - name: Lint (ESLint + ktlint)
         run: yarn lint
 
       - name: Typecheck
