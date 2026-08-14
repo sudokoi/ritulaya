@@ -1,11 +1,39 @@
 import { Tabs } from "expo-router"
 import { Calendar, Home, Settings } from "lucide-react-native"
+import { Pressable } from "react-native"
+import type { BottomTabBarButtonProps } from "expo-router/build/react-navigation/bottom-tabs"
+
+function TabBarButton({
+  children,
+  style,
+  onPress,
+  onLongPress,
+  href: _href,
+  pressColor: _pressColor,
+  pressOpacity: _pressOpacity,
+  hoverEffect: _hoverEffect,
+  ref: _ref,
+  ...rest
+}: BottomTabBarButtonProps) {
+  return (
+    <Pressable
+      {...rest}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      android_ripple={null}
+      style={({ pressed }) => [style, pressed && { opacity: 0.55 }]}
+    >
+      {children}
+    </Pressable>
+  )
+}
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarButton: TabBarButton,
         tabBarStyle: {
           backgroundColor: "#faf8f5",
           borderTopColor: "#e8e4df",
