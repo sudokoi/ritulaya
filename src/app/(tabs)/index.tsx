@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native"
+import { View, Text, ScrollView, Pressable } from "react-native"
 import { useMemo, useEffect } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
 import { useColorScheme } from "nativewind"
@@ -104,16 +104,14 @@ export default function TodayScreen() {
         )}
       </View>
 
-      <TouchableOpacity
-        className="mx-4 mb-4 rounded-card px-6 py-4"
-        style={{ backgroundColor: PHASE_COLORS.menstrual.hex }}
-        activeOpacity={0.8}
+      <Pressable
+        className="mx-4 mb-4 rounded-card bg-accent px-6 py-4 active:opacity-60"
         onPress={() => logPeriodToday()}
       >
         <Text className="text-center text-lg font-semibold text-white">
           Log Period Today
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">TODAY</Text>
@@ -127,7 +125,7 @@ export default function TodayScreen() {
                     className={cn(
                       "h-8 w-8 rounded-full",
                       todayLog.flowIntensity === level
-                        ? "bg-menstrual"
+                        ? "bg-accent"
                         : "bg-[var(--bg-muted)]",
                     )}
                   />

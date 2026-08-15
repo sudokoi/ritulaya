@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native"
+import { View, Text, ScrollView, Pressable } from "react-native"
 import { router } from "expo-router"
 import { ChevronLeft } from "lucide-react-native"
 import Markdown from "react-native-markdown-display"
@@ -39,9 +39,9 @@ export default function PrivacyScreen() {
   return (
     <View className="flex-1 bg-[var(--bg-primary)]">
       <View className="flex-row items-center gap-2 px-4 pt-14 pb-2">
-        <TouchableOpacity onPress={() => router.back()} className="p-2">
+        <Pressable onPress={() => router.back()} className="p-2 active:opacity-60">
           <ChevronLeft size={24} color={muted} />
-        </TouchableOpacity>
+        </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
           {discreetLabel(discreet, "Privacy Policy", "Policy")}
         </Text>

@@ -1,5 +1,6 @@
 package expo.modules.ritulayadb
 
+import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.runBlocking
@@ -18,48 +19,38 @@ class RitulayaDbModule : Module() {
                 store = RitulayaDataStore(context)
             }
 
+            // No-arg suspend lambdas are ambiguous between the 0-arg and 1-arg
+            // Coroutine overloads, so these keep runBlocking (still off the JS thread).
             AsyncFunction("listCycles") {
                 runBlocking { store.listCycles().map { it.toMap() } }
             }
 
-            AsyncFunction("createCycle") { startDate: String ->
-                runBlocking { store.createCycle(startDate).toMap() }
+            AsyncFunction("logPeriod") Coroutine { flow: String, periodDays: Int ->
+                store.logPeriod(flow, periodDays)
             }
 
-            AsyncFunction("logPeriod") { flow: String, periodDays: Int ->
-                runBlocking { store.logPeriod(flow, periodDays) }
-            }
-
-            AsyncFunction("logPeriodOn") { date: String, flow: String, periodDays: Int ->
-                runBlocking { store.logPeriodOn(date, flow, periodDays) }
-            }
-
-            AsyncFunction("endCycle") { id: String, endDate: String ->
-                runBlocking { store.endCycle(id, endDate) }
+            AsyncFunction("logPeriodOn") Coroutine { date: String, flow: String, periodDays: Int ->
+                store.logPeriodOn(date, flow, periodDays)
             }
 
             AsyncFunction("listDayLogs") {
                 runBlocking { store.listDayLogs().map { it.toMap() } }
             }
 
-            AsyncFunction("findLastFlowDate") {
-                runBlocking { store.findLastFlowDate() }
+            AsyncFunction("upsertDayLog") Coroutine { input: DayLogInput ->
+                store.upsertDayLog(input).toMap()
             }
 
-            AsyncFunction("upsertDayLog") { input: DayLogInput ->
-                runBlocking { store.upsertDayLog(input).toMap() }
-            }
-
-            AsyncFunction("deleteDayLog") { id: String ->
-                runBlocking { store.deleteDayLog(id) }
+            AsyncFunction("deleteDayLog") Coroutine { id: String ->
+                store.deleteDayLog(id)
             }
 
             AsyncFunction("getSettings") {
                 runBlocking { store.getSettings()?.toMap() }
             }
 
-            AsyncFunction("updateSettings") { patch: SettingsPatch ->
-                runBlocking { store.updateSettings(patch) }
+            AsyncFunction("updateSettings") Coroutine { patch: SettingsPatch ->
+                store.updateSettings(patch)
             }
         }
 }

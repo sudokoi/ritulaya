@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from "react-native"
+import { View, Text, ScrollView, Pressable, Switch, Alert } from "react-native"
 import { router } from "expo-router"
 import * as LocalAuthentication from "expo-local-authentication"
 import {
@@ -42,10 +42,10 @@ interface SettingsRowProps {
 function SettingsRow({ icon, label, value, onPress, right, danger }: SettingsRowProps) {
   const { muted } = useThemeColors()
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={!onPress && !right}
-      className="flex-row items-center justify-between border-b border-[var(--border)] py-4"
+      className="flex-row items-center justify-between border-b border-[var(--border)] py-4 active:opacity-60"
     >
       <View className="flex-row items-center gap-3">
         {icon}
@@ -62,7 +62,7 @@ function SettingsRow({ icon, label, value, onPress, right, danger }: SettingsRow
         {value && <Text className="text-sm text-[var(--text-muted)]">{value}</Text>}
         {right ?? (onPress ? <ChevronRight size={18} color={muted} /> : null)}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   )
 }
 
@@ -136,15 +136,15 @@ export default function SettingsScreen() {
           <StatItem value={`${avgCycleLength}`} label="avg cycle" discreet={discreet} />
           <StatItem value={`${periodLength}`} label="period days" discreet={discreet} />
         </View>
-        <TouchableOpacity
+        <Pressable
           onPress={() => router.push("/settings/insights")}
-          className="mt-3 flex-row items-center justify-center gap-1"
+          className="mt-3 flex-row items-center justify-center gap-1 active:opacity-60"
         >
           <BarChart3 size={14} color={colors.accent} />
-          <Text className="text-sm font-medium text-follicular dark:text-follicular-dark">
+          <Text className="text-sm font-medium text-accent dark:text-accent-dark">
             {discreetLabel(discreet, "View Full Insights", "View Details")}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">

@@ -32,12 +32,9 @@ export interface SettingsPatch {
 
 interface RitulayaDbNativeModule {
   listCycles(): Promise<Cycle[]>
-  createCycle(startDate: string): Promise<Cycle>
   logPeriod(flow: string, periodDays: number): Promise<void>
   logPeriodOn(date: string, flow: string, periodDays: number): Promise<void>
-  endCycle(id: string, endDate: string): Promise<void>
   listDayLogs(): Promise<DayLog[]>
-  findLastFlowDate(): Promise<string | null>
   upsertDayLog(input: DayLogCreate): Promise<DayLog>
   deleteDayLog(id: string): Promise<void>
   getSettings(): Promise<SettingsRow | null>

@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Keep these tokens in sync with src/constants/palette.ts. */
 @layer base {
   :root {
     --bg-primary: #faf8f5;

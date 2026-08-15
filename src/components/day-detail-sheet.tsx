@@ -1,12 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  ScrollView,
-  Pressable,
-} from "react-native"
+import { View, Text, TextInput, Modal, ScrollView, Pressable } from "react-native"
 import { useState, useCallback } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
@@ -103,19 +95,19 @@ export function DayDetailSheet({
             </Text>
             <View className="flex-row gap-2">
               {onDelete && (
-                <TouchableOpacity onPress={handleDelete} className="p-2">
+                <Pressable onPress={handleDelete} className="p-2 active:opacity-60">
                   <Trash2 size={20} color="#EF4444" />
-                </TouchableOpacity>
+                </Pressable>
               )}
-              <TouchableOpacity
+              <Pressable
                 onPress={handleSave}
-                className="rounded-button bg-follicular px-5 py-2"
+                className="rounded-button bg-accent px-5 py-2 active:opacity-60"
               >
                 <Text className="font-medium text-white">Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onClose} className="p-2">
+              </Pressable>
+              <Pressable onPress={onClose} className="p-2 active:opacity-60">
                 <X size={20} color={muted} />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
@@ -126,15 +118,15 @@ export function DayDetailSheet({
               </Text>
               <View className="flex-row gap-2">
                 {FLOW_LEVELS.map((level) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={level.key}
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                       setFlow(flow === level.key ? null : level.key)
                     }}
                     className={cn(
-                      "flex-1 rounded-button py-2.5",
-                      flow === level.key ? "bg-menstrual" : "bg-[var(--bg-muted)]",
+                      "flex-1 rounded-button py-2.5 active:opacity-60",
+                      flow === level.key ? "bg-accent" : "bg-[var(--bg-muted)]",
                     )}
                   >
                     <Text
@@ -147,13 +139,16 @@ export function DayDetailSheet({
                     >
                       {level.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
               {onClearPeriod && existingFlow && existingFlow !== "none" && (
-                <TouchableOpacity onPress={handleClearPeriod} className="mt-3 self-start">
+                <Pressable
+                  onPress={handleClearPeriod}
+                  className="mt-3 self-start active:opacity-60"
+                >
                   <Text className="text-sm font-medium text-red-500">Remove Period</Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
             </View>
 
@@ -163,20 +158,20 @@ export function DayDetailSheet({
               </Text>
               <View className="flex-row flex-wrap gap-3">
                 {MOOD_CATALOG.map((m) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={m.key}
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                       setMood(mood === m.key ? null : m.key)
                     }}
                     className={cn(
-                      "items-center gap-1 rounded-xl px-3 py-2",
-                      mood === m.key && "bg-luteal/20",
+                      "items-center gap-1 rounded-xl px-3 py-2 active:opacity-60",
+                      mood === m.key && "bg-accent/20",
                     )}
                   >
                     <Text className="text-2xl">{m.emoji}</Text>
                     <Text className="text-xs text-[var(--text-muted)]">{m.label}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -187,13 +182,13 @@ export function DayDetailSheet({
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 {SYMPTOM_CATALOG.map((symptom) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={symptom.key}
                     onPress={() => toggleSymptom(symptom.key)}
                     className={cn(
-                      "rounded-pill px-4 py-2",
+                      "rounded-pill px-4 py-2 active:opacity-60",
                       symptoms.includes(symptom.key)
-                        ? "bg-luteal"
+                        ? "bg-accent"
                         : "bg-[var(--bg-muted)]",
                     )}
                   >
@@ -207,7 +202,7 @@ export function DayDetailSheet({
                     >
                       {symptom.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </View>

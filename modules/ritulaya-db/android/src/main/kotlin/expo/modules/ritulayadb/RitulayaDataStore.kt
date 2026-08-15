@@ -30,16 +30,7 @@ class RitulayaDataStore(
         return cycle
     }
 
-    suspend fun endCycle(
-        id: String,
-        endDate: String,
-    ) {
-        dao.updateCycleEndDate(id, endDate, nowISO())
-    }
-
     suspend fun listDayLogs(): List<DayLogEntity> = dao.listDayLogs()
-
-    suspend fun findLastFlowDate(): String? = dao.findLastFlowDate()
 
     suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
         writeDayLog(
@@ -67,37 +58,40 @@ class RitulayaDataStore(
         periodDays: Int,
     ) {
         val start = LocalDate.parse(date)
-        var cycle = dao.listCycles().firstOrNull { it.endDate == null }
+        db.withTransaction {
+            var cycle = dao.listCycles().firstOrNull { it.endDate == null }
 
-        if (cycle != null) {
-            val lastFlowDate = dao.findLastFlowDate()
-            if (lastFlowDate != null && ChronoUnit.DAYS.between(LocalDate.parse(lastFlowDate), start) >= NEW_CYCLE_GAP_DAYS) {
-                dao.updateCycleEndDate(cycle.id, start.minusDays(1).toString(), nowISO())
+            if (cycle != null) {
+                val lastFlowDate = dao.findLastFlowDate()
+                if (lastFlowDate != null && ChronoUnit.DAYS.between(LocalDate.parse(lastFlowDate), start) >= NEW_CYCLE_GAP_DAYS) {
+                    dao.updateCycleEndDate(cycle.id, start.minusDays(1).toString(), nowISO())
+                    cycle = createCycle(date)
+                }
+            } else {
                 cycle = createCycle(date)
             }
-        } else {
-            cycle = createCycle(date)
-        }
 
-        val cycleId = cycle?.id ?: return
+            val cycleId = cycle?.id
+            if (cycleId != null) {
+                val previousDayLog = dao.getDayLogByDate(start.minusDays(1).toString())
+                val previousIsPeriod =
+                    previousDayLog?.flowIntensity != null && previousDayLog.flowIntensity != "none"
+                val fillCount = if (previousIsPeriod) 1 else periodDays
 
-        val previousDayLog = dao.getDayLogByDate(start.minusDays(1).toString())
-        val previousIsPeriod =
-            previousDayLog?.flowIntensity != null && previousDayLog.flowIntensity != "none"
-        val fillCount = if (previousIsPeriod) 1 else periodDays
-
-        for (i in 0 until fillCount) {
-            writeDayLog(
-                date = start.plusDays(i.toLong()).toString(),
-                cycleId = cycleId,
-                flowIntensity = flow,
-                symptoms = emptyList(),
-                mood = null,
-                notes = null,
-                cervicalMucus = null,
-                bbt = null,
-                sexualActivity = null,
-            )
+                for (i in 0 until fillCount) {
+                    writeDayLog(
+                        date = start.plusDays(i.toLong()).toString(),
+                        cycleId = cycleId,
+                        flowIntensity = flow,
+                        symptoms = emptyList(),
+                        mood = null,
+                        notes = null,
+                        cervicalMucus = null,
+                        bbt = null,
+                        sexualActivity = null,
+                    )
+                }
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { AppState, Text, TouchableOpacity, View } from "react-native"
+import { AppState, Text, Pressable, View } from "react-native"
 import * as LocalAuthentication from "expo-local-authentication"
 import { Fingerprint } from "lucide-react-native"
 import { useSettings } from "@/hooks/use-settings"
@@ -86,21 +86,21 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
       ) : error ? (
         <Text className="mt-2 text-center text-sm text-red-500">{error}</Text>
       ) : null}
-      <TouchableOpacity
+      <Pressable
         onPress={authenticate}
-        className="mt-6 rounded-button bg-follicular px-6 py-4"
+        className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
       >
         <Text className="font-semibold text-white">
           {unavailable ? "Try again" : "Unlock"}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
       {unavailable ? (
-        <TouchableOpacity
+        <Pressable
           onPress={() => update({ biometricLock: false })}
-          className="mt-3 rounded-button px-6 py-4"
+          className="mt-3 rounded-button px-6 py-4 active:opacity-60"
         >
           <Text className="font-semibold text-[var(--text-muted)]">Turn off lock</Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : null}
     </View>
   )

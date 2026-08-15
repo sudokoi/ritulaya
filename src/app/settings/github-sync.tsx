@@ -2,7 +2,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   Linking,
   ActivityIndicator,
@@ -42,9 +42,9 @@ export default function GithubSyncScreen() {
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="flex-row items-center gap-2 px-4 pt-14 pb-4">
-        <TouchableOpacity onPress={() => router.back()} className="p-2">
+        <Pressable onPress={() => router.back()} className="p-2 active:opacity-60">
           <ChevronLeft size={24} color={muted} />
-        </TouchableOpacity>
+        </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
           {discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
         </Text>
@@ -69,10 +69,10 @@ export default function GithubSyncScreen() {
               "Sync your data to a private repository you control. It syncs automatically.",
             )}
           </Text>
-          <TouchableOpacity
+          <Pressable
             onPress={() => handleConnect()}
             disabled={sync.connecting}
-            className="mt-6 rounded-button bg-follicular px-6 py-4"
+            className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
           >
             {sync.connecting ? (
               <ActivityIndicator color="#fff" />
@@ -81,7 +81,7 @@ export default function GithubSyncScreen() {
                 {discreetLabel(discreet, "Connect GitHub", "Connect")}
               </Text>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
@@ -102,14 +102,14 @@ export default function GithubSyncScreen() {
               {sync.deviceFlow.userCode}
             </Text>
           </View>
-          <TouchableOpacity
+          <Pressable
             onPress={openVerification}
-            className="mt-6 rounded-button bg-follicular px-6 py-4"
+            className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
           >
             <Text className="text-center font-semibold text-white">
               {discreetLabel(discreet, "Open GitHub", "Open Browser")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
           <View className="mt-4 flex-row items-center justify-center gap-2">
             <ActivityIndicator size="small" color={muted} />
             <Text className="text-sm text-[var(--text-muted)]">
@@ -138,13 +138,13 @@ export default function GithubSyncScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <TouchableOpacity
+            <Pressable
               onPress={() => sync.createNewRepo(repoName.trim() || "ritulaya-data")}
               disabled={sync.busy}
-              className="rounded-button bg-follicular px-5 py-3"
+              className="rounded-button bg-accent px-5 py-3 active:opacity-60"
             >
               <Plus size={20} color="#fff" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           <Text className="mt-6 text-sm font-medium text-[var(--text-muted)]">
@@ -168,7 +168,7 @@ export default function GithubSyncScreen() {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <TouchableOpacity
+          <Pressable
             onPress={() =>
               sync.useExistingRepo(
                 existingOwner.trim() || sync.username || "",
@@ -177,8 +177,8 @@ export default function GithubSyncScreen() {
             }
             disabled={sync.busy || !existingRepo.trim()}
             className={cn(
-              "mt-4 rounded-button px-6 py-3",
-              existingRepo.trim() ? "bg-follicular" : "bg-[var(--bg-muted)]",
+              "mt-4 rounded-button px-6 py-3 active:opacity-60",
+              existingRepo.trim() ? "bg-accent" : "bg-[var(--bg-muted)]",
             )}
           >
             <Text
@@ -189,7 +189,7 @@ export default function GithubSyncScreen() {
             >
               {discreetLabel(discreet, "Use Repository", "Use Repository")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
@@ -207,13 +207,13 @@ export default function GithubSyncScreen() {
                   : discreetLabel(discreet, "Not synced yet", "Not synced yet")}
               </Text>
             </View>
-            <View className="h-2.5 w-2.5 rounded-full bg-follicular" />
+            <View className="h-2.5 w-2.5 rounded-full bg-accent" />
           </View>
 
-          <TouchableOpacity
+          <Pressable
             onPress={() => sync.syncNow()}
             disabled={sync.syncing}
-            className="mt-6 flex-row items-center justify-center gap-2 rounded-button bg-follicular px-6 py-4"
+            className="mt-6 flex-row items-center justify-center gap-2 rounded-button bg-accent px-6 py-4 active:opacity-60"
           >
             {sync.syncing ? (
               <ActivityIndicator color="#fff" />
@@ -223,18 +223,18 @@ export default function GithubSyncScreen() {
             <Text className="font-semibold text-white">
               {discreetLabel(discreet, "Sync Now", "Sync Now")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
+          <Pressable
             onPress={() => handleDisconnect()}
             disabled={sync.busy}
-            className="mt-3 flex-row items-center justify-center gap-2 rounded-button bg-[var(--bg-muted)] px-6 py-4"
+            className="mt-3 flex-row items-center justify-center gap-2 rounded-button bg-[var(--bg-muted)] px-6 py-4 active:opacity-60"
           >
             <Trash2 size={18} color="#EF4444" />
             <Text className="font-semibold text-red-500">
               {discreetLabel(discreet, "Disconnect", "Disconnect")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
     </ScrollView>

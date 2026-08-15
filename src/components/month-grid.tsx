@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native"
+import { View, Text, Pressable } from "react-native"
 import { addMonths, subMonths, format, isSameMonth, isToday } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
 import { getDaysInMonthGrid } from "@/utils/date"
@@ -63,15 +63,15 @@ export function MonthGrid({
   return (
     <View>
       <View className="flex-row items-center justify-between px-4 py-4">
-        <TouchableOpacity onPress={prevMonth} className="p-2">
+        <Pressable onPress={prevMonth} className="p-2 active:opacity-60">
           <ChevronLeft size={20} color={muted} />
-        </TouchableOpacity>
+        </Pressable>
         <Text className="text-lg font-semibold text-[var(--text-primary)]">
           {format(currentMonth, "MMMM yyyy")}
         </Text>
-        <TouchableOpacity onPress={nextMonth} className="p-2">
+        <Pressable onPress={nextMonth} className="p-2 active:opacity-60">
           <ChevronRight size={20} color={muted} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <View className="flex-row px-2">
@@ -97,10 +97,10 @@ export function MonthGrid({
           const marked = info.period || info.predictedPeriod
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={i}
               onPress={() => onDayPress(day.date)}
-              className="mb-1 h-11 flex-1 basis-[14.28%] items-center justify-center"
+              className="mb-1 h-11 flex-1 basis-[14.28%] items-center justify-center active:opacity-60"
             >
               {marked ? (
                 <View
@@ -166,7 +166,7 @@ export function MonthGrid({
                   </View>
                 </View>
               )}
-            </TouchableOpacity>
+            </Pressable>
           )
         })}
       </View>

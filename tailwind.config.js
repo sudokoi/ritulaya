@@ -14,6 +14,8 @@ module.exports = {
         "ovulation-dark": "#E4C585",
         luteal: "#67589C",
         "luteal-dark": "#BDA9E2",
+        accent: "#0F766E",
+        "accent-dark": "#5EEAD4",
       },
       borderRadius: {
         card: "20px",
