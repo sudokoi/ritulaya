@@ -22,6 +22,15 @@ export async function logPeriod(flow: string, periodDays: number): Promise<void>
   await RitulayaDb.logPeriod(flow, periodDays)
 }
 
+export async function logPeriodOn(
+  date: string,
+  flow: string,
+  periodDays: number,
+): Promise<void> {
+  if (!RitulayaDb) return
+  await RitulayaDb.logPeriodOn(date, flow, periodDays)
+}
+
 export async function endCycle(id: string, endDate: string): Promise<void> {
   if (!RitulayaDb) return
   await RitulayaDb.endCycle(id, endDate)

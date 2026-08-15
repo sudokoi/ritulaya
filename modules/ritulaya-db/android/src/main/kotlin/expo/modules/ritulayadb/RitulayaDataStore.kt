@@ -58,24 +58,37 @@ class RitulayaDataStore(
         flow: String,
         periodDays: Int,
     ) {
-        val today = LocalDate.now()
+        logPeriodOn(LocalDate.now().toString(), flow, periodDays)
+    }
+
+    suspend fun logPeriodOn(
+        date: String,
+        flow: String,
+        periodDays: Int,
+    ) {
+        val start = LocalDate.parse(date)
         var cycle = dao.listCycles().firstOrNull { it.endDate == null }
 
         if (cycle != null) {
             val lastFlowDate = dao.findLastFlowDate()
-            if (lastFlowDate != null && ChronoUnit.DAYS.between(LocalDate.parse(lastFlowDate), today) >= NEW_CYCLE_GAP_DAYS) {
-                dao.updateCycleEndDate(cycle.id, today.minusDays(1).toString(), nowISO())
-                cycle = createCycle(today.toString())
+            if (lastFlowDate != null && ChronoUnit.DAYS.between(LocalDate.parse(lastFlowDate), start) >= NEW_CYCLE_GAP_DAYS) {
+                dao.updateCycleEndDate(cycle.id, start.minusDays(1).toString(), nowISO())
+                cycle = createCycle(date)
             }
         } else {
-            cycle = createCycle(today.toString())
+            cycle = createCycle(date)
         }
 
         val cycleId = cycle?.id ?: return
 
-        for (i in 0 until periodDays) {
+        val previousDayLog = dao.getDayLogByDate(start.minusDays(1).toString())
+        val previousIsPeriod =
+            previousDayLog?.flowIntensity != null && previousDayLog.flowIntensity != "none"
+        val fillCount = if (previousIsPeriod) 1 else periodDays
+
+        for (i in 0 until fillCount) {
             writeDayLog(
-                date = today.plusDays(i.toLong()).toString(),
+                date = start.plusDays(i.toLong()).toString(),
                 cycleId = cycleId,
                 flowIntensity = flow,
                 symptoms = emptyList(),

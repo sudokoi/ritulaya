@@ -1,5 +1,5 @@
 import { createStore } from "@xstate/store"
-import { listCycles, logPeriod } from "@/services/db"
+import { listCycles, logPeriod, logPeriodOn } from "@/services/db"
 import { loadDayLogs } from "@/stores/day-log-store"
 import type { Cycle } from "@/types/cycle"
 import type { FlowIntensity } from "@/types/day-log"
@@ -34,6 +34,16 @@ export async function loadCycles() {
 
 export async function logPeriodToday(flow: FlowIntensity = "medium", periodDays = 3) {
   await logPeriod(flow, periodDays)
+  await loadCycles()
+  await loadDayLogs()
+}
+
+export async function logPeriodOnDate(
+  date: string,
+  flow: FlowIntensity = "medium",
+  periodDays = 3,
+) {
+  await logPeriodOn(date, flow, periodDays)
   await loadCycles()
   await loadDayLogs()
 }

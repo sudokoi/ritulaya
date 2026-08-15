@@ -94,6 +94,7 @@ export function MonthGrid({
           )
           const today = isToday(day.date)
           const inMonth = isSameMonth(day.date, currentMonth)
+          const marked = info.period || info.predictedPeriod
 
           return (
             <TouchableOpacity
@@ -101,36 +102,46 @@ export function MonthGrid({
               onPress={() => onDayPress(day.date)}
               className="mb-1 h-11 flex-1 basis-[14.28%] items-center justify-center"
             >
-              {info.period || info.predictedPeriod ? (
+              {marked ? (
                 <View
                   className={cn(
-                    "h-9 w-9 items-center justify-center rounded-full",
-                    info.period && "bg-menstrual",
-                    info.predictedPeriod &&
-                      "border-2 border-menstrual dark:border-menstrual-dark",
-                    today && "ring-2 ring-[var(--text-primary)]",
+                    "items-center justify-center",
+                    today && "border-2 border-[var(--text-primary)]",
                   )}
+                  style={{ width: 40, height: 40, borderRadius: 20 }}
                 >
-                  <Text
+                  <View
                     className={cn(
-                      "text-sm font-medium",
-                      info.period && "text-white",
-                      info.predictedPeriod && "text-menstrual dark:text-menstrual-dark",
+                      "items-center justify-center",
+                      info.period && "bg-menstrual",
                       !info.period &&
-                        !info.predictedPeriod &&
-                        "text-[var(--text-primary)]",
-                      !inMonth && "opacity-30",
+                        info.predictedPeriod &&
+                        "border-2 border-menstrual dark:border-menstrual-dark",
                     )}
+                    style={{ width: 34, height: 34, borderRadius: 17 }}
                   >
-                    {format(day.date, "d")}
-                  </Text>
+                    <Text
+                      className={cn(
+                        "text-sm font-medium",
+                        info.period
+                          ? "text-white"
+                          : info.predictedPeriod
+                            ? "text-menstrual dark:text-menstrual-dark"
+                            : "text-[var(--text-primary)]",
+                        !inMonth && "opacity-30",
+                      )}
+                    >
+                      {format(day.date, "d")}
+                    </Text>
+                  </View>
                 </View>
               ) : (
                 <View
                   className={cn(
-                    "h-9 w-9 items-center justify-center rounded-full",
+                    "items-center justify-center",
                     today && "bg-[var(--bg-muted)]",
                   )}
+                  style={{ width: 34, height: 34, borderRadius: 17 }}
                 >
                   <Text
                     className={cn(

@@ -40,6 +40,21 @@ class PredictionEngineTest {
     }
 
     @Test
+    fun `anchors prediction on the most recent cycle even when it is still open`() {
+        val cycles =
+            listOf(
+                PredictionEngine.CycleInput("a", "2026-06-01", "2026-06-28"),
+                PredictionEngine.CycleInput("b", "2026-06-29", null),
+            )
+
+        val result = PredictionEngine.predict(cycles, config)
+
+        assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse("2026-07-27"))
+        assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse("2026-07-31"))
+        assertThat(result.cyclesUsed).isEqualTo(1)
+    }
+
+    @Test
     fun `uses WMA weights so recent cycles count more`() {
         val stable =
             listOf(

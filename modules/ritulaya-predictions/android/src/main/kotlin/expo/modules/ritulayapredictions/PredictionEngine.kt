@@ -94,12 +94,13 @@ object PredictionEngine {
         cycles: List<CycleInput>,
         config: Config,
     ): Output {
-        val completed =
+        val all =
             cycles
-                .filter { it.endDate != null }
                 .sortedByDescending { it.startDate }
 
-        if (completed.isEmpty()) return populationFallback(config)
+        if (all.isEmpty()) return populationFallback(config)
+
+        val completed = all.filter { it.endDate != null }
 
         val cycleLengths =
             completed.map { cycle ->
@@ -109,10 +110,14 @@ object PredictionEngine {
             }
 
         val avgCycleLength =
-            weightedMovingAverage(cycleLengths, config.avgCycleLength, completed.size)
+            if (cycleLengths.size >= 2) {
+                weightedMovingAverage(cycleLengths, config.avgCycleLength, cycleLengths.size)
+            } else {
+                config.avgCycleLength
+            }
 
-        val lastStart = LocalDate.parse(completed.first().startDate)
-        val nextStart = lastStart.plusDays(avgCycleLength.toLong())
+        val baseStart = LocalDate.parse(all.first().startDate)
+        val nextStart = baseStart.plusDays(avgCycleLength.toLong())
         val nextEnd = nextStart.plusDays(config.avgPeriodLength.toLong() - 1)
         val ovulation = nextStart.minusDays(config.lutealPhaseLength.toLong())
         val fertileStart = ovulation.minusDays(3)
@@ -124,8 +129,8 @@ object PredictionEngine {
             ovulationDay = ovulation,
             fertileWindowStart = fertileStart,
             fertileWindowEnd = fertileEnd,
-            confidence = confidenceScore(completed.size),
-            cyclesUsed = completed.size,
+            confidence = confidenceScore(cycleLengths.size),
+            cyclesUsed = cycleLengths.size,
             engine = "wma",
         )
     }

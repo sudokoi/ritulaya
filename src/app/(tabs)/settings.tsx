@@ -18,6 +18,7 @@ import { discreetLabel } from "@/lib/discreet"
 import { useSettings } from "@/hooks/use-settings"
 import { useThemeColors } from "@/hooks/use-theme-colors"
 import { usePrediction } from "@/hooks/use-predictions"
+import { useSync } from "@/hooks/use-sync"
 import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
 import { useEffect } from "react"
@@ -84,6 +85,7 @@ export default function SettingsScreen() {
     load,
   } = useSettings()
   const { periodLength, avgCycleLength } = usePrediction()
+  const sync = useSync()
   const colors = useThemeColors()
 
   useEffect(() => {
@@ -176,7 +178,11 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Cloud size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
-          value={discreetLabel(discreet, "Not set up", "Off")}
+          value={
+            sync.config
+              ? `${sync.config.repoOwner}/${sync.config.repoName}`
+              : discreetLabel(discreet, "Not set up", "Off")
+          }
           onPress={() => router.push("/settings/github-sync")}
         />
         <SettingsRow
