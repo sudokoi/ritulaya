@@ -1,5 +1,25 @@
 # ritulaya
 
+## 0.1.0-alpha.2
+
+### Patch Changes
+
+- f41537a: Architecture: consolidate data refresh, sync auth, and native access
+
+  - Route every reload through one data-refresh module that owns the dependency graph (cycles, day logs, settings) instead of each screen and the sync path hand-picking store subsets
+  - Split GitHub device-flow auth into its own store so the sync store only owns repo, run, and status state
+  - Centralize optional-native availability and fallback semantics in one adapter; the db, prediction, and sync services shrink to domain-shaped calls
+  - Move the day-log period-transition rule off the calendar screen into a domain action
+  - Add unit tests for the cycle-derivation recurrence, fertile ramp, and horizon clipping
+
+- 6d1e912: Calendar, prediction, and day-marker improvements
+
+  - Show period, fertile, and ovulation predictions for every month you view, not just the next period
+  - Surface fertile and ovulation markers in the Today week strip
+  - Replace day markers with gradient phase fills (full, translucent, and ramping circles); logged days keep a small dot
+  - Fix negative "days until next period" when logging a period on a past date
+  - Refresh Today's data when the app returns to the foreground after a background sync
+
 ## 0.1.0-alpha.1
 
 ### Patch Changes
