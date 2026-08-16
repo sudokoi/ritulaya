@@ -4,6 +4,7 @@ import { PortalHost } from "@rn-primitives/portal"
 import { useColorScheme } from "nativewind"
 import { useEffect } from "react"
 import { useWidget } from "@/hooks/use-widget"
+import { useAppRefresh } from "@/hooks/use-app-refresh"
 import { useSettings } from "@/hooks/use-settings"
 import { BiometricGate } from "@/components/biometric-gate"
 import "@/global.css"
@@ -11,6 +12,8 @@ import "@/global.css"
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme()
   const { theme, load } = useSettings()
+
+  useAppRefresh()
 
   useEffect(() => {
     setColorScheme(theme)
