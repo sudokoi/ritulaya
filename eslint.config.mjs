@@ -27,6 +27,7 @@ export default tseslint.config(
       "react-native/no-inline-styles": "error",
       "react-native/no-color-literals": "off",
       "react-native/no-raw-text": "off",
+      "react/jsx-no-leaked-render": "error",
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@typescript-eslint/consistent-type-definitions": ["error", "interface"],

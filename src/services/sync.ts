@@ -1,5 +1,6 @@
-import RitulayaSync from "../../modules/ritulaya-sync"
+import { native, nativeCall, nativeRequire } from "@/lib/native"
 import { GITHUB_OAUTH_CLIENT_ID } from "@/constants/app-config"
+import type { SyncStatus } from "@/types/sync"
 
 const MAX_POLLS = 60
 const POLL_INTERVAL_MS = 5000
@@ -14,69 +15,80 @@ export interface RepoInfo {
   private: boolean
 }
 
-export async function initiateDeviceFlow() {
-  if (!RitulayaSync) throw new Error("Sync is not available on this device")
-  return RitulayaSync.initiateDeviceFlow(GITHUB_OAUTH_CLIENT_ID)
+export function initiateDeviceFlow() {
+  return nativeRequire(native.sync, (sync) =>
+    sync.initiateDeviceFlow(GITHUB_OAUTH_CLIENT_ID),
+  )
 }
 
 export async function pollForToken(isCancelled?: () => boolean): Promise<string | null> {
-  if (!RitulayaSync) return null
+  return nativeCall(
+    native.sync,
+    async (sync) => {
+      for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
+        if (isCancelled?.()) return null
 
-  for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
-    if (isCancelled?.()) return null
+        const result = await sync.pollOnce(GITHUB_OAUTH_CLIENT_ID)
+        if (result?.status === "granted") return result.token ?? null
+        if (result?.status === "error") return null
 
-    const result = await RitulayaSync.pollOnce(GITHUB_OAUTH_CLIENT_ID)
-    if (result?.status === "granted") return result.token ?? null
-    if (result?.status === "error") return null
+        await sleep(result?.status === "slow_down" ? SLOW_DOWN_MS : POLL_INTERVAL_MS)
+      }
 
-    await sleep(result?.status === "slow_down" ? SLOW_DOWN_MS : POLL_INTERVAL_MS)
-  }
-
-  return null
+      return null
+    },
+    null,
+  )
 }
 
-export async function getUsername() {
-  if (!RitulayaSync) return null
-  return RitulayaSync.getUsername()
+export function getUsername() {
+  return nativeCall(native.sync, (sync) => sync.getUsername(), null)
 }
 
 export async function listRepos(): Promise<RepoInfo[]> {
-  if (!RitulayaSync) return []
-  const repos = await RitulayaSync.listRepos()
-  return repos ?? []
+  return nativeCall(native.sync, async (sync) => (await sync.listRepos()) ?? [], [])
 }
 
-export async function createRepo(name: string) {
-  if (!RitulayaSync) throw new Error("Sync is not available on this device")
-  await RitulayaSync.createRepo(name)
+export function createRepo(name: string) {
+  return nativeRequire(native.sync, (sync) => sync.createRepo(name))
 }
 
-export async function configureRepo(owner: string, repo: string, branch: string) {
-  if (!RitulayaSync) return
-  await RitulayaSync.configureRepo(owner, repo, branch)
+export function configureRepo(
+  owner: string,
+  repo: string,
+  branch: string,
+): Promise<void> {
+  return nativeCall(
+    native.sync,
+    (sync) => sync.configureRepo(owner, repo, branch),
+    undefined,
+  )
 }
 
-export async function getConfig() {
-  if (!RitulayaSync) return null
-  return RitulayaSync.getConfig()
+export function getConfig() {
+  return nativeCall(native.sync, (sync) => sync.getConfig(), null)
 }
 
-export async function syncNow() {
-  if (!RitulayaSync) return null
-  return RitulayaSync.syncNow()
+export function syncNow(): Promise<SyncStatus | null> {
+  return nativeCall(native.sync, (sync) => sync.syncNow(), null as SyncStatus | null)
 }
 
-export async function scheduleBackgroundSync(intervalMinutes: number) {
-  if (!RitulayaSync) return
-  await RitulayaSync.scheduleBackgroundSync(intervalMinutes)
+export function scheduleBackgroundSync(intervalMinutes: number): Promise<void> {
+  return nativeCall(
+    native.sync,
+    (sync) => sync.scheduleBackgroundSync(intervalMinutes),
+    undefined,
+  )
 }
 
-export async function getSyncStatus() {
-  if (!RitulayaSync) return null
-  return RitulayaSync.getSyncStatus()
+export function getSyncStatus(): Promise<SyncStatus | null> {
+  return nativeCall(
+    native.sync,
+    (sync) => sync.getSyncStatus(),
+    null as SyncStatus | null,
+  )
 }
 
-export async function disconnect() {
-  if (!RitulayaSync) return
-  await RitulayaSync.disconnect()
+export function disconnect(): Promise<void> {
+  return nativeCall(native.sync, (sync) => sync.disconnect(), undefined)
 }

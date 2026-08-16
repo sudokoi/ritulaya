@@ -2,18 +2,21 @@ import { useCallback, useEffect, useRef } from "react"
 import { useSelector } from "@xstate/store-react"
 import {
   syncStore,
-  connectDeviceFlow,
   createNewRepo,
-  useExistingRepo,
+  configureExistingRepo,
   syncNowAction,
   disconnectAction,
   refreshSyncIdentity,
   loadSyncConfig,
   loadSyncStatus,
 } from "@/stores/sync-store"
+import { authStore, connectDeviceFlow } from "@/stores/auth-store"
 
 export function useSync() {
   const state = useSelector(syncStore, (s) => s.context)
+  const deviceFlow = useSelector(authStore, (s) => s.context.deviceFlow)
+  const connecting = useSelector(authStore, (s) => s.context.connecting)
+  const authError = useSelector(authStore, (s) => s.context.error)
   const cancelledRef = useRef(false)
 
   useEffect(() => {
@@ -25,6 +28,10 @@ export function useSync() {
     }
   }, [])
 
+  const clearAuthError = useCallback(() => {
+    authStore.send({ type: "setError", error: null })
+  }, [])
+
   const connect = useCallback(async () => {
     const authorized = await connectDeviceFlow(() => cancelledRef.current)
     if (authorized) await refreshSyncIdentity()
@@ -32,15 +39,40 @@ export function useSync() {
 
   const disconnect = useCallback(async () => {
     await disconnectAction()
+    authStore.send({ type: "reset" })
   }, [])
+
+  const createRepo = useCallback(
+    async (name: string) => {
+      clearAuthError()
+      await createNewRepo(name)
+    },
+    [clearAuthError],
+  )
+
+  const useRepo = useCallback(
+    async (owner: string, repo: string) => {
+      clearAuthError()
+      await configureExistingRepo(owner, repo)
+    },
+    [clearAuthError],
+  )
+
+  const syncNow = useCallback(async () => {
+    clearAuthError()
+    await syncNowAction()
+  }, [clearAuthError])
 
   return {
     ...state,
+    deviceFlow,
+    connecting,
+    error: authError ?? state.error,
     connected: state.username !== null,
     connect,
-    createNewRepo,
-    useExistingRepo,
-    syncNow: syncNowAction,
+    createNewRepo: createRepo,
+    useExistingRepo: useRepo,
+    syncNow,
     disconnect,
     refresh: refreshSyncIdentity,
   }

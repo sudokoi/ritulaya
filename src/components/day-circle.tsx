@@ -29,7 +29,7 @@ export function DayCircle({
         justifyContent: "center",
       }}
     >
-      {colors && fill > 0 && (
+      {colors && fill > 0 ? (
         <View
           pointerEvents="none"
           style={{
@@ -48,7 +48,7 @@ export function DayCircle({
             style={{ flex: 1 }}
           />
         </View>
-      )}
+      ) : null}
       <View style={{ alignItems: "center", justifyContent: "center" }}>{children}</View>
     </View>
   )

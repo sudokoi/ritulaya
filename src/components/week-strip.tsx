@@ -46,9 +46,9 @@ export function WeekStrip({ days }: WeekStripProps) {
             ) : (
               <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
             )}
-            {day.isToday && (
+            {day.isToday ? (
               <View className="absolute -bottom-1 h-0.5 w-3 rounded-full bg-[var(--text-primary)]" />
-            )}
+            ) : null}
           </View>
         )
       })}

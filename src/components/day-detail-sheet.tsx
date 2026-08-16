@@ -94,11 +94,11 @@ export function DayDetailSheet({
               {format(date, "EEE, MMM d")}
             </Text>
             <View className="flex-row gap-2">
-              {onDelete && (
+              {onDelete ? (
                 <Pressable onPress={handleDelete} className="p-2 active:opacity-60">
                   <Trash2 size={20} color="#EF4444" />
                 </Pressable>
-              )}
+              ) : null}
               <Pressable
                 onPress={handleSave}
                 className="rounded-button bg-accent px-5 py-2 active:opacity-60"
@@ -142,14 +142,14 @@ export function DayDetailSheet({
                   </Pressable>
                 ))}
               </View>
-              {onClearPeriod && existingFlow && existingFlow !== "none" && (
+              {onClearPeriod && existingFlow && existingFlow !== "none" ? (
                 <Pressable
                   onPress={handleClearPeriod}
                   className="mt-3 self-start active:opacity-60"
                 >
                   <Text className="text-sm font-medium text-red-500">Remove Period</Text>
                 </Pressable>
-              )}
+              ) : null}
             </View>
 
             <View className="px-6 py-4">

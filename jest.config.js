@@ -5,7 +5,9 @@ module.exports = {
       testEnvironment: "node",
       transform: {
         "^.+\\.tsx?$": ["@swc/jest"],
+        "^.+\\.jsx?$": ["@swc/jest"],
       },
+      transformIgnorePatterns: ["node_modules/(?!date-fns)"],
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
       },

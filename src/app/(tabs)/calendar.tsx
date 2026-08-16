@@ -5,7 +5,7 @@ import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
-import { logPeriodOnDate } from "@/stores/cycle-store"
+import { saveDayEntry } from "@/domain/day-entry"
 import { deriveCycleDays } from "@/lib/cycle-derivation"
 import type { FlowIntensity } from "@/types/day-log"
 import type { SymptomKey } from "@/constants/symptoms"
@@ -48,25 +48,10 @@ export default function CalendarScreen() {
     }) => {
       if (!selectedDate) return
       const date = format(selectedDate, "yyyy-MM-dd")
-      const flow = data.flowIntensity
-      const isPeriod = !!flow && flow !== "none"
-      const wasPeriod =
-        !!existingLog?.flowIntensity && existingLog.flowIntensity !== "none"
-
-      if (isPeriod && !wasPeriod) {
-        await logPeriodOnDate(date, flow, periodLength)
-      }
-
-      await upsertDayLog({
-        date,
-        flowIntensity: data.flowIntensity,
-        symptoms: data.symptoms,
-        mood: data.mood,
-        notes: data.notes,
-      })
+      await saveDayEntry({ date, ...data }, periodLength)
       setSelectedDate(null)
     },
-    [selectedDate, existingLog, upsertDayLog, periodLength],
+    [selectedDate, periodLength],
   )
 
   const handleDelete = useCallback(() => {

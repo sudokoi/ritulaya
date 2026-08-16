@@ -59,7 +59,7 @@ function SettingsRow({ icon, label, value, onPress, right, danger }: SettingsRow
         </Text>
       </View>
       <View className="flex-row items-center gap-2">
-        {value && <Text className="text-sm text-[var(--text-muted)]">{value}</Text>}
+        {value ? <Text className="text-sm text-[var(--text-muted)]">{value}</Text> : null}
         {right ?? (onPress ? <ChevronRight size={18} color={muted} /> : null)}
       </View>
     </Pressable>

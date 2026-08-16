@@ -1,52 +1,42 @@
-import RitulayaDb, {
-  type SettingsRow,
-  type SettingsPatch,
-} from "../../modules/ritulaya-db"
+import { native, nativeCall } from "@/lib/native"
+import type { SettingsRow, SettingsPatch } from "../../modules/ritulaya-db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 
 export type { SettingsRow, SettingsPatch }
 
-export async function listCycles(): Promise<Cycle[]> {
-  if (!RitulayaDb) return []
-  return RitulayaDb.listCycles()
+export function listCycles(): Promise<Cycle[]> {
+  return nativeCall(native.db, (db) => db.listCycles(), [])
 }
 
-export async function logPeriod(flow: string, periodDays: number): Promise<void> {
-  if (!RitulayaDb) return
-  await RitulayaDb.logPeriod(flow, periodDays)
+export function logPeriod(flow: string, periodDays: number): Promise<void> {
+  return nativeCall(native.db, (db) => db.logPeriod(flow, periodDays), undefined)
 }
 
-export async function logPeriodOn(
+export function logPeriodOn(
   date: string,
   flow: string,
   periodDays: number,
 ): Promise<void> {
-  if (!RitulayaDb) return
-  await RitulayaDb.logPeriodOn(date, flow, periodDays)
+  return nativeCall(native.db, (db) => db.logPeriodOn(date, flow, periodDays), undefined)
 }
 
-export async function listDayLogs(): Promise<DayLog[]> {
-  if (!RitulayaDb) return []
-  return RitulayaDb.listDayLogs()
+export function listDayLogs(): Promise<DayLog[]> {
+  return nativeCall(native.db, (db) => db.listDayLogs(), [])
 }
 
-export async function upsertDayLog(input: DayLogCreate): Promise<DayLog | null> {
-  if (!RitulayaDb) return null
-  return RitulayaDb.upsertDayLog(input)
+export function upsertDayLog(input: DayLogCreate): Promise<DayLog | null> {
+  return nativeCall(native.db, (db) => db.upsertDayLog(input), null as DayLog | null)
 }
 
-export async function deleteDayLog(id: string): Promise<void> {
-  if (!RitulayaDb) return
-  await RitulayaDb.deleteDayLog(id)
+export function deleteDayLog(id: string): Promise<void> {
+  return nativeCall(native.db, (db) => db.deleteDayLog(id), undefined)
 }
 
-export async function findSettings(): Promise<SettingsRow | null> {
-  if (!RitulayaDb) return null
-  return RitulayaDb.getSettings()
+export function findSettings(): Promise<SettingsRow | null> {
+  return nativeCall(native.db, (db) => db.getSettings(), null as SettingsRow | null)
 }
 
-export async function updateSettings(patch: SettingsPatch): Promise<void> {
-  if (!RitulayaDb) return
-  await RitulayaDb.updateSettings(patch)
+export function updateSettings(patch: SettingsPatch): Promise<void> {
+  return nativeCall(native.db, (db) => db.updateSettings(patch), undefined)
 }

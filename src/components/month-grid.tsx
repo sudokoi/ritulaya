@@ -170,9 +170,9 @@ export function MonthGrid({
                   >
                     {format(day.date, "d")}
                   </Text>
-                  {info.logged && (
+                  {info.logged ? (
                     <View className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--text-muted)]" />
-                  )}
+                  ) : null}
                 </View>
               )}
             </Pressable>

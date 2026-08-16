@@ -50,11 +50,11 @@ export default function GithubSyncScreen() {
         </Text>
       </View>
 
-      {sync.error && (
+      {sync.error ? (
         <View className="mx-4 mb-4 rounded-card bg-red-500/10 px-5 py-3">
           <Text className="text-sm text-red-500">{sync.error}</Text>
         </View>
-      )}
+      ) : null}
 
       {!sync.connected && !sync.deviceFlow && (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
@@ -85,7 +85,7 @@ export default function GithubSyncScreen() {
         </View>
       )}
 
-      {sync.deviceFlow && (
+      {sync.deviceFlow ? (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
             {discreetLabel(discreet, "Authorize on GitHub", "Authorize")}
@@ -117,9 +117,9 @@ export default function GithubSyncScreen() {
             </Text>
           </View>
         </View>
-      )}
+      ) : null}
 
-      {sync.connected && !sync.config && (
+      {sync.connected && !sync.config ? (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
             {discreetLabel(discreet, "Choose a repository", "Choose a repository")}
@@ -191,9 +191,9 @@ export default function GithubSyncScreen() {
             </Text>
           </Pressable>
         </View>
-      )}
+      ) : null}
 
-      {sync.connected && sync.config && (
+      {sync.connected && sync.config ? (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <View className="flex-row items-center gap-3">
             <Cloud size={24} color={accent} />
@@ -236,7 +236,7 @@ export default function GithubSyncScreen() {
             </Text>
           </Pressable>
         </View>
-      )}
+      ) : null}
     </ScrollView>
   )
 }

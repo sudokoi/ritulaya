@@ -10,13 +10,14 @@ import { usePrediction } from "@/hooks/use-predictions"
 import { useNotifications } from "@/hooks/use-notifications"
 import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
+import { refreshAll } from "@/data/refresh"
 import { cn } from "@/lib/utils"
 import { PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
 import { deriveCycleDays, fertileFractions } from "@/lib/cycle-derivation"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
-  const { currentCycle, isLoaded, load } = useCycles()
+  const { currentCycle, isLoaded } = useCycles()
   const { avgCycleLength } = useSettings()
   const { prediction, phase } = usePrediction()
   const { colorScheme } = useColorScheme()
@@ -24,14 +25,13 @@ export default function TodayScreen() {
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
-  const { loadDayLogs, todayLog, logs } = useDayLogs()
+  const { todayLog, logs } = useDayLogs()
   const { logPeriodToday } = useLogPeriod()
 
   useFocusEffect(
     useCallback(() => {
-      load()
-      loadDayLogs()
-    }, [load, loadDayLogs]),
+      void refreshAll()
+    }, []),
   )
 
   const daysUntilPeriod = prediction
@@ -103,12 +103,12 @@ export default function TodayScreen() {
         <Text className="mt-2 text-sm text-[var(--text-muted)]">
           {daysUntilPeriod} days until next period
         </Text>
-        {prediction && (
+        {prediction ? (
           <Text className="mt-1 text-xs text-[var(--text-muted)]">
             {format(prediction.nextPeriodStart, "MMM d")} —{" "}
             {format(prediction.nextPeriodEnd, "MMM d")}
           </Text>
-        )}
+        ) : null}
       </View>
 
       <Pressable
@@ -152,9 +152,9 @@ export default function TodayScreen() {
                     </View>
                   ))
                 : null}
-              {todayLog.mood && (
+              {todayLog.mood ? (
                 <Text className="text-sm text-[var(--text-muted)]">{todayLog.mood}</Text>
-              )}
+              ) : null}
             </View>
           </>
         ) : (
