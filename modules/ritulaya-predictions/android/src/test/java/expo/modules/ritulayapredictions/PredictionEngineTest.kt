@@ -12,6 +12,12 @@ class PredictionEngineTest {
             lutealPhaseLength = 14,
         )
 
+    private val today = LocalDate.now()
+
+    private fun daysAgo(days: Long): String = today.minusDays(days).toString()
+
+    private fun daysAhead(days: Long): String = today.plusDays(days).toString()
+
     @Test
     fun `returns population fallback with no completed cycles`() {
         val result = PredictionEngine.predict(emptyList(), config)
@@ -25,9 +31,9 @@ class PredictionEngineTest {
     fun `returns WMA prediction with 3 completed cycles`() {
         val cycles =
             listOf(
-                PredictionEngine.CycleInput("a", "2026-06-01", "2026-06-28"),
-                PredictionEngine.CycleInput("b", "2026-07-01", "2026-07-29"),
-                PredictionEngine.CycleInput("c", "2026-08-02", "2026-08-30"),
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(56)),
+                PredictionEngine.CycleInput("b", daysAgo(55), daysAgo(27)),
+                PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
             )
 
         val result = PredictionEngine.predict(cycles, config)
@@ -35,39 +41,56 @@ class PredictionEngineTest {
         assertThat(result.cyclesUsed).isEqualTo(3)
         assertThat(result.confidence).isEqualTo(0.7)
         assertThat(result.engine).isEqualTo("wma")
-        assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse("2026-08-31"))
-        assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse("2026-09-04"))
+        assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse(daysAgo(26)).plusDays(28))
+        assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse(daysAgo(26)).plusDays(32))
     }
 
     @Test
     fun `anchors prediction on the most recent cycle even when it is still open`() {
         val cycles =
             listOf(
-                PredictionEngine.CycleInput("a", "2026-06-01", "2026-06-28"),
-                PredictionEngine.CycleInput("b", "2026-06-29", null),
+                PredictionEngine.CycleInput("a", daysAgo(38), daysAgo(10)),
+                PredictionEngine.CycleInput("b", daysAgo(9), null),
             )
 
         val result = PredictionEngine.predict(cycles, config)
 
-        assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse("2026-07-27"))
-        assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse("2026-07-31"))
+        assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse(daysAgo(9)).plusDays(28))
+        assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse(daysAgo(9)).plusDays(32))
         assertThat(result.cyclesUsed).isEqualTo(1)
+    }
+
+    @Test
+    fun `clamps next period to today when the anchored cycle is overdue`() {
+        val cycles =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(60), daysAgo(32)),
+                PredictionEngine.CycleInput("b", daysAgo(30), null),
+            )
+
+        val result = PredictionEngine.predict(cycles, config)
+
+        assertThat(result.nextPeriodStart).isEqualTo(today)
+        assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse(daysAhead(4)))
+        assertThat(result.ovulationDay).isEqualTo(LocalDate.parse(daysAhead(14)))
+        assertThat(result.fertileWindowStart).isEqualTo(LocalDate.parse(daysAhead(11)))
+        assertThat(result.fertileWindowEnd).isEqualTo(LocalDate.parse(daysAhead(15)))
     }
 
     @Test
     fun `uses WMA weights so recent cycles count more`() {
         val stable =
             listOf(
-                PredictionEngine.CycleInput("a", "2026-03-01", "2026-03-29"),
-                PredictionEngine.CycleInput("b", "2026-03-30", "2026-04-27"),
-                PredictionEngine.CycleInput("c", "2026-04-28", "2026-05-26"),
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(56)),
+                PredictionEngine.CycleInput("b", daysAgo(55), daysAgo(27)),
+                PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
             )
 
         val irregular =
             listOf(
-                PredictionEngine.CycleInput("a", "2026-03-01", "2026-03-22"),
-                PredictionEngine.CycleInput("b", "2026-03-23", "2026-04-14"),
-                PredictionEngine.CycleInput("c", "2026-04-28", "2026-05-26"),
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(63)),
+                PredictionEngine.CycleInput("b", daysAgo(62), daysAgo(40)),
+                PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
             )
 
         val stableResult = PredictionEngine.predict(stable, config)
@@ -78,7 +101,7 @@ class PredictionEngineTest {
 
     @Test
     fun `ovulation is lutealPhaseLength days before predicted period`() {
-        val cycles = listOf(PredictionEngine.CycleInput("a", "2026-06-01", "2026-06-28"))
+        val cycles = listOf(PredictionEngine.CycleInput("a", daysAgo(10), null))
 
         val result = PredictionEngine.predict(cycles, config)
 
@@ -88,7 +111,7 @@ class PredictionEngineTest {
 
     @Test
     fun `fertile window is 3 days before and 1 day after ovulation`() {
-        val cycles = listOf(PredictionEngine.CycleInput("a", "2026-06-01", "2026-06-28"))
+        val cycles = listOf(PredictionEngine.CycleInput("a", daysAgo(10), null))
 
         val result = PredictionEngine.predict(cycles, config)
 

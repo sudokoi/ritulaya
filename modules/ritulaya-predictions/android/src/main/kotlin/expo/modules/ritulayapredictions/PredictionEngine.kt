@@ -117,9 +117,12 @@ object PredictionEngine {
             }
 
         val baseStart = LocalDate.parse(all.first().startDate)
-        val nextStart = baseStart.plusDays(avgCycleLength.toLong())
+        val rawNextStart = baseStart.plusDays(avgCycleLength.toLong())
+        val overdue = rawNextStart.isBefore(LocalDate.now())
+        val nextStart = if (overdue) LocalDate.now() else rawNextStart
         val nextEnd = nextStart.plusDays(config.avgPeriodLength.toLong() - 1)
-        val ovulation = nextStart.minusDays(config.lutealPhaseLength.toLong())
+        val ovulationAnchor = if (overdue) nextStart.plusDays(avgCycleLength.toLong()) else nextStart
+        val ovulation = ovulationAnchor.minusDays(config.lutealPhaseLength.toLong())
         val fertileStart = ovulation.minusDays(3)
         val fertileEnd = ovulation.plusDays(1)
 
