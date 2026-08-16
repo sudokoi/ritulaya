@@ -1,6 +1,6 @@
 import { View, Text, ScrollView } from "react-native"
 import { useState, useMemo, useCallback } from "react"
-import { format } from "date-fns"
+import { format, endOfMonth } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { usePrediction } from "@/hooks/use-predictions"
@@ -15,6 +15,7 @@ export default function CalendarScreen() {
   const { prediction, periodLength, avgCycleLength } = usePrediction()
   const { logs, upsertDayLog, deleteDayLog, getLogForDate } = useDayLogs()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [viewedMonth, setViewedMonth] = useState(() => new Date())
 
   const existingLog = useMemo(() => {
     if (!selectedDate) return null
@@ -29,9 +30,11 @@ export default function CalendarScreen() {
     [logs],
   )
 
+  const throughDate = useMemo(() => endOfMonth(viewedMonth), [viewedMonth])
+
   const { periodDays, predictedDays, fertileDays, ovulationDays } = useMemo(
-    () => deriveCycleDays(prediction, flowDays),
-    [prediction, flowDays],
+    () => deriveCycleDays(prediction, flowDays, { avgCycleLength, throughDate }),
+    [prediction, flowDays, avgCycleLength, throughDate],
   )
 
   const loggedDays = useMemo(() => logs.map((log) => log.date), [logs])
@@ -103,6 +106,8 @@ export default function CalendarScreen() {
         </View>
 
         <MonthGrid
+          currentMonth={viewedMonth}
+          onMonthChange={setViewedMonth}
           periodDays={periodDays}
           predictedDays={predictedDays}
           fertileDays={fertileDays}

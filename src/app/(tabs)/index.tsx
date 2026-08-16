@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Pressable } from "react-native"
-import { useMemo, useEffect } from "react"
+import { useMemo, useCallback } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
+import { useFocusEffect } from "expo-router"
 import { useColorScheme } from "nativewind"
 import { WeekStrip } from "@/components/week-strip"
 import { useCycles } from "@/hooks/use-cycles"
@@ -11,7 +12,7 @@ import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { cn } from "@/lib/utils"
 import { PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
-import { deriveCycleDays } from "@/lib/cycle-derivation"
+import { deriveCycleDays, fertileFractions } from "@/lib/cycle-derivation"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
@@ -26,13 +27,15 @@ export default function TodayScreen() {
   const { loadDayLogs, todayLog, logs } = useDayLogs()
   const { logPeriodToday } = useLogPeriod()
 
-  useEffect(() => {
-    load()
-    loadDayLogs()
-  }, [load, loadDayLogs])
+  useFocusEffect(
+    useCallback(() => {
+      load()
+      loadDayLogs()
+    }, [load, loadDayLogs]),
+  )
 
   const daysUntilPeriod = prediction
-    ? differenceInDays(prediction.nextPeriodStart, today)
+    ? Math.max(0, differenceInDays(prediction.nextPeriodStart, today))
     : 14
 
   const phaseColor = PHASE_COLORS[phase].hex
@@ -46,10 +49,12 @@ export default function TodayScreen() {
     [logs],
   )
 
-  const { periodDays, predictedDays } = useMemo(
+  const { periodDays, predictedDays, fertileDays, ovulationDays } = useMemo(
     () => deriveCycleDays(prediction, flowDays),
     [prediction, flowDays],
   )
+
+  const fertileMap = useMemo(() => fertileFractions(fertileDays), [fertileDays])
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
@@ -60,13 +65,15 @@ export default function TodayScreen() {
         label: format(date, "EEEEE"),
         isPeriod: periodDays.includes(iso),
         isPredicted: predictedDays.includes(iso),
+        fertile: fertileMap.get(iso) ?? 0,
+        isOvulation: ovulationDays.includes(iso),
         isToday: isToday(date),
       }
     })
-  }, [periodDays, predictedDays, today])
+  }, [periodDays, predictedDays, fertileMap, ovulationDays, today])
 
   const cycleDay = currentCycle
-    ? differenceInDays(today, new Date(currentCycle.startDate)) + 1
+    ? Math.max(1, differenceInDays(today, new Date(currentCycle.startDate)) + 1)
     : "-"
 
   return (

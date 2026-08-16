@@ -1,25 +1,30 @@
 import { View, Text, Pressable } from "react-native"
 import { addMonths, subMonths, format, isSameMonth, isToday } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
+import { useColorScheme } from "nativewind"
+import { useMemo } from "react"
 import { getDaysInMonthGrid } from "@/utils/date"
 import { cn } from "@/lib/utils"
 import { useThemeColors } from "@/hooks/use-theme-colors"
-import { useState } from "react"
+import { DayCircle } from "@/components/day-circle"
+import { dayGradient, resolveDayStyle } from "@/lib/day-colors"
+import { fertileFractions } from "@/lib/cycle-derivation"
+import type { FertileDay } from "@/lib/cycle-derivation"
 
 interface CalendarDay {
   date: Date
   period: boolean
   predictedPeriod: boolean
-  fertile: boolean
+  fertile: number
   ovulation: boolean
-  loggedSymptoms: boolean
+  logged: boolean
 }
 
 function getDayType(
   date: Date,
   periodDays: string[],
   predictedDays: string[],
-  fertileDays: string[],
+  fertileMap: Map<string, number>,
   ovulationDays: string[],
   loggedDays: string[],
 ): CalendarDay {
@@ -28,22 +33,26 @@ function getDayType(
     date,
     period: periodDays.includes(iso),
     predictedPeriod: predictedDays.includes(iso),
-    fertile: fertileDays.includes(iso),
+    fertile: fertileMap.get(iso) ?? 0,
     ovulation: ovulationDays.includes(iso),
-    loggedSymptoms: loggedDays.includes(iso),
+    logged: loggedDays.includes(iso),
   }
 }
 
 interface MonthGridProps {
+  currentMonth: Date
+  onMonthChange: (month: Date) => void
   periodDays: string[]
   predictedDays: string[]
-  fertileDays: string[]
+  fertileDays: FertileDay[]
   ovulationDays: string[]
   loggedDays: string[]
   onDayPress: (date: Date) => void
 }
 
 export function MonthGrid({
+  currentMonth,
+  onMonthChange,
   periodDays,
   predictedDays,
   fertileDays,
@@ -51,12 +60,14 @@ export function MonthGrid({
   loggedDays,
   onDayPress,
 }: MonthGridProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const { colorScheme } = useColorScheme()
+  const dark = colorScheme === "dark"
   const { muted } = useThemeColors()
   const days = getDaysInMonthGrid(currentMonth)
+  const fertileMap = useMemo(() => fertileFractions(fertileDays), [fertileDays])
 
-  const prevMonth = () => setCurrentMonth((d) => subMonths(d, 1))
-  const nextMonth = () => setCurrentMonth((d) => addMonths(d, 1))
+  const prevMonth = () => onMonthChange(subMonths(currentMonth, 1))
+  const nextMonth = () => onMonthChange(addMonths(currentMonth, 1))
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -88,13 +99,27 @@ export function MonthGrid({
             day.date,
             periodDays,
             predictedDays,
-            fertileDays,
+            fertileMap,
             ovulationDays,
             loggedDays,
           )
           const today = isToday(day.date)
           const inMonth = isSameMonth(day.date, currentMonth)
-          const marked = info.period || info.predictedPeriod
+          const marked =
+            info.period || info.predictedPeriod || info.ovulation || info.fertile > 0
+
+          const style = resolveDayStyle({
+            isPeriod: info.period,
+            isPredicted: info.predictedPeriod,
+            isOvulation: info.ovulation,
+            fertile: info.fertile,
+            dark,
+          })
+          const textClass = info.period
+            ? "text-white"
+            : info.predictedPeriod
+              ? "text-menstrual dark:text-menstrual-dark"
+              : "text-[var(--text-primary)]"
 
           return (
             <Pressable
@@ -110,30 +135,22 @@ export function MonthGrid({
                   )}
                   style={{ width: 40, height: 40, borderRadius: 20 }}
                 >
-                  <View
-                    className={cn(
-                      "items-center justify-center",
-                      info.period && "bg-menstrual",
-                      !info.period &&
-                        info.predictedPeriod &&
-                        "border-2 border-menstrual dark:border-menstrual-dark",
-                    )}
-                    style={{ width: 34, height: 34, borderRadius: 17 }}
+                  <DayCircle
+                    size={34}
+                    fill={style.fill}
+                    colors={style.colors}
+                    opacity={style.opacity}
                   >
                     <Text
                       className={cn(
                         "text-sm font-medium",
-                        info.period
-                          ? "text-white"
-                          : info.predictedPeriod
-                            ? "text-menstrual dark:text-menstrual-dark"
-                            : "text-[var(--text-primary)]",
+                        textClass,
                         !inMonth && "opacity-30",
                       )}
                     >
                       {format(day.date, "d")}
                     </Text>
-                  </View>
+                  </DayCircle>
                 </View>
               ) : (
                 <View
@@ -153,17 +170,9 @@ export function MonthGrid({
                   >
                     {format(day.date, "d")}
                   </Text>
-                  <View className="absolute bottom-0.5 flex-row gap-0.5">
-                    {info.fertile && (
-                      <View className="h-1 w-1 rounded-full bg-ovulation" />
-                    )}
-                    {info.ovulation && (
-                      <View className="h-1.5 w-1.5 rounded-full bg-ovulation" />
-                    )}
-                    {info.loggedSymptoms && !info.period && !info.predictedPeriod && (
-                      <View className="h-1 w-1 rounded-full bg-[var(--text-muted)]" />
-                    )}
-                  </View>
+                  {info.logged && (
+                    <View className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--text-muted)]" />
+                  )}
                 </View>
               )}
             </Pressable>
@@ -171,22 +180,35 @@ export function MonthGrid({
         })}
       </View>
 
-      <View className="flex-row justify-center gap-6 px-4 py-3">
-        <Legend color="bg-menstrual" label="Period" />
+      <View className="flex-row justify-center gap-4 px-4 py-3">
+        <Legend colors={dayGradient("menstrual", dark)} fill={1} label="Period" />
         <Legend
-          color="border-2 border-menstrual dark:border-menstrual-dark"
+          colors={dayGradient("menstrual", dark)}
+          fill={1}
+          opacity={0.45}
           label="Predicted"
         />
-        <Legend color="bg-ovulation" label="Fertile" />
+        <Legend colors={dayGradient("ovulation", dark)} fill={0.6} label="Fertile" />
+        <Legend colors={dayGradient("ovulation", dark)} fill={1} label="Ovulation" />
       </View>
     </View>
   )
 }
 
-function Legend({ color, label }: { color: string; label: string }) {
+function Legend({
+  colors,
+  fill,
+  opacity = 1,
+  label,
+}: {
+  colors: [string, string]
+  fill: number
+  opacity?: number
+  label: string
+}) {
   return (
     <View className="flex-row items-center gap-1.5">
-      <View className={cn("h-2.5 w-2.5 rounded-full", color)} />
+      <DayCircle size={14} fill={fill} colors={colors} opacity={opacity} />
       <Text className="text-xs text-[var(--text-muted)]">{label}</Text>
     </View>
   )

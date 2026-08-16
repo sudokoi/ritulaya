@@ -5847,6 +5847,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-linear-gradient@npm:~57.0.1":
+  version: 57.0.1
+  resolution: "expo-linear-gradient@npm:57.0.1"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/188d6772749be2535e2fe2a91b2066d829bd960fb0a0da76828ea0519b0516ef6f6fd015640d3959a017b61721d65681f2e93ab487533c6e865d8e86668a554f
+  languageName: node
+  linkType: hard
+
 "expo-linking@npm:57.0.5":
   version: 57.0.5
   resolution: "expo-linking@npm:57.0.5"
@@ -10523,6 +10534,7 @@ __metadata:
     expo-glass-effect: "npm:57.0.1"
     expo-haptics: "npm:57.0.1"
     expo-image: "npm:57.0.2"
+    expo-linear-gradient: "npm:~57.0.1"
     expo-linking: "npm:57.0.5"
     expo-local-authentication: "npm:57.0.2"
     expo-notifications: "npm:57.0.10"
