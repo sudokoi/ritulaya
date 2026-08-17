@@ -6,6 +6,12 @@
 
 Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. No accounts. No analytics.
 
+## Get the app
+
+Ritulaya is in closed internal testing on Google Play. Join the test group to install the latest build and help shape what comes next:
+
+**[Join the internal test →](https://play.google.com/apps/internaltest/4701733873792369404)**
+
 ## Philosophy
 
 - **Your data lives on your device** — encrypted with a hardware-backed key that never leaves the Android Keystore
