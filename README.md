@@ -8,9 +8,10 @@ Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. 
 
 ## Get the app
 
-Ritulaya is in closed internal testing on Google Play. Join the test group to install the latest build and help shape what comes next:
+Ritulaya is in closed testing on Google Play. Join the test to install the latest build and help shape what comes next:
 
-**[Join the internal test →](https://play.google.com/apps/internaltest/4701733873792369404)**
+- [Google Play](https://play.google.com/store/apps/details?id=com.sudokoi.ritulaya)
+- [Join the closed test](https://play.google.com/apps/testing/com.sudokoi.ritulaya)
 
 ## Philosophy
 
