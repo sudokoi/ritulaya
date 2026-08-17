@@ -1,7 +1,7 @@
 {
   "name": "ritulaya",
   "main": "expo-router/entry",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "dependencies": {
     "@expo/ui": "57.0.10",
     "@rn-primitives/portal": "1.5.3",
