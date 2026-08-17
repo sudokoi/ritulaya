@@ -6,7 +6,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 class RitulayaDataStore(
     context: Context,
@@ -59,38 +58,56 @@ class RitulayaDataStore(
     ) {
         val start = LocalDate.parse(date)
         db.withTransaction {
-            var cycle = dao.listCycles().firstOrNull { it.endDate == null }
+            val cycles = dao.listCycles().sortedBy { it.startDate }
+            val startDates = cycles.map { it.startDate }
+            val prevFlowDate = dao.findFlowDateBefore(date)
+            val placement = CyclePlanner.place(startDates, date, prevFlowDate)
 
-            if (cycle != null) {
-                val lastFlowDate = dao.findLastFlowDate()
-                if (lastFlowDate != null && ChronoUnit.DAYS.between(LocalDate.parse(lastFlowDate), start) >= NEW_CYCLE_GAP_DAYS) {
-                    dao.updateCycleEndDate(cycle.id, start.minusDays(1).toString(), nowISO())
-                    cycle = createCycle(date)
+            val cycleId: String =
+                when (placement) {
+                    is CyclePlanner.Placement.Extend -> {
+                        cycles.firstOrNull { it.startDate == placement.cycleStartDate }?.id
+                            ?: createCycle(date).id
+                    }
+
+                    is CyclePlanner.Placement.New -> {
+                        val newCycle = createCycle(date)
+                        placement.predecessorStartDate?.let { predStart ->
+                            val predecessor = cycles.first { it.startDate == predStart }
+                            dao.updateCycleEndDate(
+                                predecessor.id,
+                                start.minusDays(1).toString(),
+                                nowISO(),
+                            )
+                        }
+                        placement.successorStartDate?.let { succStart ->
+                            dao.updateCycleEndDate(
+                                newCycle.id,
+                                LocalDate.parse(succStart).minusDays(1).toString(),
+                                nowISO(),
+                            )
+                        }
+                        newCycle.id
+                    }
                 }
-            } else {
-                cycle = createCycle(date)
-            }
 
-            val cycleId = cycle?.id
-            if (cycleId != null) {
-                val previousDayLog = dao.getDayLogByDate(start.minusDays(1).toString())
-                val previousIsPeriod =
-                    previousDayLog?.flowIntensity != null && previousDayLog.flowIntensity != "none"
-                val fillCount = if (previousIsPeriod) 1 else periodDays
+            val previousDayLog = dao.getDayLogByDate(start.minusDays(1).toString())
+            val previousIsPeriod =
+                previousDayLog?.flowIntensity != null && previousDayLog.flowIntensity != "none"
+            val fillCount = if (previousIsPeriod) 1 else periodDays
 
-                for (i in 0 until fillCount) {
-                    writeDayLog(
-                        date = start.plusDays(i.toLong()).toString(),
-                        cycleId = cycleId,
-                        flowIntensity = flow,
-                        symptoms = emptyList(),
-                        mood = null,
-                        notes = null,
-                        cervicalMucus = null,
-                        bbt = null,
-                        sexualActivity = null,
-                    )
-                }
+            for (i in 0 until fillCount) {
+                writeDayLog(
+                    date = start.plusDays(i.toLong()).toString(),
+                    cycleId = cycleId,
+                    flowIntensity = flow,
+                    symptoms = emptyList(),
+                    mood = null,
+                    notes = null,
+                    cervicalMucus = null,
+                    bbt = null,
+                    sexualActivity = null,
+                )
             }
         }
     }
@@ -220,7 +237,6 @@ class RitulayaDataStore(
     }
 
     companion object {
-        private const val NEW_CYCLE_GAP_DAYS = 7
         private val ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"
         private val ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 

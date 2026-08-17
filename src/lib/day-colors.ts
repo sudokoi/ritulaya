@@ -6,8 +6,8 @@ export const DAY_GRADIENTS = {
     dark: ["#E9C6D6", "#DFA9C0"],
   },
   ovulation: {
-    light: ["#AF8A3F", "#8C6A24"],
-    dark: ["#EED9A8", "#E4C585"],
+    light: ["#EBDDB4", "#D9C285"],
+    dark: ["#C9B078", "#B0945E"],
   },
 } as const
 

@@ -64,17 +64,6 @@ export async function loadSettings() {
   try {
     const row = await findSettings()
     if (!row) {
-      await updateSettings({
-        avgCycleLength: defaults.avgCycleLength,
-        avgPeriodLength: defaults.avgPeriodLength,
-        lutealPhaseLength: defaults.lutealPhaseLength,
-        theme: defaults.theme,
-        language: defaults.language,
-        biometricLock: 0,
-        discreetMode: 0,
-        reminderPeriodAhead: defaults.reminderPeriodAhead,
-        reminderDailyLog: 0,
-      })
       settingsStore.send({ type: "set", settings: defaults })
       return
     }
@@ -89,20 +78,18 @@ export async function loadSettings() {
 
 export async function updateSettingsFn(patch: Partial<SettingsState>) {
   try {
-    const data: SettingsPatch = {}
-    if (patch.avgCycleLength !== undefined) data.avgCycleLength = patch.avgCycleLength
-    if (patch.avgPeriodLength !== undefined) data.avgPeriodLength = patch.avgPeriodLength
-    if (patch.lutealPhaseLength !== undefined)
-      data.lutealPhaseLength = patch.lutealPhaseLength
-    if (patch.theme !== undefined) data.theme = patch.theme
-    if (patch.language !== undefined) data.language = patch.language
-    if (patch.biometricLock !== undefined)
-      data.biometricLock = patch.biometricLock ? 1 : 0
-    if (patch.discreetMode !== undefined) data.discreetMode = patch.discreetMode ? 1 : 0
-    if (patch.reminderPeriodAhead !== undefined)
-      data.reminderPeriodAhead = patch.reminderPeriodAhead
-    if (patch.reminderDailyLog !== undefined)
-      data.reminderDailyLog = patch.reminderDailyLog ? 1 : 0
+    const next = { ...settingsStore.getSnapshot().context, ...patch }
+    const data: SettingsPatch = {
+      avgCycleLength: next.avgCycleLength,
+      avgPeriodLength: next.avgPeriodLength,
+      lutealPhaseLength: next.lutealPhaseLength,
+      theme: next.theme,
+      language: next.language,
+      biometricLock: next.biometricLock ? 1 : 0,
+      discreetMode: next.discreetMode ? 1 : 0,
+      reminderPeriodAhead: next.reminderPeriodAhead,
+      reminderDailyLog: next.reminderDailyLog ? 1 : 0,
+    }
 
     await updateSettings(data)
     settingsStore.send({ type: "patch", settings: patch })

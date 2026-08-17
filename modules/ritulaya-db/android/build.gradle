@@ -23,6 +23,11 @@ android {
   kotlinOptions {
     jvmTarget = "17"
   }
+  testOptions {
+    unitTests {
+      returnDefaultValues = true
+    }
+  }
 }
 
 kapt {
@@ -39,4 +44,7 @@ dependencies {
   implementation "androidx.sqlite:sqlite:2.4.0"
   implementation "net.zetetic:android-database-sqlcipher:4.5.4"
   implementation project(":ritulaya-crypto")
+
+  testImplementation "junit:junit:4.13.2"
+  testImplementation "com.google.truth:truth:1.1.3"
 }

@@ -28,9 +28,9 @@ interface RitulayaDao {
 
     @Query(
         "SELECT date FROM day_logs WHERE flow_intensity IS NOT NULL AND flow_intensity != 'none' " +
-            "ORDER BY date DESC LIMIT 1",
+            "AND date < :date ORDER BY date DESC LIMIT 1",
     )
-    suspend fun findLastFlowDate(): String?
+    suspend fun findFlowDateBefore(date: String): String?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertDayLog(log: DayLogEntity)
