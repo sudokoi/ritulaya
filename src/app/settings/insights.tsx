@@ -31,8 +31,12 @@ function frequency(items: (string | null)[]): [string, number][] {
 export default function InsightsScreen() {
   const { cycles } = useCycles()
   const { logs } = useDayLogs()
-  const { discreetMode: discreet, avgCycleLength, avgPeriodLength, lutealPhaseLength } =
-    useSettings()
+  const {
+    discreetMode: discreet,
+    avgCycleLength,
+    avgPeriodLength,
+    lutealPhaseLength,
+  } = useSettings()
   const { muted } = useThemeColors()
   const { periodLength, stats } = usePrediction()
   const insets = useSafeAreaInsets()
@@ -43,7 +47,11 @@ export default function InsightsScreen() {
   const lengthRows = useMemo(() => completedCycleLengths(cycles), [cycles])
   const byPhase = useMemo(
     () =>
-      phaseCorrelations(cycles, logs, { avgCycleLength, avgPeriodLength, lutealPhaseLength }),
+      phaseCorrelations(cycles, logs, {
+        avgCycleLength,
+        avgPeriodLength,
+        lutealPhaseLength,
+      }),
     [cycles, logs, avgCycleLength, avgPeriodLength, lutealPhaseLength],
   )
 
@@ -69,9 +77,18 @@ export default function InsightsScreen() {
 
       <View className="mx-4 mt-2 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <Stat value={`${avgCycleLength}`} label={discreetLabel(discreet, "avg cycle", "avg")} />
-          <Stat value={`${periodLength}`} label={discreetLabel(discreet, "period days", "days")} />
-          <Stat value={`${cycles.length}`} label={discreetLabel(discreet, "cycles", "total")} />
+          <Stat
+            value={`${avgCycleLength}`}
+            label={discreetLabel(discreet, "avg cycle", "avg")}
+          />
+          <Stat
+            value={`${periodLength}`}
+            label={discreetLabel(discreet, "period days", "days")}
+          />
+          <Stat
+            value={`${cycles.length}`}
+            label={discreetLabel(discreet, "cycles", "total")}
+          />
         </View>
       </View>
 
@@ -86,7 +103,10 @@ export default function InsightsScreen() {
         ) : null}
         {lengthRows.length > 0 ? (
           lengthRows.slice(0, 8).map((row) => (
-            <View key={row.startDate} className="flex-row items-center justify-between py-1.5">
+            <View
+              key={row.startDate}
+              className="flex-row items-center justify-between py-1.5"
+            >
               <Text className="text-sm text-[var(--text-primary)]">
                 {format(parseISO(row.startDate), "MMM d, yyyy")}
               </Text>
@@ -94,7 +114,9 @@ export default function InsightsScreen() {
                 {stats && Math.abs(row.length - stats.median) <= stats.sigma ? null : (
                   <View className="h-1.5 w-1.5 rounded-full bg-[var(--bg-muted)]" />
                 )}
-                <Text className="text-sm text-[var(--text-muted)]">{row.length} days</Text>
+                <Text className="text-sm text-[var(--text-muted)]">
+                  {row.length} days
+                </Text>
               </View>
             </View>
           ))
@@ -110,7 +132,10 @@ export default function InsightsScreen() {
           {discreetLabel(discreet, "By Phase", "Patterns")}
         </Text>
         {(Object.keys(byPhase) as (keyof typeof byPhase)[])
-          .filter((phase) => byPhase[phase].symptoms.length > 0 || byPhase[phase].moods.length > 0)
+          .filter(
+            (phase) =>
+              byPhase[phase].symptoms.length > 0 || byPhase[phase].moods.length > 0,
+          )
           .map((phase) => (
             <View key={phase} className="mb-3">
               <Text className="mb-1 text-sm font-medium text-[var(--text-primary)]">
@@ -118,14 +143,20 @@ export default function InsightsScreen() {
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 {byPhase[phase].symptoms.slice(0, 3).map(([key, count]) => (
-                  <View key={key} className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5">
+                  <View
+                    key={key}
+                    className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5"
+                  >
                     <Text className="text-xs text-[var(--text-primary)]">
                       {SYMPTOM_CATALOG.find((s) => s.key === key)?.label ?? key} · {count}
                     </Text>
                   </View>
                 ))}
                 {byPhase[phase].moods.slice(0, 2).map(([key, count]) => (
-                  <View key={key} className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5">
+                  <View
+                    key={key}
+                    className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5"
+                  >
                     <Text className="text-xs text-[var(--text-muted)]">
                       {MOOD_CATALOG.find((m) => m.key === key)?.label ?? key} · {count}
                     </Text>
@@ -134,7 +165,9 @@ export default function InsightsScreen() {
               </View>
             </View>
           ))}
-        {Object.values(byPhase).every((p) => p.symptoms.length === 0 && p.moods.length === 0) ? (
+        {Object.values(byPhase).every(
+          (p) => p.symptoms.length === 0 && p.moods.length === 0,
+        ) ? (
           <Text className="text-sm text-[var(--text-muted)]">
             {discreetLabel(discreet, "Log a few entries to see patterns", "Nothing yet")}
           </Text>

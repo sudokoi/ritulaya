@@ -9,7 +9,7 @@ language only; implementation lives in code and ADRs (`docs/decisions/`).
 date (the day before the next cycle's start, or open while ongoing).
 
 **Flow** — the intensity of bleeding logged on a day: none, spotting, light,
-medium, or heavy. A day with flow other than none is a *flow day*.
+medium, or heavy. A day with flow other than none is a _flow day_.
 
 **Day entry** — everything a user records about a single calendar date: flow,
 symptoms, mood, notes, cervical mucus, basal body temperature (BBT), and

@@ -86,15 +86,40 @@ export async function scheduleDailyLogReminder(discreet: boolean) {
   })
 }
 
+export async function scheduleOverdueNudge(discreet: boolean) {
+  await ensureReminderChannel()
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: discreetLabel(discreet, "Period Overdue", "Reminder"),
+      body: discreetLabel(
+        discreet,
+        "Your period seems late — log it when it starts so predictions stay accurate.",
+        "A daily entry keeps things up to date.",
+      ),
+      data: { type: "overdue-nudge" },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: 9,
+      minute: 0,
+      channelId: REMINDER_CHANNEL_ID,
+    },
+  })
+}
+
 export async function updateAllReminders(
   nextPeriodStart: Date | null,
   periodDaysAhead: number,
   dailyLogEnabled: boolean,
   discreet: boolean,
+  overdue: boolean,
 ) {
   await cancelAllReminders()
 
-  if (nextPeriodStart && periodDaysAhead > 0) {
+  if (overdue) {
+    // While overdue, the daily nudge replaces the period-ahead reminder.
+    await scheduleOverdueNudge(discreet)
+  } else if (nextPeriodStart && periodDaysAhead > 0) {
     await schedulePeriodReminder(nextPeriodStart, periodDaysAhead, discreet)
   }
 

@@ -13,7 +13,9 @@ export function completedCycleLengths(cycles: Cycle[]): CycleLengthRow[] {
     .filter((cycle) => cycle.endDate != null)
     .map((cycle) => ({
       startDate: cycle.startDate,
-      length: differenceInDays(parseISO(cycle.endDate!), parseISO(cycle.startDate)) + 1,
+      length:
+        differenceInDays(parseISO(cycle.endDate as string), parseISO(cycle.startDate)) +
+        1,
     }))
     .sort((a, b) => (a.startDate < b.startDate ? 1 : -1))
 }
@@ -73,8 +75,7 @@ export function phaseCorrelations(
 
   for (const log of logs) {
     const cycle = sorted.findLast(
-      (c) =>
-        log.date >= c.startDate && (c.endDate == null || log.date <= c.endDate),
+      (c) => log.date >= c.startDate && (c.endDate == null || log.date <= c.endDate),
     )
     if (!cycle) continue
 
@@ -86,10 +87,7 @@ export function phaseCorrelations(
       ...result[phase].symptoms.map(([k]) => k),
       ...log.symptoms,
     ])
-    result[phase].moods = tally([
-      ...result[phase].moods.map(([k]) => k),
-      log.mood,
-    ])
+    result[phase].moods = tally([...result[phase].moods.map(([k]) => k), log.mood])
   }
 
   return result

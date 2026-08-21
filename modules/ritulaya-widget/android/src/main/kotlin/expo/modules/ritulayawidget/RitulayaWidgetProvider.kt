@@ -176,10 +176,14 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                 if (discreetMode) "$daysUntilNext" else "$daysUntilNext days until next",
             )
 
+            // Deep-link straight into the log-today flow via the app's
+            // expo-router scheme; falls back to a plain launch.
             val launchIntent =
                 context.packageManager
                     .getLaunchIntentForPackage(context.packageName)
                     ?.apply {
+                        action = android.content.Intent.ACTION_VIEW
+                        data = android.net.Uri.parse("ritulaya://log-today")
                         putExtra("widget_launch", true)
                     }
             val pendingIntent =
