@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native"
+import { View, Text, ScrollView, Alert } from "react-native"
 import { useState, useMemo, useCallback } from "react"
 import { format, endOfMonth } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
@@ -57,19 +57,27 @@ export default function CalendarScreen() {
 
   const handleDelete = useCallback(() => {
     if (!existingLog) return
-    void deleteDayLog(existingLog.id).then(() => refreshAll())
+    deleteDayLog(existingLog.id)
+      .then(() => refreshAll())
+      .catch(() =>
+        Alert.alert("Delete failed", "Something went wrong while deleting the entry."),
+      )
     setSelectedDate(null)
   }, [existingLog, deleteDayLog])
 
   const handleClearPeriod = useCallback(() => {
     if (!existingLog) return
-    void upsertDayLog({
+    upsertDayLog({
       date: existingLog.date,
       flowIntensity: "none",
       symptoms: existingLog.symptoms,
       mood: existingLog.mood,
       notes: existingLog.notes,
-    }).then(() => refreshAll())
+    })
+      .then(() => refreshAll())
+      .catch(() =>
+        Alert.alert("Update failed", "Something went wrong while updating the entry."),
+      )
     setSelectedDate(null)
   }, [existingLog, upsertDayLog])
 
