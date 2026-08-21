@@ -16,11 +16,18 @@ export interface PredictionConfig {
   dataVersion: string
 }
 
+export interface CycleStats {
+  lengths: number[]
+  median: number
+  sigma: number
+}
+
 export interface PredictionBundle {
   prediction: PredictionResult
   periodLength: number
   avgCycleLength: number
   phase: Phase
+  stats: CycleStats | null
 }
 
 export async function computePrediction(
@@ -66,6 +73,13 @@ export async function computePrediction(
         periodLength: result.periodLength,
         avgCycleLength: result.avgCycleLength,
         phase: result.phase as Phase,
+        stats: result.stats
+          ? {
+              lengths: result.stats.lengths,
+              median: result.stats.median,
+              sigma: result.stats.sigma,
+            }
+          : null,
       }
     },
     null,

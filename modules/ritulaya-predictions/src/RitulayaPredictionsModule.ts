@@ -11,11 +11,18 @@ export interface NativePrediction {
   engine: string
 }
 
+export interface NativeCycleStats {
+  lengths: number[]
+  median: number
+  sigma: number
+}
+
 export interface NativePredictionResult {
   prediction: NativePrediction
   periodLength: number
   avgCycleLength: number
   phase: string
+  stats: NativeCycleStats | null
 }
 
 export interface CycleInput {
