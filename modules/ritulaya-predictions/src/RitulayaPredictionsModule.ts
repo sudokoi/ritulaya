@@ -5,6 +5,7 @@ export interface NativePrediction {
   nextPeriodEnd: string
   ovulationDay: string
   fertileWindow: { start: string; end: string }
+  uncertaintyWindow: { start: string; end: string }
   confidence: number
   cyclesUsed: number
   engine: string

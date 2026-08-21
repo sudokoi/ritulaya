@@ -3,6 +3,7 @@ package expo.modules.ritulayapredictions
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class PredictionEngineTest {
     private val config =
@@ -39,7 +40,8 @@ class PredictionEngineTest {
         val result = PredictionEngine.predict(cycles, config)
 
         assertThat(result.cyclesUsed).isEqualTo(3)
-        assertThat(result.confidence).isEqualTo(0.7)
+        assertThat(result.confidence).isGreaterThan(0.0)
+        assertThat(result.confidence).isAtMost(1.0)
         assertThat(result.engine).isEqualTo("wma")
         assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse(daysAgo(26)).plusDays(28))
         assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse(daysAgo(26)).plusDays(32))
@@ -80,25 +82,95 @@ class PredictionEngineTest {
     }
 
     @Test
-    fun `uses WMA weights so recent cycles count more`() {
-        val stable =
+    fun `resets to population defaults when history is stale`() {
+        val cycles =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(200), daysAgo(172)),
+                PredictionEngine.CycleInput("b", daysAgo(170), daysAgo(142)),
+            )
+
+        val result = PredictionEngine.predict(cycles, config)
+
+        assertThat(result.cyclesUsed).isEqualTo(0)
+        assertThat(result.confidence).isEqualTo(0.3)
+        assertThat(result.nextPeriodStart).isEqualTo(today.plusDays(config.avgCycleLength - 1L))
+    }
+
+    @Test
+    fun `keeps predicting when the newest period is within the freshness limit`() {
+        val cycles =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(100), daysAgo(72)),
+                PredictionEngine.CycleInput("b", daysAgo(70), daysAgo(42)),
+                PredictionEngine.CycleInput("c", daysAgo(40), daysAgo(12)),
+            )
+
+        val result = PredictionEngine.predict(cycles, config)
+
+        assertThat(result.cyclesUsed).isEqualTo(3)
+    }
+
+    @Test
+    fun `an outlier cycle contributes with reduced weight instead of being discarded`() {
+        val regularOnly =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(56)),
+                PredictionEngine.CycleInput("b", daysAgo(55), daysAgo(27)),
+                PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
+            )
+        val withOutlier =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(56)),
+                PredictionEngine.CycleInput("b", daysAgo(55), daysAgo(27)),
+                PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
+                PredictionEngine.CycleInput("d", daysAgo(90), daysAgo(31)),
+            )
+
+        val regularResult = PredictionEngine.predict(regularOnly, config)
+        val outlierResult = PredictionEngine.predict(withOutlier, config)
+
+        // The 60-day outlier shifts the prediction only slightly, not by half.
+        val shift = kotlin.math.abs(outlierResult.nextPeriodStart.toEpochDay() - regularResult.nextPeriodStart.toEpochDay())
+        assertThat(shift).isLessThan(7)
+        assertThat(outlierResult.cyclesUsed).isEqualTo(4)
+    }
+
+    @Test
+    fun `regular histories are more confident than irregular ones of equal length`() {
+        val regular =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(57)),
+                PredictionEngine.CycleInput("b", daysAgo(56), daysAgo(29)),
+                PredictionEngine.CycleInput("c", daysAgo(28), daysAgo(1)),
+            )
+        val irregular =
+            listOf(
+                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(50)),
+                PredictionEngine.CycleInput("b", daysAgo(49), daysAgo(21)),
+                PredictionEngine.CycleInput("c", daysAgo(20), daysAgo(1)),
+            )
+
+        val regularConfidence = PredictionEngine.predict(regular, config).confidence
+        val irregularConfidence = PredictionEngine.predict(irregular, config).confidence
+
+        assertThat(regularConfidence).isGreaterThan(irregularConfidence)
+    }
+
+    @Test
+    fun `uncertainty window brackets the predicted start symmetrically`() {
+        val cycles =
             listOf(
                 PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(56)),
                 PredictionEngine.CycleInput("b", daysAgo(55), daysAgo(27)),
                 PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
             )
 
-        val irregular =
-            listOf(
-                PredictionEngine.CycleInput("a", daysAgo(84), daysAgo(63)),
-                PredictionEngine.CycleInput("b", daysAgo(62), daysAgo(40)),
-                PredictionEngine.CycleInput("c", daysAgo(26), daysAgo(1)),
-            )
+        val result = PredictionEngine.predict(cycles, config)
 
-        val stableResult = PredictionEngine.predict(stable, config)
-        val irregularResult = PredictionEngine.predict(irregular, config)
-
-        assertThat(stableResult.nextPeriodStart).isNotEqualTo(irregularResult.nextPeriodStart)
+        val before = ChronoUnit.DAYS.between(result.uncertaintyStart, result.nextPeriodStart)
+        val after = ChronoUnit.DAYS.between(result.nextPeriodStart, result.uncertaintyEnd)
+        assertThat(before).isEqualTo(after)
+        assertThat(before).isGreaterThan(0)
     }
 
     @Test
@@ -149,10 +221,25 @@ class PredictionEngineTest {
     }
 
     @Test
-    fun `phase derives from days until next period`() {
-        assertThat(PredictionEngine.phase(3, 28)).isEqualTo("menstrual")
-        assertThat(PredictionEngine.phase(20, 28)).isEqualTo("follicular")
-        assertThat(PredictionEngine.phase(14, 28)).isEqualTo("ovulation")
-        assertThat(PredictionEngine.phase(6, 28)).isEqualTo("luteal")
+    fun `phase derives boundaries from config instead of hardcoded days`() {
+        val custom =
+            PredictionEngine.Config(
+                avgCycleLength = 35,
+                avgPeriodLength = 7,
+                lutealPhaseLength = 12,
+            )
+
+        // Approaching next period within the configured period length.
+        assertThat(PredictionEngine.phase(5, custom)).isEqualTo("menstrual")
+        // Early in the current cycle (day 7 of 35).
+        assertThat(PredictionEngine.phase(28, custom)).isEqualTo("menstrual")
+        // Day 8..19: follicular (ovulation on day 23, window starts day 20).
+        assertThat(PredictionEngine.phase(27, custom)).isEqualTo("follicular")
+        assertThat(PredictionEngine.phase(16, custom)).isEqualTo("follicular")
+        // Days 20..24: ovulation window.
+        assertThat(PredictionEngine.phase(15, custom)).isEqualTo("ovulation")
+        assertThat(PredictionEngine.phase(11, custom)).isEqualTo("ovulation")
+        // After the window: luteal.
+        assertThat(PredictionEngine.phase(10, custom)).isEqualTo("luteal")
     }
 }

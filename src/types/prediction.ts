@@ -6,6 +6,10 @@ export interface PredictionResult {
     start: Date
     end: Date
   }
+  uncertaintyWindow: {
+    start: Date
+    end: Date
+  }
   confidence: number
   cyclesUsed: number
   engine: PredictionEngine
