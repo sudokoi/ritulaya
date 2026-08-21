@@ -25,4 +25,11 @@ class PredictionConfigRecord : Record {
     @Field var avgPeriodLength: Int = 0
 
     @Field var lutealPhaseLength: Int = 0
+
+    /**
+     * Max updated_at across the cycles and day logs the prediction was
+     * computed from. The widget compares it against the live database to
+     * detect a snapshot left stale by writes made outside the app.
+     */
+    @Field var dataVersion: String = ""
 }

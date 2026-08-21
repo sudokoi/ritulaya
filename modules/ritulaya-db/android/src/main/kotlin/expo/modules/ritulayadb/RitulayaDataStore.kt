@@ -255,6 +255,17 @@ class RitulayaDataStore(
         }
     }
 
+    /**
+     * Newest updated_at across cycles and day logs, or null when both tables
+     * are empty. Callers compare it against a previously recorded value to
+     * detect data that changed outside their control.
+     */
+    suspend fun latestDataChange(): String? {
+        val cycleUpdate = dao.latestCycleUpdate()
+        val dayLogUpdate = dao.latestDayLogUpdate()
+        return listOfNotNull(cycleUpdate, dayLogUpdate).maxOrNull()
+    }
+
     private fun symptomsJson(symptoms: List<String>?): String {
         if (symptoms.isNullOrEmpty()) return "[]"
         return org.json.JSONArray(symptoms).toString()
