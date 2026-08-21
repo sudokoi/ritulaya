@@ -5,6 +5,7 @@ import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
+import { refreshAll } from "@/data/refresh"
 import { saveDayEntry } from "@/domain/day-entry"
 import { deriveCycleDays } from "@/lib/cycle-derivation"
 import type { FlowIntensity } from "@/types/day-log"
@@ -56,19 +57,19 @@ export default function CalendarScreen() {
 
   const handleDelete = useCallback(() => {
     if (!existingLog) return
-    deleteDayLog(existingLog.id)
+    void deleteDayLog(existingLog.id).then(() => refreshAll())
     setSelectedDate(null)
   }, [existingLog, deleteDayLog])
 
   const handleClearPeriod = useCallback(() => {
     if (!existingLog) return
-    upsertDayLog({
+    void upsertDayLog({
       date: existingLog.date,
       flowIntensity: "none",
       symptoms: existingLog.symptoms,
       mood: existingLog.mood,
       notes: existingLog.notes,
-    })
+    }).then(() => refreshAll())
     setSelectedDate(null)
   }, [existingLog, upsertDayLog])
 
