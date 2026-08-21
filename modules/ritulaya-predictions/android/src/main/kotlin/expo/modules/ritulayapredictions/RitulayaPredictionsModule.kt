@@ -27,10 +27,6 @@ class RitulayaPredictionsModule : Module() {
 
                 val today = LocalDate.now()
                 val currentCycle = engineCycles.firstOrNull { it.endDate == null }
-                val dayNumber =
-                    currentCycle
-                        ?.let { (ChronoUnit.DAYS.between(LocalDate.parse(it.startDate), today) + 1).toInt() }
-                        ?: 1
                 val daysUntilNext = ChronoUnit.DAYS.between(today, output.nextPeriodStart).toInt()
                 val phase = PredictionEngine.phase(daysUntilNext, engineConfig)
 
@@ -42,7 +38,7 @@ class RitulayaPredictionsModule : Module() {
                         "phase" to phase,
                     )
 
-                persistWidgetSnapshot(output.nextPeriodStart, currentCycle?.startDate, engineConfig)
+                persistWidgetSnapshot(output.nextPeriodStart, currentCycle?.startDate, engineConfig, config.dataVersion)
                 result
             }
         }
@@ -57,6 +53,7 @@ class RitulayaPredictionsModule : Module() {
         nextPeriodStart: LocalDate,
         cycleStartDate: String?,
         config: PredictionEngine.Config,
+        dataVersion: String,
     ) {
         val context: Context = appContext.reactContext?.applicationContext ?: return
         context
@@ -70,6 +67,7 @@ class RitulayaPredictionsModule : Module() {
                     .put("avgCycleLength", config.avgCycleLength)
                     .put("avgPeriodLength", config.avgPeriodLength)
                     .put("lutealPhaseLength", config.lutealPhaseLength)
+                    .put("dataVersion", dataVersion)
                     .toString(),
             ).apply()
     }

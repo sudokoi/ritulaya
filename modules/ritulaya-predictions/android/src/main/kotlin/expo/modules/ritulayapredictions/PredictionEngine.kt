@@ -227,6 +227,13 @@ object PredictionEngine {
 
     /** Median absolute deviation scaled to be comparable to a standard deviation. */
     private fun robustSigma(lengths: List<Int>): Double {
+        // Floor at 2 days so near-identical histories don't collapse the
+        // kernel into erasing ordinary variation entirely.
+        return maxOf(rawSigma(lengths), 2.0)
+    }
+
+    /** Unfloored sigma, for measures that should reward genuinely regular history. */
+    private fun rawSigma(lengths: List<Int>): Double {
         val med = median(lengths)
         val deviations = lengths.map { kotlin.math.abs(it - med) }.sorted()
         val mid = deviations.size / 2
@@ -236,9 +243,7 @@ object PredictionEngine {
             } else {
                 deviations[mid].toDouble()
             }
-        // Floor at 2 days so near-identical histories don't collapse the
-        // kernel into erasing ordinary variation entirely.
-        return maxOf(1.4826 * mad, 2.0)
+        return 1.4826 * mad
     }
 
     private fun baseStart(all: List<CycleInput>): LocalDate = LocalDate.parse(all.first().startDate)
@@ -263,7 +268,10 @@ object PredictionEngine {
 
         val med = median(cycleLengths)
         if (med <= 0.0) return volumeFactor
-        val cv = robustSigma(cycleLengths) / med
+        // Use the unfloored sigma: the kernel's 2-day floor would otherwise
+        // cap the CV from below and make perfectly regular history score as
+        // merely "fairly regular".
+        val cv = rawSigma(cycleLengths) / med
         val regularityFactor = (1.0 - cv / 0.25).coerceIn(0.3, 1.0)
         return volumeFactor * regularityFactor
     }

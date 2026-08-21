@@ -32,6 +32,12 @@ interface RitulayaDao {
     @Query("SELECT * FROM day_logs WHERE id = :id")
     suspend fun getDayLogById(id: String): DayLogEntity?
 
+    @Query("SELECT MAX(updated_at) FROM cycles")
+    suspend fun latestCycleUpdate(): String?
+
+    @Query("SELECT MAX(updated_at) FROM day_logs")
+    suspend fun latestDayLogUpdate(): String?
+
     @Query(
         "SELECT date FROM day_logs WHERE flow_intensity IS NOT NULL AND flow_intensity != 'none' " +
             "AND date < :date ORDER BY date DESC LIMIT 1",

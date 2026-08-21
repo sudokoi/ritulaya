@@ -9,6 +9,11 @@ export interface PredictionConfig {
   avgCycleLength: number
   avgPeriodLength: number
   lutealPhaseLength: number
+  /**
+   * Max updated_at across the inputs, used natively to detect widget-snapshot
+   * staleness against the live database.
+   */
+  dataVersion: string
 }
 
 export interface PredictionBundle {

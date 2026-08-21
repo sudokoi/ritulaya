@@ -60,10 +60,14 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             // Prefer the snapshot the app persisted with its last prediction so
             // the widget always matches what the user sees in-app; counters are
             // derived from the stored dates at render time so they stay current
-            // across reboots. Falls back to computing locally (fresh install
-            // before the first app launch).
+            // across reboots. A snapshot whose recorded data version no longer
+            // matches the database (e.g. a background sync merged newer cycles
+            // while the app was closed) is ignored so the render falls back to
+            // computing locally from live rows.
+            val store = RitulayaDataStore(context.applicationContext)
             val snapshot = readSnapshot(context)
-            if (snapshot != null) {
+            val dataVersion = store.latestDataChange()
+            if (snapshot != null && snapshot.dataVersion == (dataVersion ?: "")) {
                 val today = LocalDate.now()
                 val dayNumber =
                     snapshot.cycleStartDate
@@ -83,7 +87,6 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                 return
             }
 
-            val store = RitulayaDataStore(context.applicationContext)
             val cycles = store.listCycles().map { PredictionEngine.CycleInput(it.id, it.startDate, it.endDate) }
             val logs = store.listDayLogs().map { PredictionEngine.DayLogInput(it.date, it.cycleId, it.flowIntensity) }
             val settings = store.getSettings()
@@ -114,6 +117,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val avgCycleLength: Int,
             val avgPeriodLength: Int,
             val lutealPhaseLength: Int,
+            val dataVersion: String,
         )
 
         private fun readSnapshot(context: Context): WidgetSnapshot? {
@@ -127,6 +131,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                     avgCycleLength = o.getInt("avgCycleLength"),
                     avgPeriodLength = o.getInt("avgPeriodLength"),
                     lutealPhaseLength = o.getInt("lutealPhaseLength"),
+                    dataVersion = o.optString("dataVersion"),
                 )
             } catch (_: Exception) {
                 null

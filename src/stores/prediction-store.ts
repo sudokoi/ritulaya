@@ -44,6 +44,14 @@ export const predictionStore = createStore({
 let inFlight = false
 let pending = false
 
+function dataVersion(cycles: { updatedAt: string }[], logs: { updatedAt: string }[]): string {
+  let latest = ""
+  for (const row of [...cycles, ...logs]) {
+    if (row.updatedAt > latest) latest = row.updatedAt
+  }
+  return latest
+}
+
 export async function recomputePrediction(): Promise<void> {
   if (inFlight) {
     pending = true
@@ -62,6 +70,7 @@ export async function recomputePrediction(): Promise<void> {
         avgCycleLength: settingsCtx.avgCycleLength,
         avgPeriodLength: settingsCtx.avgPeriodLength,
         lutealPhaseLength: settingsCtx.lutealPhaseLength,
+        dataVersion: dataVersion(cycleCtx.cycles, logCtx.logs),
       })
 
       if (!bundle) return
