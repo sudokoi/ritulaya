@@ -21,7 +21,13 @@ object MergeEngine {
                     merged.remove(remoteRow.id)
                 }
             } else if (localRow.deletedAt != null) {
-                merged[remoteRow.id] = localRow
+                if (parseIso(localRow.deletedAt) >= parseIso(remoteRow.updatedAt)) {
+                    merged[remoteRow.id] = localRow
+                } else {
+                    // The remote edit is newer than the local deletion; the
+                    // row comes back and will re-sync as live.
+                    merged[remoteRow.id] = remoteRow
+                }
             } else {
                 merged[remoteRow.id] = resolveConflict(localRow, remoteRow)
             }
@@ -46,7 +52,13 @@ object MergeEngine {
                     merged.remove(remoteRow.id)
                 }
             } else if (localRow.deletedAt != null) {
-                merged[remoteRow.id] = localRow
+                if (parseIso(localRow.deletedAt) >= parseIso(remoteRow.updatedAt)) {
+                    merged[remoteRow.id] = localRow
+                } else {
+                    // The remote edit is newer than the local deletion; the
+                    // row comes back and will re-sync as live.
+                    merged[remoteRow.id] = remoteRow
+                }
             } else {
                 merged[remoteRow.id] = resolveConflict(localRow, remoteRow)
             }
