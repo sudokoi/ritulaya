@@ -8,6 +8,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 
+/** The requested resource does not exist (HTTP 404). */
+class HttpNotFoundException(
+    message: String,
+) : IOException(message)
+
 class GithubApiClient(
     private val token: String,
 ) {
@@ -26,7 +31,13 @@ class GithubApiClient(
         branch: String,
     ): RepoFile? {
         val url = "https://api.github.com/repos/$owner/$repo/contents/$path?ref=$branch"
-        val response = get(url)
+        // A missing file is a normal state on a fresh repo, not an error.
+        val response =
+            try {
+                get(url)
+            } catch (e: HttpNotFoundException) {
+                return null
+            }
         val json = org.json.JSONObject(response)
         val content = json.optString("content", "")
         val sha = json.optString("sha", "")
@@ -141,6 +152,7 @@ class GithubApiClient(
         val stream = if (code in 200..299) conn.inputStream else conn.errorStream
         val body = stream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
         if (code !in 200..299) {
+            if (code == 404) throw HttpNotFoundException("GitHub API 404: ${body.take(300)}")
             throw IOException("GitHub API error $code: ${body.take(300)}")
         }
         return body
