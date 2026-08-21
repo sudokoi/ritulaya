@@ -4,22 +4,27 @@ import { listCycles, listDayLogs } from "@/services/db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog } from "@/types/day-log"
 
-function toCyclesCsv(cycles: Cycle[]): string {
+export function csvCell(value: string): string {
+  const escaped = value.replace(/"/g, '""')
+  // Neutralize spreadsheet formula injection (=, +, @ prefixes).
+  const safe = /^[=+@]/.test(escaped) ? `'${escaped}` : escaped
+  return `"${safe}"`
+}
+
+export function toCyclesCsv(cycles: Cycle[]): string {
   const header = "start_date,end_date,created_at"
-  const rows = cycles.map((c) => [c.startDate, c.endDate ?? "", c.createdAt].join(","))
+  const rows = cycles.map((c) =>
+    [c.startDate, c.endDate ?? "", c.createdAt].map(csvCell).join(","),
+  )
   return [header, ...rows].join("\n")
 }
 
-function toLogsCsv(logs: DayLog[]): string {
+export function toLogsCsv(logs: DayLog[]): string {
   const header = "date,flow_intensity,symptoms,mood,notes"
   const rows = logs.map((l) =>
-    [
-      l.date,
-      l.flowIntensity ?? "",
-      l.symptoms.join(";"),
-      l.mood ?? "",
-      (l.notes ?? "").replace(/[\r\n]+/g, " ").replace(/,/g, ";"),
-    ].join(","),
+    [l.date, l.flowIntensity ?? "", l.symptoms.join(";"), l.mood ?? "", l.notes ?? ""]
+      .map(csvCell)
+      .join(","),
   )
   return [header, ...rows].join("\n")
 }
@@ -38,8 +43,13 @@ export async function exportData() {
   const cyclesFile = writeCsv("ritulaya-cycles.csv", toCyclesCsv(cycles))
   const logsFile = writeCsv("ritulaya-day-logs.csv", toLogsCsv(logs))
 
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(logsFile.uri)
-    await Sharing.shareAsync(cyclesFile.uri)
+  try {
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(logsFile.uri)
+      await Sharing.shareAsync(cyclesFile.uri)
+    }
+  } finally {
+    cyclesFile.delete()
+    logsFile.delete()
   }
 }
