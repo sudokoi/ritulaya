@@ -11,6 +11,7 @@ import {
   loadSyncStatus,
 } from "@/stores/sync-store"
 import { authStore, connectDeviceFlow } from "@/stores/auth-store"
+import { onSyncStatusChanged } from "@/services/sync"
 
 export function useSync() {
   const state = useSelector(syncStore, (s) => s.context)
@@ -23,8 +24,14 @@ export function useSync() {
     cancelledRef.current = false
     loadSyncConfig()
     loadSyncStatus()
+    // Background syncs persist status natively; the event covers syncs that
+    // run while the app is open, and foregrounding reloads the rest.
+    const unsubscribe = onSyncStatusChanged((status) => {
+      syncStore.send({ type: "setStatus", status })
+    })
     return () => {
       cancelledRef.current = true
+      unsubscribe()
     }
   }, [])
 

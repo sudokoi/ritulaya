@@ -83,7 +83,9 @@ class RitulayaSyncModule : Module() {
             }
 
             AsyncFunction("syncNow") {
-                runBlocking { orchestrator.sync() }
+                val result = runBlocking { orchestrator.sync() }
+                sendEvent("syncStatusChanged", result)
+                result
             }
 
             AsyncFunction("scheduleBackgroundSync") { intervalMinutes: Int ->
@@ -94,12 +96,13 @@ class RitulayaSyncModule : Module() {
                 val syncedAt = prefs.getLong("last_sync_at", 0L)
                 val warning = prefs.getBoolean("sync_warning", false)
                 val failures = prefs.getInt("consecutive_failures", 0)
+                val status = prefs.getString("sync_status", "idle") ?: "idle"
 
                 mapOf(
                     "syncedAt" to if (syncedAt > 0) syncedAt.toString() else null,
                     "warning" to warning,
                     "consecutiveFailures" to failures,
-                    "status" to if (warning) "error" else "idle",
+                    "status" to status,
                 )
             }
 
