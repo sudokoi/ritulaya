@@ -11,17 +11,4 @@ export interface PredictionResult {
   engine: PredictionEngine
 }
 
-export type PredictionEngine = "wma" | "bayesian" | "ml-model"
-
-export interface PredictionConfig {
-  avgCycleLength: number
-  avgPeriodLength: number
-  lutealPhaseLength: number
-}
-
-export interface PredictionStrategy {
-  predict(
-    cycles: { startDate: string; endDate: string | null }[],
-    config: PredictionConfig,
-  ): PredictionResult
-}
+export type PredictionEngine = "wma"
