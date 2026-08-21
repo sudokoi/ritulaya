@@ -3,7 +3,7 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A1A1C"
+    android:background="@color/widget_background"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="12dp">
@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Day 1"
-        android:textColor="#EAE8E4"
+        android:textColor="@color/widget_text_primary"
         android:textSize="32sp"
         android:textStyle="bold" />
 
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Follicular"
-        android:textColor="#7BA891"
+        android:textColor="@color/widget_accent"
         android:textSize="12sp"
         android:textStyle="bold"
         android:layout_marginTop="2dp" />
@@ -32,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="27 days until next"
-        android:textColor="#8A8986"
+        android:textColor="@color/widget_text_muted"
         android:textSize="10sp"
         android:layout_marginTop="4dp" />
 </LinearLayout>

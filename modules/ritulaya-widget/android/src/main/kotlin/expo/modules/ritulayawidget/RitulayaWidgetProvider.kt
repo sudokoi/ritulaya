@@ -55,6 +55,25 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             widgetId: Int,
         ) {
+            val discreet = RitulayaDataStore(context.applicationContext).getSettings()?.discreetMode == 1
+
+            // Prefer the snapshot the app persisted with its last prediction so
+            // the widget always matches what the user sees in-app; fall back to
+            // computing locally (fresh install before the first app launch).
+            val snapshot = readSnapshot(context)
+            if (snapshot != null) {
+                render(
+                    context,
+                    appWidgetManager,
+                    widgetId,
+                    snapshot.dayNumber,
+                    snapshot.phase,
+                    snapshot.daysUntilNext,
+                    discreet,
+                )
+                return
+            }
+
             val store = RitulayaDataStore(context.applicationContext)
             val cycles = store.listCycles().map { PredictionEngine.CycleInput(it.id, it.startDate, it.endDate) }
             val logs = store.listDayLogs().map { PredictionEngine.DayLogInput(it.date, it.cycleId, it.flowIntensity) }
@@ -75,10 +94,26 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                     ?.let { (ChronoUnit.DAYS.between(LocalDate.parse(it.startDate), today) + 1).toInt() }
                     ?: 1
             val daysUntilNext = ChronoUnit.DAYS.between(today, output.nextPeriodStart).toInt()
-            val phase = PredictionEngine.phase(daysUntilNext, config.avgCycleLength)
-            val discreet = settings?.discreetMode == 1
+            val phase = PredictionEngine.phase(daysUntilNext, config)
 
             render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet)
+        }
+
+        private data class WidgetSnapshot(
+            val dayNumber: Int,
+            val phase: String,
+            val daysUntilNext: Int,
+        )
+
+        private fun readSnapshot(context: Context): WidgetSnapshot? {
+            val prefs = context.getSharedPreferences("ritulaya_predictions", Context.MODE_PRIVATE)
+            val json = prefs.getString("widget_snapshot", null) ?: return null
+            return try {
+                val o = org.json.JSONObject(json)
+                WidgetSnapshot(o.getInt("dayNumber"), o.getString("phase"), o.getInt("daysUntilNext"))
+            } catch (_: Exception) {
+                null
+            }
         }
 
         private fun render(
