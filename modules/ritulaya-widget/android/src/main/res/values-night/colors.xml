@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark-mode widget tokens; mirrors palette.dark in src/constants/palette.ts. -->
+    <color name="widget_background">#141416</color>
+    <color name="widget_text_primary">#F2F1EE</color>
+    <color name="widget_text_muted">#A9A8A4</color>
+    <color name="widget_accent">#A2CCB4</color>
+</resources>

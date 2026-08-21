@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget tokens follow the system theme: these are the light values,
+         values-night/ overrides them in dark mode. Mirrors src/constants/palette.ts. -->
+    <color name="widget_background">#FAF8F5</color>
+    <color name="widget_text_primary">#2D2D2F</color>
+    <color name="widget_text_muted">#6F6B64</color>
+    <color name="widget_accent">#42725A</color>
+</resources>
