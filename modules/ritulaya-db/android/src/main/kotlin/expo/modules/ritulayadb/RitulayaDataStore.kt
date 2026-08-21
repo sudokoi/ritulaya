@@ -136,7 +136,7 @@ class RitulayaDataStore(
                     notes = notes ?: existing.notes,
                     cervicalMucus = cervicalMucus ?: existing.cervicalMucus,
                     bbt = bbt ?: existing.bbt,
-                    sexualActivity = if (sexualActivity == true) 1 else existing.sexualActivity,
+                    sexualActivity = sexualActivity?.let { if (it) 1 else 0 } ?: existing.sexualActivity,
                     cycleId = cycleId ?: existing.cycleId,
                     updatedAt = now,
                 )
