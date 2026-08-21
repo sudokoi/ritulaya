@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, Pressable, Switch, Alert } from "react-native"
 import { router } from "expo-router"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import * as LocalAuthentication from "expo-local-authentication"
 import {
   Shield,
@@ -87,6 +88,7 @@ export default function SettingsScreen() {
   const { periodLength, avgCycleLength } = usePrediction()
   const sync = useSync()
   const colors = useThemeColors()
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     load()
@@ -125,7 +127,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
-      <View className="px-6 pt-14 pb-2">
+      <View className="px-6 pb-2" style={{ paddingTop: insets.top + 24 }}>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
           {discreetLabel(discreet, "Settings", "Preferences")}
         </Text>
@@ -188,7 +190,14 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Download size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Export Data", "Export")}
-          onPress={() => void exportData()}
+          onPress={() =>
+            exportData().catch(() =>
+              Alert.alert(
+                "Export failed",
+                "Something went wrong while preparing your data.",
+              ),
+            )
+          }
         />
       </View>
 
@@ -233,7 +242,11 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={<Bug size={20} color={colors.muted} />}
           label={discreetLabel(discreet, "Report Bug", "Diagnostics")}
-          onPress={() => void reportBug()}
+          onPress={() =>
+            reportBug().catch(() =>
+              Alert.alert("Something went wrong", "Could not prepare diagnostics."),
+            )
+          }
         />
         <View className="flex-row items-center justify-between py-4">
           <View className="flex-row items-center gap-3">

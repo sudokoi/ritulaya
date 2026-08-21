@@ -3,6 +3,7 @@ import { useMemo, useCallback } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
 import { useFocusEffect } from "expo-router"
 import { useColorScheme } from "nativewind"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { WeekStrip } from "@/components/week-strip"
 import { useCycles } from "@/hooks/use-cycles"
 import { useSettings } from "@/hooks/use-settings"
@@ -22,6 +23,7 @@ export default function TodayScreen() {
   const { prediction, phase } = usePrediction()
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
+  const insets = useSafeAreaInsets()
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
@@ -78,7 +80,7 @@ export default function TodayScreen() {
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
-      <View className="items-center px-6 pt-14 pb-6">
+      <View className="items-center px-6 pb-6" style={{ paddingTop: insets.top + 24 }}>
         <Text className="text-7xl font-bold text-[var(--text-primary)]">
           {isLoaded ? cycleDay : "-"}
         </Text>
@@ -114,6 +116,8 @@ export default function TodayScreen() {
       <Pressable
         className="mx-4 mb-4 rounded-card bg-accent px-6 py-4 active:opacity-60"
         onPress={() => logPeriodToday()}
+        accessibilityRole="button"
+        accessibilityLabel="Log period today"
       >
         <Text className="text-center text-lg font-semibold text-white">
           Log Period Today
