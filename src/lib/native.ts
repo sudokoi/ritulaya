@@ -12,12 +12,24 @@ export const native = {
   sync: RitulayaSync as SyncModule | null,
 }
 
+let warnedUnavailable = false
+
 export async function nativeCall<T, M>(
   module: M | null,
   fn: (m: M) => Promise<T>,
   fallback: T,
 ): Promise<T> {
-  return module ? fn(module) : fallback
+  if (!module) {
+    if (__DEV__ && !warnedUnavailable) {
+      warnedUnavailable = true
+      console.warn(
+        "[ritulaya] Native module unavailable — data calls silently return fallbacks. " +
+          "This usually means the app is running on an unsupported platform.",
+      )
+    }
+    return fallback
+  }
+  return fn(module)
 }
 
 export async function nativeRequire<T, M>(
