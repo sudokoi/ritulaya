@@ -14,6 +14,7 @@ export const palette = {
     textMuted: "#6f6b64",
     border: "#e8e4df",
     accent: "#0F766E",
+    danger: "#DC2626",
   },
   dark: {
     bgPrimary: "#141416",
@@ -23,11 +24,6 @@ export const palette = {
     textMuted: "#a9a8a4",
     border: "#2f2f33",
     accent: "#5EEAD4",
+    danger: "#F87171",
   },
 } as const
-
-/**
- * Filled-button background. Kept identical across light and dark themes so
- * white button labels always meet WCAG AA (≥ 4.5:1).
- */
-export const accentFill = "#0F766E"

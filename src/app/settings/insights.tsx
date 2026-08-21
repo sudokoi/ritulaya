@@ -2,6 +2,7 @@ import { View, Text, ScrollView, Pressable } from "react-native"
 import { useMemo } from "react"
 import { router } from "expo-router"
 import { ChevronLeft } from "lucide-react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useCycles } from "@/hooks/use-cycles"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { useSettings } from "@/hooks/use-settings"
@@ -26,14 +27,24 @@ export default function InsightsScreen() {
   const { discreetMode: discreet } = useSettings()
   const { muted } = useThemeColors()
   const { periodLength, avgCycleLength } = usePrediction()
+  const insets = useSafeAreaInsets()
 
   const symptomFreq = useMemo(() => frequency(logs.flatMap((l) => l.symptoms)), [logs])
   const moodFreq = useMemo(() => frequency(logs.map((l) => l.mood)), [logs])
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
-      <View className="flex-row items-center gap-2 px-4 pt-14 pb-2">
-        <Pressable onPress={() => router.back()} className="p-2 active:opacity-60">
+      <View
+        className="flex-row items-center gap-2 px-4 pb-2"
+        style={{ paddingTop: insets.top + 8 }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          className="p-2 active:opacity-60"
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+        >
           <ChevronLeft size={24} color={muted} />
         </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">

@@ -1,4 +1,13 @@
-import { View, Text, TextInput, Modal, ScrollView, Pressable } from "react-native"
+import {
+  View,
+  Text,
+  TextInput,
+  Modal,
+  ScrollView,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native"
 import { useState, useCallback } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
@@ -53,7 +62,7 @@ export function DayDetailSheet({
   const [symptoms, setSymptoms] = useState<SymptomKey[]>(existingSymptoms)
   const [mood, setMood] = useState<MoodKey | null>(existingMood ?? null)
   const [notes, setNotes] = useState(existingNotes ?? "")
-  const { muted } = useThemeColors()
+  const { muted, danger } = useThemeColors()
 
   const toggleSymptom = useCallback((key: SymptomKey) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -88,142 +97,173 @@ export function DayDetailSheet({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable className="flex-1 bg-black/30" onPress={onClose}>
-        <Pressable className="mt-auto rounded-t-3xl bg-[var(--bg-primary)] pb-8">
-          <View className="flex-row items-center justify-between border-b border-[var(--border)] px-6 py-4">
-            <Text className="text-lg font-semibold text-[var(--text-primary)]">
-              {format(date, "EEE, MMM d")}
-            </Text>
-            <View className="flex-row gap-2">
-              {onDelete ? (
-                <Pressable onPress={handleDelete} className="p-2 active:opacity-60">
-                  <Trash2 size={20} color="#EF4444" />
-                </Pressable>
-              ) : null}
-              <Pressable
-                onPress={handleSave}
-                className="rounded-button bg-accent px-5 py-2 active:opacity-60"
-              >
-                <Text className="font-medium text-white">Save</Text>
-              </Pressable>
-              <Pressable onPress={onClose} className="p-2 active:opacity-60">
-                <X size={20} color={muted} />
-              </Pressable>
-            </View>
-          </View>
-
-          <ScrollView className="max-h-[70vh]" showsVerticalScrollIndicator={false}>
-            <View className="px-6 py-4">
-              <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
-                Flow
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="mt-auto"
+        >
+          <Pressable className="rounded-t-3xl bg-[var(--bg-primary)] pb-8">
+            <View className="flex-row items-center justify-between border-b border-[var(--border)] px-6 py-4">
+              <Text className="text-lg font-semibold text-[var(--text-primary)]">
+                {format(date, "EEE, MMM d")}
               </Text>
               <View className="flex-row gap-2">
-                {FLOW_LEVELS.map((level) => (
+                {onDelete ? (
                   <Pressable
-                    key={level.key}
-                    onPress={() => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      setFlow(flow === level.key ? null : level.key)
-                    }}
-                    className={cn(
-                      "flex-1 rounded-button py-2.5 active:opacity-60",
-                      flow === level.key ? "bg-accent" : "bg-[var(--bg-muted)]",
-                    )}
+                    onPress={handleDelete}
+                    className="p-3 active:opacity-60"
+                    accessibilityRole="button"
+                    accessibilityLabel="Delete entry"
                   >
-                    <Text
-                      className={cn(
-                        "text-center text-sm",
-                        flow === level.key
-                          ? "font-medium text-white"
-                          : "text-[var(--text-primary)]",
-                      )}
-                    >
-                      {level.label}
-                    </Text>
+                    <Trash2 size={20} color={danger} />
                   </Pressable>
-                ))}
-              </View>
-              {onClearPeriod && existingFlow && existingFlow !== "none" ? (
+                ) : null}
                 <Pressable
-                  onPress={handleClearPeriod}
-                  className="mt-3 self-start active:opacity-60"
+                  onPress={handleSave}
+                  className="rounded-button bg-accent px-5 py-2 active:opacity-60"
+                  accessibilityRole="button"
+                  accessibilityLabel="Save entry"
                 >
-                  <Text className="text-sm font-medium text-red-500">Remove Period</Text>
+                  <Text className="font-medium text-white">Save</Text>
                 </Pressable>
-              ) : null}
-            </View>
-
-            <View className="px-6 py-4">
-              <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
-                Mood
-              </Text>
-              <View className="flex-row flex-wrap gap-3">
-                {MOOD_CATALOG.map((m) => (
-                  <Pressable
-                    key={m.key}
-                    onPress={() => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      setMood(mood === m.key ? null : m.key)
-                    }}
-                    className={cn(
-                      "items-center gap-1 rounded-xl px-3 py-2 active:opacity-60",
-                      mood === m.key && "bg-accent/20",
-                    )}
-                  >
-                    <Text className="text-2xl">{m.emoji}</Text>
-                    <Text className="text-xs text-[var(--text-muted)]">{m.label}</Text>
-                  </Pressable>
-                ))}
+                <Pressable
+                  onPress={onClose}
+                  className="p-3 active:opacity-60"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close"
+                >
+                  <X size={20} color={muted} />
+                </Pressable>
               </View>
             </View>
 
-            <View className="px-6 py-4">
-              <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
-                Symptoms
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {SYMPTOM_CATALOG.map((symptom) => (
-                  <Pressable
-                    key={symptom.key}
-                    onPress={() => toggleSymptom(symptom.key)}
-                    className={cn(
-                      "rounded-pill px-4 py-2 active:opacity-60",
-                      symptoms.includes(symptom.key)
-                        ? "bg-accent"
-                        : "bg-[var(--bg-muted)]",
-                    )}
-                  >
-                    <Text
+            <ScrollView className="max-h-[70vh]" showsVerticalScrollIndicator={false}>
+              <View className="px-6 py-4">
+                <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
+                  Flow
+                </Text>
+                <View className="flex-row gap-2">
+                  {FLOW_LEVELS.map((level) => (
+                    <Pressable
+                      key={level.key}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        setFlow(flow === level.key ? null : level.key)
+                      }}
                       className={cn(
-                        "text-sm",
-                        symptoms.includes(symptom.key)
-                          ? "font-medium text-white"
-                          : "text-[var(--text-primary)]",
+                        "flex-1 rounded-button py-2.5 active:opacity-60",
+                        flow === level.key ? "bg-accent" : "bg-[var(--bg-muted)]",
                       )}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Flow ${level.label}`}
+                      accessibilityState={{ selected: flow === level.key }}
                     >
-                      {symptom.label}
+                      <Text
+                        className={cn(
+                          "text-center text-sm",
+                          flow === level.key
+                            ? "font-medium text-white"
+                            : "text-[var(--text-primary)]",
+                        )}
+                      >
+                        {level.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                {onClearPeriod && existingFlow && existingFlow !== "none" ? (
+                  <Pressable
+                    onPress={handleClearPeriod}
+                    className="mt-3 self-start active:opacity-60"
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove period"
+                  >
+                    <Text className="text-sm font-medium" style={{ color: danger }}>
+                      Remove Period
                     </Text>
                   </Pressable>
-                ))}
+                ) : null}
               </View>
-            </View>
 
-            <View className="px-6 py-4">
-              <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
-                Notes
-              </Text>
-              <TextInput
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="How are you feeling today?"
-                placeholderTextColor={muted}
-                multiline
-                numberOfLines={3}
-                className="min-h-[80px] rounded-card bg-[var(--bg-surface)] p-4 text-[var(--text-primary)]"
-                style={{ textAlignVertical: "top" }}
-              />
-            </View>
-          </ScrollView>
-        </Pressable>
+              <View className="px-6 py-4">
+                <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
+                  Mood
+                </Text>
+                <View className="flex-row flex-wrap gap-3">
+                  {MOOD_CATALOG.map((m) => (
+                    <Pressable
+                      key={m.key}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        setMood(mood === m.key ? null : m.key)
+                      }}
+                      className={cn(
+                        "items-center gap-1 rounded-xl px-3 py-2 active:opacity-60",
+                        mood === m.key && "bg-accent/20",
+                      )}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Mood ${m.label}`}
+                      accessibilityState={{ selected: mood === m.key }}
+                    >
+                      <Text className="text-2xl">{m.emoji}</Text>
+                      <Text className="text-xs text-[var(--text-muted)]">{m.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              <View className="px-6 py-4">
+                <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
+                  Symptoms
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {SYMPTOM_CATALOG.map((symptom) => (
+                    <Pressable
+                      key={symptom.key}
+                      onPress={() => toggleSymptom(symptom.key)}
+                      className={cn(
+                        "rounded-pill px-4 py-2.5 active:opacity-60",
+                        symptoms.includes(symptom.key)
+                          ? "bg-accent"
+                          : "bg-[var(--bg-muted)]",
+                      )}
+                      accessibilityRole="button"
+                      accessibilityLabel={symptom.label}
+                      accessibilityState={{ selected: symptoms.includes(symptom.key) }}
+                    >
+                      <Text
+                        className={cn(
+                          "text-sm",
+                          symptoms.includes(symptom.key)
+                            ? "font-medium text-white"
+                            : "text-[var(--text-primary)]",
+                        )}
+                      >
+                        {symptom.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              <View className="px-6 py-4">
+                <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
+                  Notes
+                </Text>
+                <TextInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder="How are you feeling today?"
+                  placeholderTextColor={muted}
+                  multiline
+                  numberOfLines={3}
+                  returnKeyType="done"
+                  className="min-h-[80px] rounded-card bg-[var(--bg-surface)] p-4 text-[var(--text-primary)]"
+                  style={{ textAlignVertical: "top" }}
+                />
+              </View>
+            </ScrollView>
+          </Pressable>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   )

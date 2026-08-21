@@ -7,7 +7,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors"
 
 export function BiometricGate({ children }: { children: React.ReactNode }) {
   const { biometricLock, update } = useSettings()
-  const { accent } = useThemeColors()
+  const { accent, danger } = useThemeColors()
   const [unlocked, setUnlocked] = useState(!biometricLock)
   const [prevBiometricLock, setPrevBiometricLock] = useState(biometricLock)
   const [error, setError] = useState<string | null>(null)
@@ -80,15 +80,19 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
         Authenticate to view your data.
       </Text>
       {unavailable ? (
-        <Text className="mt-2 text-center text-sm text-red-500">
+        <Text className="mt-2 text-center text-sm" style={{ color: danger }}>
           Biometric authentication is unavailable on this device.
         </Text>
       ) : error ? (
-        <Text className="mt-2 text-center text-sm text-red-500">{error}</Text>
+        <Text className="mt-2 text-center text-sm" style={{ color: danger }}>
+          {error}
+        </Text>
       ) : null}
       <Pressable
         onPress={authenticate}
         className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
+        accessibilityRole="button"
+        accessibilityLabel="Unlock"
       >
         <Text className="font-semibold text-white">
           {unavailable ? "Try again" : "Unlock"}
