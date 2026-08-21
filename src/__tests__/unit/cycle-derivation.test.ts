@@ -11,6 +11,7 @@ function makePrediction(overrides: Partial<PredictionResult> = {}): PredictionRe
     nextPeriodEnd: day(2026, 8, 4),
     ovulationDay: day(2026, 8, 14),
     fertileWindow: { start: day(2026, 8, 11), end: day(2026, 8, 15) },
+    uncertaintyWindow: { start: day(2026, 7, 30), end: day(2026, 8, 3) },
     confidence: 0.9,
     cyclesUsed: 3,
     engine: "wma",

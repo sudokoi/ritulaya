@@ -50,6 +50,10 @@ export async function computePrediction(
             start: parseISO(result.prediction.fertileWindow.start),
             end: parseISO(result.prediction.fertileWindow.end),
           },
+          uncertaintyWindow: {
+            start: parseISO(result.prediction.uncertaintyWindow.start),
+            end: parseISO(result.prediction.uncertaintyWindow.end),
+          },
           confidence: result.prediction.confidence,
           cyclesUsed: result.prediction.cyclesUsed,
           engine: result.prediction.engine as PredictionResult["engine"],

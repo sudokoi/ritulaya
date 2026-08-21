@@ -10,6 +10,11 @@ fun PredictionEngine.Output.toMap(): Map<String, Any?> =
                 "start" to fertileWindowStart.toString(),
                 "end" to fertileWindowEnd.toString(),
             ),
+        "uncertaintyWindow" to
+            mapOf(
+                "start" to uncertaintyStart.toString(),
+                "end" to uncertaintyEnd.toString(),
+            ),
         "confidence" to confidence,
         "cyclesUsed" to cyclesUsed,
         "engine" to engine,
