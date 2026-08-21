@@ -218,15 +218,22 @@ class RitulayaDataStore(
         return ids.map { id -> SyncRow(id, byId[id], tombstones[id]?.deletedAt) }
     }
 
-    suspend fun replaceAll(
+    /**
+     * Applies a merged sync result without wiping rows written while the sync
+     * was in flight: live rows are upserted, only rows that were deleted on
+     * either side are removed, and tombstones are cleared.
+     */
+    suspend fun applyMerge(
         cycles: List<CycleEntity>,
         dayLogs: List<DayLogEntity>,
+        deletedCycleIds: Set<String>,
+        deletedDayLogIds: Set<String>,
     ) {
         db.withTransaction {
-            dao.deleteAllCycles()
-            dao.deleteAllDayLogs()
             cycles.forEach { dao.insertCycle(it) }
             dayLogs.forEach { dao.upsertDayLog(it) }
+            deletedCycleIds.forEach { dao.deleteCycleById(it) }
+            deletedDayLogIds.forEach { dao.deleteDayLogById(it) }
             dao.clearTombstones()
         }
     }

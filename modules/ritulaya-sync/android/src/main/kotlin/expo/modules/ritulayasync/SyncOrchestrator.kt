@@ -8,6 +8,8 @@ import expo.modules.ritulayadb.RitulayaDataStore
 import expo.modules.ritulayadb.SettingsEntity
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class SyncOrchestrator(
     private val appContext: Context,
@@ -15,6 +17,11 @@ class SyncOrchestrator(
 ) {
     private val tokenStore = SecureTokenStore(appContext)
     private val dataStore = RitulayaDataStore(appContext)
+
+    companion object {
+        // Serializes syncs across orchestrator instances (JS syncNow vs background worker).
+        private val syncMutex = Mutex()
+    }
 
     suspend fun sync(): Map<String, Any> {
         val token = tokenStore.load("github_token")
@@ -29,7 +36,7 @@ class SyncOrchestrator(
         val api = GithubApiClient(token)
 
         return try {
-            fetchMergePush(api, owner, repo, branch)
+            syncMutex.withLock { fetchMergePush(api, owner, repo, branch) }
         } catch (e: Exception) {
             val failures = prefs.getInt("consecutive_failures", 0) + 1
             prefs.edit().putInt("consecutive_failures", failures).apply()
@@ -112,7 +119,14 @@ class SyncOrchestrator(
             )
         }
 
-        persist(mergedCycles, mergedLogs)
+        persist(
+            mergedCycles,
+            mergedLogs,
+            localCycles,
+            localLogs,
+            remoteCycles,
+            remoteLogs,
+        )
         mergedSettings?.let { persistSettings(it) }
 
         prefs
@@ -167,15 +181,19 @@ class SyncOrchestrator(
     private suspend fun loadSettings(): SettingsEntity? = dataStore.getSettings()
 
     private suspend fun persist(
-        cycles: List<CycleRow>,
-        logs: List<DayLogRow>,
+        mergedCycles: List<CycleRow>,
+        mergedLogs: List<DayLogRow>,
+        localCycles: List<CycleRow>,
+        localLogs: List<DayLogRow>,
+        remoteCycles: List<CycleRow>,
+        remoteLogs: List<DayLogRow>,
     ) {
         val cycleEntities =
-            cycles
+            mergedCycles
                 .filter { it.deletedAt == null }
                 .map { CycleEntity(it.id, it.startDate, it.endDate, it.createdAt, it.updatedAt) }
         val logEntities =
-            logs
+            mergedLogs
                 .filter { it.deletedAt == null }
                 .map {
                     DayLogEntity(
@@ -193,7 +211,16 @@ class SyncOrchestrator(
                         it.updatedAt,
                     )
                 }
-        dataStore.replaceAll(cycleEntities, logEntities)
+
+        // Rows known on either side that did not survive the merge were deleted;
+        // everything else is upserted in place so writes made during the sync
+        // (after the initial read) are preserved.
+        val liveCycleIds = cycleEntities.map { it.id }.toSet()
+        val liveLogIds = logEntities.map { it.id }.toSet()
+        val deletedCycleIds = (localCycles.map { it.id } + remoteCycles.map { it.id }).toSet() - liveCycleIds
+        val deletedDayLogIds = (localLogs.map { it.id } + remoteLogs.map { it.id }).toSet() - liveLogIds
+
+        dataStore.applyMerge(cycleEntities, logEntities, deletedCycleIds, deletedDayLogIds)
     }
 
     private suspend fun persistSettings(settings: SettingsEntity) {
