@@ -106,10 +106,16 @@ export default function TodayScreen() {
           {daysUntilPeriod} days until next period
         </Text>
         {prediction ? (
-          <Text className="mt-1 text-xs text-[var(--text-muted)]">
-            {format(prediction.nextPeriodStart, "MMM d")} —{" "}
-            {format(prediction.nextPeriodEnd, "MMM d")}
-          </Text>
+          <>
+            <Text className="mt-1 text-xs text-[var(--text-muted)]">
+              {format(prediction.nextPeriodStart, "MMM d")} —{" "}
+              {format(prediction.nextPeriodEnd, "MMM d")}
+            </Text>
+            <Text className="mt-0.5 text-xs text-[var(--text-muted)] opacity-70">
+              Could start {format(prediction.uncertaintyWindow.start, "MMM d")} –{" "}
+              {format(prediction.uncertaintyWindow.end, "MMM d")}
+            </Text>
+          </>
         ) : null}
       </View>
 
