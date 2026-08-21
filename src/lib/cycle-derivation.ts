@@ -32,6 +32,7 @@ export function deriveCycleDays(
 ): {
   periodDays: string[]
   predictedDays: string[]
+  uncertainDays: string[]
   fertileDays: FertileDay[]
   ovulationDays: string[]
 } {
@@ -39,6 +40,7 @@ export function deriveCycleDays(
     return {
       periodDays: flowDays,
       predictedDays: [],
+      uncertainDays: [],
       fertileDays: [],
       ovulationDays: [],
     }
@@ -73,9 +75,20 @@ export function deriveCycleDays(
     fertileEnd = addDays(fertileEnd, cycleLength)
   }
 
+  // Uncertainty applies to the next period only: days that could plausibly
+  // be the start but sit outside the point estimate.
+  const predictedSet = new Set(predictedDays)
+  const uncertainDays = expandDays(
+    new Date(prediction.uncertaintyWindow.start),
+    new Date(prediction.uncertaintyWindow.end) > horizon
+      ? horizon
+      : new Date(prediction.uncertaintyWindow.end),
+  ).filter((iso) => !predictedSet.has(iso))
+
   return {
     periodDays: flowDays,
     predictedDays,
+    uncertainDays,
     fertileDays,
     ovulationDays,
   }

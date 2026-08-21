@@ -11,10 +11,10 @@ import { usePrediction } from "@/hooks/use-predictions"
 import { useNotifications } from "@/hooks/use-notifications"
 import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
+import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
 import { refreshAll } from "@/data/refresh"
 import { cn } from "@/lib/utils"
 import { PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
-import { deriveCycleDays, fertileFractions } from "@/lib/cycle-derivation"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
@@ -27,8 +27,9 @@ export default function TodayScreen() {
   const today = useMemo(() => new Date(), [])
   useNotifications()
 
-  const { todayLog, logs } = useDayLogs()
+  const { todayLog } = useDayLogs()
   const { logPeriodToday } = useLogPeriod()
+  const dayStates = useCycleDayStates()
 
   useFocusEffect(
     useCallback(() => {
@@ -43,44 +44,39 @@ export default function TodayScreen() {
   const phaseColor = PHASE_COLORS[phase].hex
   const phaseTextColor = dark ? PHASE_COLORS[phase].darkHex : phaseColor
 
-  const flowDays = useMemo(
-    () =>
-      logs
-        .filter((log) => log.flowIntensity && log.flowIntensity !== "none")
-        .map((log) => log.date),
-    [logs],
-  )
-
-  const { periodDays, predictedDays, fertileDays, ovulationDays } = useMemo(
-    () => deriveCycleDays(prediction, flowDays),
-    [prediction, flowDays],
-  )
-
-  const fertileMap = useMemo(() => fertileFractions(fertileDays), [fertileDays])
-
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
       const date = addDays(today, i - 3)
-      const iso = format(date, "yyyy-MM-dd")
       return {
         date,
         label: format(date, "EEEEE"),
-        isPeriod: periodDays.includes(iso),
-        isPredicted: predictedDays.includes(iso),
-        fertile: fertileMap.get(iso) ?? 0,
-        isOvulation: ovulationDays.includes(iso),
         isToday: isToday(date),
+        state: dayStates.get(format(date, "yyyy-MM-dd")) ?? {
+          period: false,
+          predicted: false,
+          uncertain: false,
+          fertile: 0,
+          ovulation: false,
+          logged: false,
+        },
       }
     })
-  }, [periodDays, predictedDays, fertileMap, ovulationDays, today])
+  }, [dayStates, today])
 
   const cycleDay = currentCycle
     ? Math.max(1, differenceInDays(today, new Date(currentCycle.startDate)) + 1)
     : "-"
 
+  // Low-confidence predictions soften the copy so a single number never
+  // implies more precision than the history supports.
+  const lowConfidence = (prediction?.confidence ?? 0) < 0.5
+
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
-      <View className="items-center px-6 pb-6" style={{ paddingTop: insets.top + 24 }}>
+      <View
+        className="items-center px-6 pb-6"
+        style={{ paddingTop: insets.top + 24 }}
+      >
         <Text className="text-7xl font-bold text-[var(--text-primary)]">
           {isLoaded ? cycleDay : "-"}
         </Text>
@@ -103,6 +99,7 @@ export default function TodayScreen() {
           />
         </View>
         <Text className="mt-2 text-sm text-[var(--text-muted)]">
+          {lowConfidence ? "roughly " : ""}
           {daysUntilPeriod} days until next period
         </Text>
         {prediction ? (
@@ -116,6 +113,11 @@ export default function TodayScreen() {
               {format(prediction.uncertaintyWindow.end, "MMM d")}
             </Text>
           </>
+        ) : null}
+        {lowConfidence ? (
+          <Text className="mt-2 text-xs text-[var(--text-muted)] opacity-70">
+            Log a few more cycles for better predictions
+          </Text>
         ) : null}
       </View>
 

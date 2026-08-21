@@ -8,67 +8,61 @@ import { cn } from "@/lib/utils"
 import { useThemeColors } from "@/hooks/use-theme-colors"
 import { DayCircle } from "@/components/day-circle"
 import { dayGradient, resolveDayStyle } from "@/lib/day-colors"
-import { fertileFractions } from "@/lib/cycle-derivation"
-import type { FertileDay } from "@/lib/cycle-derivation"
-
-interface CalendarDay {
-  date: Date
-  period: boolean
-  predictedPeriod: boolean
-  fertile: number
-  ovulation: boolean
-  logged: boolean
-}
+import type { CycleDayState } from "@/hooks/use-cycle-day-states"
 
 interface MonthGridProps {
   currentMonth: Date
   onMonthChange: (month: Date) => void
-  periodDays: string[]
-  predictedDays: string[]
-  fertileDays: FertileDay[]
-  ovulationDays: string[]
-  loggedDays: string[]
+  dayStates: Map<string, CycleDayState>
   onDayPress: (date: Date) => void
 }
 
 interface DayCellProps {
   date: Date
-  info: CalendarDay
+  state: CycleDayState
   today: boolean
   inMonth: boolean
   dark: boolean
   onPress: (date: Date) => void
 }
 
+const CELL_MARKED_STYLE = { width: 40, height: 40, borderRadius: 20 }
+const CELL_PLAIN_STYLE = { width: 34, height: 34, borderRadius: 17 }
+
 const DayCell = memo(function DayCell({
   date,
-  info,
+  state,
   today,
   inMonth,
   dark,
   onPress,
 }: DayCellProps) {
-  const marked = info.period || info.predictedPeriod || info.ovulation || info.fertile > 0
+  const marked =
+    state.period || state.predicted || state.uncertain || state.ovulation || state.fertile > 0
 
+  // Uncertain days borrow the predicted gradient at a whisper so the calendar
+  // communicates "could start here" without competing with the point estimate.
   const style = resolveDayStyle({
-    isPeriod: info.period,
-    isPredicted: info.predictedPeriod,
-    isOvulation: info.ovulation,
-    fertile: info.fertile,
+    isPeriod: state.period,
+    isPredicted: state.predicted || state.uncertain,
+    isOvulation: state.ovulation,
+    fertile: state.fertile,
     dark,
   })
-  const textClass = info.period
+  const fill = state.uncertain && !state.predicted ? style.fill * 0.45 : style.fill
+  const textClass = state.period
     ? "text-white"
-    : info.predictedPeriod
+    : state.predicted
       ? "text-menstrual dark:text-menstrual-dark"
       : "text-[var(--text-primary)]"
 
   const stateParts = [
-    info.period ? "period" : null,
-    info.predictedPeriod ? "predicted period" : null,
-    info.ovulation ? "ovulation" : null,
-    info.fertile > 0 ? "fertile" : null,
-    info.logged ? "logged" : null,
+    state.period ? "period" : null,
+    state.predicted ? "predicted period" : null,
+    state.uncertain && !state.predicted ? "possible period start" : null,
+    state.ovulation ? "ovulation" : null,
+    state.fertile > 0 ? "fertile" : null,
+    state.logged ? "logged" : null,
   ].filter(Boolean)
 
   const accessibilityLabel = `${format(date, "MMMM d")}${stateParts.length > 0 ? `, ${stateParts.join(", ")}` : ""}`
@@ -88,15 +82,8 @@ const DayCell = memo(function DayCell({
           )}
           style={CELL_MARKED_STYLE}
         >
-          <DayCircle
-            size={34}
-            fill={style.fill}
-            colors={style.colors}
-            opacity={style.opacity}
-          >
-            <Text
-              className={cn("text-sm font-medium", textClass, !inMonth && "opacity-30")}
-            >
+          <DayCircle size={34} fill={fill} colors={style.colors} opacity={style.opacity}>
+            <Text className={cn("text-sm font-medium", textClass, !inMonth && "opacity-30")}>
               {format(date, "d")}
             </Text>
           </DayCircle>
@@ -109,14 +96,12 @@ const DayCell = memo(function DayCell({
           <Text
             className={cn(
               "text-sm",
-              inMonth
-                ? "text-[var(--text-primary)]"
-                : "text-[var(--text-muted)] opacity-30",
+              inMonth ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-30",
             )}
           >
             {format(date, "d")}
           </Text>
-          {info.logged ? (
+          {state.logged ? (
             <View className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--text-muted)]" />
           ) : null}
         </View>
@@ -125,17 +110,10 @@ const DayCell = memo(function DayCell({
   )
 })
 
-const CELL_MARKED_STYLE = { width: 40, height: 40, borderRadius: 20 }
-const CELL_PLAIN_STYLE = { width: 34, height: 34, borderRadius: 17 }
-
 export function MonthGrid({
   currentMonth,
   onMonthChange,
-  periodDays,
-  predictedDays,
-  fertileDays,
-  ovulationDays,
-  loggedDays,
+  dayStates,
   onDayPress,
 }: MonthGridProps) {
   const { colorScheme } = useColorScheme()
@@ -144,28 +122,6 @@ export function MonthGrid({
   // Memoized on the month so DayCell props keep stable identities and the
   // cell memoization actually engages.
   const days = useMemo(() => getDaysInMonthGrid(currentMonth), [currentMonth])
-  const fertileMap = useMemo(() => fertileFractions(fertileDays), [fertileDays])
-
-  const periodSet = useMemo(() => new Set(periodDays), [periodDays])
-  const predictedSet = useMemo(() => new Set(predictedDays), [predictedDays])
-  const ovulationSet = useMemo(() => new Set(ovulationDays), [ovulationDays])
-  const loggedSet = useMemo(() => new Set(loggedDays), [loggedDays])
-
-  const cellInfos = useMemo(
-    () =>
-      days.map((day) => {
-        const iso = format(day.date, "yyyy-MM-dd")
-        return {
-          date: day.date,
-          period: periodSet.has(iso),
-          predictedPeriod: predictedSet.has(iso),
-          fertile: fertileMap.get(iso) ?? 0,
-          ovulation: ovulationSet.has(iso),
-          logged: loggedSet.has(iso),
-        }
-      }),
-    [days, periodSet, predictedSet, ovulationSet, loggedSet, fertileMap],
-  )
 
   const prevMonth = () => onMonthChange(subMonths(currentMonth, 1))
   const nextMonth = () => onMonthChange(addMonths(currentMonth, 1))
@@ -207,26 +163,35 @@ export function MonthGrid({
       </View>
 
       <View className="flex-row flex-wrap px-2">
-        {days.map((day, i) => (
-          <DayCell
-            key={i}
-            date={day.date}
-            info={cellInfos[i]}
-            today={isToday(day.date)}
-            inMonth={isSameMonth(day.date, currentMonth)}
-            dark={dark}
-            onPress={onDayPress}
-          />
-        ))}
+        {days.map((day, i) => {
+          const iso = format(day.date, "yyyy-MM-dd")
+          return (
+            <DayCell
+              key={i}
+              date={day.date}
+              state={dayStates.get(iso) ?? EMPTY_STATE}
+              today={isToday(day.date)}
+              inMonth={isSameMonth(day.date, currentMonth)}
+              dark={dark}
+              onPress={onDayPress}
+            />
+          )
+        })}
       </View>
 
-      <View className="flex-row justify-center gap-4 px-4 py-3">
+      <View className="flex-row justify-center gap-3 px-4 py-3">
         <Legend colors={dayGradient("menstrual", dark)} fill={1} label="Period" />
         <Legend
           colors={dayGradient("menstrual", dark)}
           fill={1}
           opacity={0.45}
           label="Predicted"
+        />
+        <Legend
+          colors={dayGradient("menstrual", dark)}
+          fill={0.45 * 0.45}
+          opacity={0.7}
+          label="Maybe"
         />
         <Legend colors={dayGradient("ovulation", dark)} fill={0.6} label="Fertile" />
         <Legend colors={dayGradient("ovulation", dark)} fill={1} label="Ovulation" />
@@ -252,4 +217,13 @@ function Legend({
       <Text className="text-xs text-[var(--text-muted)]">{label}</Text>
     </View>
   )
+}
+
+const EMPTY_STATE: CycleDayState = {
+  period: false,
+  predicted: false,
+  uncertain: false,
+  fertile: 0,
+  ovulation: false,
+  logged: false,
 }
