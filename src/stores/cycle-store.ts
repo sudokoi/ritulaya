@@ -1,5 +1,6 @@
 import { createStore } from "@xstate/store"
 import { listCycles } from "@/services/db"
+import { logger } from "@/services/logger"
 import type { Cycle } from "@/types/cycle"
 
 interface CycleState {
@@ -25,7 +26,11 @@ export const cycleStore = createStore({
 })
 
 export async function loadCycles() {
-  const cycles = await listCycles()
-  const currentCycle = cycles.find((cycle) => cycle.endDate === null) ?? null
-  cycleStore.send({ type: "setCycles", cycles, currentCycle })
+  try {
+    const cycles = await listCycles()
+    const currentCycle = cycles.find((cycle) => cycle.endDate === null) ?? null
+    cycleStore.send({ type: "setCycles", cycles, currentCycle })
+  } catch (e) {
+    logger.error("db:cycles", "Failed to load cycles", e)
+  }
 }

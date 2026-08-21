@@ -4,6 +4,7 @@ import {
   upsertDayLog as upsertDayLogInRepo,
   deleteDayLog as deleteDayLogInRepo,
 } from "@/services/db"
+import { logger } from "@/services/logger"
 import { todayISO } from "@/utils/date"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 
@@ -53,8 +54,12 @@ export const dayLogStore = createStore({
 })
 
 export async function loadDayLogs() {
-  const logs = await listDayLogs()
-  dayLogStore.send({ type: "setLogs", logs })
+  try {
+    const logs = await listDayLogs()
+    dayLogStore.send({ type: "setLogs", logs })
+  } catch (e) {
+    logger.error("db:day-logs", "Failed to load day logs", e)
+  }
 }
 
 export async function upsertDayLog(input: DayLogCreate): Promise<DayLog | null> {

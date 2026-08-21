@@ -3,6 +3,7 @@ import {
   requestNotificationPermissions,
   updateAllReminders,
 } from "@/services/notifications"
+import { logger } from "@/services/logger"
 import { useSettings } from "./use-settings"
 import { usePrediction } from "./use-predictions"
 
@@ -11,7 +12,9 @@ export function useNotifications() {
   const prediction = usePrediction().prediction
 
   useEffect(() => {
-    requestNotificationPermissions()
+    requestNotificationPermissions().catch((e) =>
+      logger.warn("notifications", "Permission request failed", e),
+    )
   }, [])
 
   useEffect(() => {
@@ -20,6 +23,6 @@ export function useNotifications() {
       reminderPeriodAhead,
       reminderDailyLog,
       discreetMode,
-    )
+    ).catch((e) => logger.warn("notifications", "Reminder scheduling failed", e))
   }, [prediction, reminderPeriodAhead, reminderDailyLog, discreetMode])
 }
