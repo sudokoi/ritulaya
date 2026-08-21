@@ -36,6 +36,14 @@ class RitulayaPredictionsModule : Module() {
                         "periodLength" to periodLength,
                         "avgCycleLength" to avgCycleLength,
                         "phase" to phase,
+                        "stats" to
+                            PredictionEngine.cycleStats(engineCycles)?.let { stats ->
+                                mapOf(
+                                    "lengths" to stats.lengths,
+                                    "median" to stats.median,
+                                    "sigma" to stats.sigma,
+                                )
+                            },
                     )
 
                 persistWidgetSnapshot(output.nextPeriodStart, currentCycle?.startDate, engineConfig, config.dataVersion)

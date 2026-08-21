@@ -5,12 +5,14 @@ import { dayLogStore } from "@/stores/day-log-store"
 import { settingsStore } from "@/stores/settings-store"
 import type { PredictionResult } from "@/types/prediction"
 import type { Phase } from "@/constants/phase-colors"
+import type { CycleStats } from "@/services/predictions"
 
 export interface PredictionState {
   prediction: PredictionResult | null
   periodLength: number
   avgCycleLength: number
   phase: Phase
+  stats: CycleStats | null
   loaded: boolean
 }
 
@@ -20,6 +22,7 @@ export const predictionStore = createStore({
     periodLength: 3,
     avgCycleLength: 28,
     phase: "follicular",
+    stats: null,
     loaded: false,
   } as PredictionState,
   on: {
@@ -30,12 +33,14 @@ export const predictionStore = createStore({
         periodLength: number
         avgCycleLength: number
         phase: Phase
+        stats: CycleStats | null
       },
     ) => ({
       prediction: event.prediction,
       periodLength: event.periodLength,
       avgCycleLength: event.avgCycleLength,
       phase: event.phase,
+      stats: event.stats,
       loaded: true,
     }),
   },
@@ -81,6 +86,7 @@ export async function recomputePrediction(): Promise<void> {
         periodLength: bundle.periodLength,
         avgCycleLength: bundle.avgCycleLength,
         phase: bundle.phase,
+        stats: bundle.stats,
       })
     } while (pending)
   } finally {

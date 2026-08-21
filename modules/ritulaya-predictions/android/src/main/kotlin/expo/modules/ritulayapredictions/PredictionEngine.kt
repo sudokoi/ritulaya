@@ -46,6 +46,27 @@ object PredictionEngine {
         val engine: String,
     )
 
+    /** Descriptive stats over the user's own recent cycle lengths. */
+    data class CycleStats(
+        val lengths: List<Int>,
+        val median: Double,
+        val sigma: Double,
+    )
+
+    fun cycleStats(cycles: List<CycleInput>): CycleStats? {
+        val lengths =
+            cycles
+                .filter { it.endDate != null }
+                .sortedByDescending { it.startDate }
+                .map { cycle ->
+                    val start = LocalDate.parse(cycle.startDate)
+                    val end = LocalDate.parse(cycle.endDate ?: cycle.startDate)
+                    ChronoUnit.DAYS.between(start, end).toInt() + 1
+                }
+        if (lengths.isEmpty()) return null
+        return CycleStats(lengths, median(lengths), robustSigma(lengths))
+    }
+
     fun averagePeriodLength(
         cycles: List<CycleInput>,
         logs: List<DayLogInput>,
