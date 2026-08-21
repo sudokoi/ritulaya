@@ -2,6 +2,7 @@ package expo.modules.ritulayasync
 
 import android.util.Base64
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
@@ -138,6 +139,10 @@ class GithubApiClient(
     private fun readResponse(conn: HttpURLConnection): String {
         val code = conn.responseCode
         val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-        return stream?.bufferedReader()?.use(BufferedReader::readText) ?: throw Exception("HTTP $code")
+        val body = stream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
+        if (code !in 200..299) {
+            throw IOException("GitHub API error $code: ${body.take(300)}")
+        }
+        return body
     }
 }
