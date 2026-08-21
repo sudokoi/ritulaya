@@ -121,8 +121,10 @@ object PredictionEngine {
         val overdue = rawNextStart.isBefore(LocalDate.now())
         val nextStart = if (overdue) LocalDate.now() else rawNextStart
         val nextEnd = nextStart.plusDays(config.avgPeriodLength.toLong() - 1)
-        val ovulationAnchor = if (overdue) nextStart.plusDays(avgCycleLength.toLong()) else nextStart
-        val ovulation = ovulationAnchor.minusDays(config.lutealPhaseLength.toLong())
+        // Ovulation is always anchored to the predicted period start; when the
+        // period is overdue this places ovulation (and the fertile window) in
+        // the past, which is correct — it already happened last cycle.
+        val ovulation = nextStart.minusDays(config.lutealPhaseLength.toLong())
         val fertileStart = ovulation.minusDays(3)
         val fertileEnd = ovulation.plusDays(1)
 
