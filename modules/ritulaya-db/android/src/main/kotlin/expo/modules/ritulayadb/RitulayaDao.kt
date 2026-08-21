@@ -56,6 +56,9 @@ interface RitulayaDao {
     @Query("DELETE FROM cycles")
     suspend fun deleteAllCycles()
 
+    @Query("DELETE FROM cycles WHERE id = :id")
+    suspend fun deleteCycleById(id: String)
+
     @Query("DELETE FROM day_logs")
     suspend fun deleteAllDayLogs()
 }
