@@ -1,6 +1,9 @@
 import * as Notifications from "expo-notifications"
 import { subDays } from "date-fns"
+import { Platform } from "react-native"
 import { discreetLabel } from "@/lib/discreet"
+
+const REMINDER_CHANNEL_ID = "reminders"
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -11,6 +14,15 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 })
+
+async function ensureReminderChannel() {
+  if (Platform.OS !== "android") return
+  await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
+    name: "Reminders",
+    importance: Notifications.AndroidImportance.DEFAULT,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+  })
+}
 
 export async function requestNotificationPermissions(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync()
@@ -34,6 +46,7 @@ export async function schedulePeriodReminder(
 
   if (triggerDate <= new Date()) return
 
+  await ensureReminderChannel()
   await Notifications.scheduleNotificationAsync({
     content: {
       title: discreetLabel(discreet, "Period Ahead", "Reminder"),
@@ -47,11 +60,13 @@ export async function schedulePeriodReminder(
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: triggerDate,
+      channelId: REMINDER_CHANNEL_ID,
     },
   })
 }
 
 export async function scheduleDailyLogReminder(discreet: boolean) {
+  await ensureReminderChannel()
   await Notifications.scheduleNotificationAsync({
     content: {
       title: discreetLabel(discreet, "Daily Log", "Check-in"),
@@ -66,6 +81,7 @@ export async function scheduleDailyLogReminder(discreet: boolean) {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: 20,
       minute: 0,
+      channelId: REMINDER_CHANNEL_ID,
     },
   })
 }
