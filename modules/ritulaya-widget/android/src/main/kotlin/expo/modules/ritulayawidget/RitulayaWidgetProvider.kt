@@ -58,19 +58,28 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val discreet = RitulayaDataStore(context.applicationContext).getSettings()?.discreetMode == 1
 
             // Prefer the snapshot the app persisted with its last prediction so
-            // the widget always matches what the user sees in-app; fall back to
-            // computing locally (fresh install before the first app launch).
+            // the widget always matches what the user sees in-app; counters are
+            // derived from the stored dates at render time so they stay current
+            // across reboots. Falls back to computing locally (fresh install
+            // before the first app launch).
             val snapshot = readSnapshot(context)
             if (snapshot != null) {
-                render(
-                    context,
-                    appWidgetManager,
-                    widgetId,
-                    snapshot.dayNumber,
-                    snapshot.phase,
-                    snapshot.daysUntilNext,
-                    discreet,
-                )
+                val today = LocalDate.now()
+                val dayNumber =
+                    snapshot.cycleStartDate
+                        ?.let { (ChronoUnit.DAYS.between(LocalDate.parse(it), today) + 1).toInt() }
+                        ?: 1
+                val daysUntilNext = ChronoUnit.DAYS.between(today, snapshot.nextPeriodStart).toInt()
+                val phase =
+                    PredictionEngine.phase(
+                        daysUntilNext,
+                        PredictionEngine.Config(
+                            snapshot.avgCycleLength,
+                            snapshot.avgPeriodLength,
+                            snapshot.lutealPhaseLength,
+                        ),
+                    )
+                render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet)
                 return
             }
 
@@ -100,9 +109,11 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
         }
 
         private data class WidgetSnapshot(
-            val dayNumber: Int,
-            val phase: String,
-            val daysUntilNext: Int,
+            val nextPeriodStart: LocalDate,
+            val cycleStartDate: String?,
+            val avgCycleLength: Int,
+            val avgPeriodLength: Int,
+            val lutealPhaseLength: Int,
         )
 
         private fun readSnapshot(context: Context): WidgetSnapshot? {
@@ -110,7 +121,13 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val json = prefs.getString("widget_snapshot", null) ?: return null
             return try {
                 val o = org.json.JSONObject(json)
-                WidgetSnapshot(o.getInt("dayNumber"), o.getString("phase"), o.getInt("daysUntilNext"))
+                WidgetSnapshot(
+                    nextPeriodStart = LocalDate.parse(o.getString("nextPeriodStart")),
+                    cycleStartDate = o.getString("cycleStartDate").ifEmpty { null },
+                    avgCycleLength = o.getInt("avgCycleLength"),
+                    avgPeriodLength = o.getInt("avgPeriodLength"),
+                    lutealPhaseLength = o.getInt("lutealPhaseLength"),
+                )
             } catch (_: Exception) {
                 null
             }

@@ -42,20 +42,21 @@ class RitulayaPredictionsModule : Module() {
                         "phase" to phase,
                     )
 
-                persistWidgetSnapshot(dayNumber, phase, daysUntilNext)
+                persistWidgetSnapshot(output.nextPeriodStart, currentCycle?.startDate, engineConfig)
                 result
             }
         }
 
     /**
-     * Persists a small widget-facing snapshot so the home-screen widget renders
+     * Persists a widget-facing snapshot so the home-screen widget renders
      * exactly what the app computed instead of re-running its own copy of the
-     * prediction pipeline.
+     * prediction pipeline. Dates are stored rather than derived counters so
+     * the widget stays current across reboots without an app-side recompute.
      */
     private fun persistWidgetSnapshot(
-        dayNumber: Int,
-        phase: String,
-        daysUntilNext: Int,
+        nextPeriodStart: LocalDate,
+        cycleStartDate: String?,
+        config: PredictionEngine.Config,
     ) {
         val context: Context = appContext.reactContext?.applicationContext ?: return
         context
@@ -64,9 +65,11 @@ class RitulayaPredictionsModule : Module() {
             .putString(
                 "widget_snapshot",
                 JSONObject()
-                    .put("dayNumber", dayNumber)
-                    .put("phase", phase)
-                    .put("daysUntilNext", daysUntilNext)
+                    .put("nextPeriodStart", nextPeriodStart.toString())
+                    .put("cycleStartDate", cycleStartDate ?: "")
+                    .put("avgCycleLength", config.avgCycleLength)
+                    .put("avgPeriodLength", config.avgPeriodLength)
+                    .put("lutealPhaseLength", config.lutealPhaseLength)
                     .toString(),
             ).apply()
     }
