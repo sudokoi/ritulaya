@@ -141,7 +141,9 @@ export function MonthGrid({
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
   const { muted } = useThemeColors()
-  const days = getDaysInMonthGrid(currentMonth)
+  // Memoized on the month so DayCell props keep stable identities and the
+  // cell memoization actually engages.
+  const days = useMemo(() => getDaysInMonthGrid(currentMonth), [currentMonth])
   const fertileMap = useMemo(() => fertileFractions(fertileDays), [fertileDays])
 
   const periodSet = useMemo(() => new Set(periodDays), [periodDays])
