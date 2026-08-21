@@ -36,10 +36,9 @@ function buildDayStates(
   logs: { date: string; flowIntensity: string | null }[],
   throughDate?: Date,
 ): Map<string, CycleDayState> {
-  const flowDays =
-    logs
-      .filter((log) => log.flowIntensity && log.flowIntensity !== "none")
-      .map((log) => log.date)
+  const flowDays = logs
+    .filter((log) => log.flowIntensity && log.flowIntensity !== "none")
+    .map((log) => log.date)
   const loggedDays = logs.map((log) => log.date)
 
   const { periodDays, predictedDays, uncertainDays, fertileDays, ovulationDays } =

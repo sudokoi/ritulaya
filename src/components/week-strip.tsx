@@ -30,7 +30,12 @@ export function WeekStrip({ days }: WeekStripProps) {
           <View key={i} className="relative flex-1 items-center gap-1">
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
             {marked ? (
-              <DayCircle size={20} fill={fill} colors={style.colors} opacity={style.opacity} />
+              <DayCircle
+                size={20}
+                fill={fill}
+                colors={style.colors}
+                opacity={style.opacity}
+              />
             ) : (
               <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
             )}

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Pressable } from "react-native"
 import { useMemo, useCallback } from "react"
 import { format, addDays, isToday, differenceInDays } from "date-fns"
-import { useFocusEffect } from "expo-router"
+import { useFocusEffect, router } from "expo-router"
 import { useColorScheme } from "nativewind"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { WeekStrip } from "@/components/week-strip"
@@ -73,10 +73,7 @@ export default function TodayScreen() {
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
-      <View
-        className="items-center px-6 pb-6"
-        style={{ paddingTop: insets.top + 24 }}
-      >
+      <View className="items-center px-6 pb-6" style={{ paddingTop: insets.top + 24 }}>
         <Text className="text-7xl font-bold text-[var(--text-primary)]">
           {isLoaded ? cycleDay : "-"}
         </Text>
@@ -120,6 +117,22 @@ export default function TodayScreen() {
           </Text>
         ) : null}
       </View>
+
+      {isLoaded && currentCycle === null ? (
+        <Pressable
+          className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4 active:opacity-60"
+          onPress={() => router.push("/seed")}
+          accessibilityRole="button"
+          accessibilityLabel="Set up your cycle"
+        >
+          <Text className="text-base font-semibold text-[var(--text-primary)]">
+            Set up your cycle
+          </Text>
+          <Text className="mt-1 text-sm text-[var(--text-muted)]">
+            Plant your last period so predictions work right away.
+          </Text>
+        </Pressable>
+      ) : null}
 
       <Pressable
         className="mx-4 mb-4 rounded-card bg-accent px-6 py-4 active:opacity-60"

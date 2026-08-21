@@ -2,7 +2,7 @@ import { View, Text, Pressable } from "react-native"
 import { addMonths, subMonths, format, isSameMonth, isToday } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
 import { useColorScheme } from "nativewind"
-import { memo, useMemo } from "react"
+import { memo } from "react"
 import { getDaysInMonthGrid } from "@/utils/date"
 import { cn } from "@/lib/utils"
 import { useThemeColors } from "@/hooks/use-theme-colors"
@@ -38,7 +38,11 @@ const DayCell = memo(function DayCell({
   onPress,
 }: DayCellProps) {
   const marked =
-    state.period || state.predicted || state.uncertain || state.ovulation || state.fertile > 0
+    state.period ||
+    state.predicted ||
+    state.uncertain ||
+    state.ovulation ||
+    state.fertile > 0
 
   // Uncertain days borrow the predicted gradient at a whisper so the calendar
   // communicates "could start here" without competing with the point estimate.
@@ -83,7 +87,9 @@ const DayCell = memo(function DayCell({
           style={CELL_MARKED_STYLE}
         >
           <DayCircle size={34} fill={fill} colors={style.colors} opacity={style.opacity}>
-            <Text className={cn("text-sm font-medium", textClass, !inMonth && "opacity-30")}>
+            <Text
+              className={cn("text-sm font-medium", textClass, !inMonth && "opacity-30")}
+            >
               {format(date, "d")}
             </Text>
           </DayCircle>
@@ -96,7 +102,9 @@ const DayCell = memo(function DayCell({
           <Text
             className={cn(
               "text-sm",
-              inMonth ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-30",
+              inMonth
+                ? "text-[var(--text-primary)]"
+                : "text-[var(--text-muted)] opacity-30",
             )}
           >
             {format(date, "d")}

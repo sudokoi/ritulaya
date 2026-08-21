@@ -1,4 +1,13 @@
-import { View, Text, TextInput, Modal, ScrollView, Pressable, KeyboardAvoidingView, Platform } from "react-native"
+import {
+  View,
+  Text,
+  TextInput,
+  Modal,
+  ScrollView,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native"
 import { useState, useCallback } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
@@ -177,7 +186,9 @@ export function DayDetailSheet({
                     </Pressable>
                   ))}
                 </View>
-                {onClearPeriod && existing?.flowIntensity && existing.flowIntensity !== "none" ? (
+                {onClearPeriod &&
+                existing?.flowIntensity &&
+                existing.flowIntensity !== "none" ? (
                   <Pressable
                     onPress={handleClearPeriod}
                     className="mt-3 self-start active:opacity-60"
@@ -301,7 +312,9 @@ export function DayDetailSheet({
                   />
                 </View>
                 <View className="mt-4 flex-row items-center justify-between">
-                  <Text className="text-base text-[var(--text-primary)]">Sexual activity</Text>
+                  <Text className="text-base text-[var(--text-primary)]">
+                    Sexual activity
+                  </Text>
                   <Pressable
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)

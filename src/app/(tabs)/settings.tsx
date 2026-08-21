@@ -133,10 +133,18 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      <View className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
+      <Pressable
+        className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4 active:opacity-60"
+        onPress={() => router.push("/seed")}
+        accessibilityRole="button"
+        accessibilityLabel="Adjust cycle lengths"
+      >
         <View className="flex-row justify-between">
           <StatItem value={`${avgCycleLength}`} label="avg cycle" discreet={discreet} />
           <StatItem value={`${periodLength}`} label="period days" discreet={discreet} />
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-xs text-[var(--text-muted)]">Edit</Text>
+          </View>
         </View>
         <Pressable
           onPress={() => router.push("/settings/insights")}
@@ -147,7 +155,7 @@ export default function SettingsScreen() {
             {discreetLabel(discreet, "View Full Insights", "View Details")}
           </Text>
         </Pressable>
-      </View>
+      </Pressable>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">
         <SectionHeader title={discreetLabel(discreet, "Privacy", "Security")} />
