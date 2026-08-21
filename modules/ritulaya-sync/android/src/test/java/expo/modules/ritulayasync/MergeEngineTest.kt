@@ -78,6 +78,18 @@ class MergeEngineTest {
     }
 
     @Test
+    fun `remote edit newer than local deletion resurrects the row`() {
+        val local = listOf(cycle("a", "2026-01-01T00:00:00.000Z", deletedAt = "2026-02-01T00:00:00.000Z"))
+        val remote = listOf(cycle("a", "2026-03-01T00:00:00.000Z"))
+
+        val merged = MergeEngine.mergeCycles(local, remote)
+
+        assertThat(merged).hasSize(1)
+        assertThat(merged[0].deletedAt).isNull()
+        assertThat(merged[0].updatedAt).isEqualTo("2026-03-01T00:00:00.000Z")
+    }
+
+    @Test
     fun `local-only row survives`() {
         val merged = MergeEngine.mergeCycles(listOf(cycle("a", "2026-01-01T00:00:00.000Z")), emptyList())
 
