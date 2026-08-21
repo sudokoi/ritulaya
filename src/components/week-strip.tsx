@@ -2,19 +2,10 @@ import { View, Text } from "react-native"
 import { useColorScheme } from "nativewind"
 import { DayCircle } from "@/components/day-circle"
 import { resolveDayStyle } from "@/lib/day-colors"
-
-interface WeekDay {
-  date: Date
-  label: string
-  isPeriod: boolean
-  isPredicted: boolean
-  fertile: number
-  isOvulation: boolean
-  isToday: boolean
-}
+import type { CycleDayState } from "@/hooks/use-cycle-day-states"
 
 interface WeekStripProps {
-  days: WeekDay[]
+  days: { date: Date; label: string; isToday: boolean; state: CycleDayState }[]
 }
 
 export function WeekStrip({ days }: WeekStripProps) {
@@ -24,25 +15,22 @@ export function WeekStrip({ days }: WeekStripProps) {
   return (
     <View className="flex-row justify-between px-2">
       {days.map((day, i) => {
+        const state = day.state
         const style = resolveDayStyle({
-          isPeriod: day.isPeriod,
-          isPredicted: day.isPredicted,
-          isOvulation: day.isOvulation,
-          fertile: day.fertile,
+          isPeriod: state.period,
+          isPredicted: state.predicted || state.uncertain,
+          isOvulation: state.ovulation,
+          fertile: state.fertile,
           dark,
         })
-        const marked = style.fill > 0
+        const fill = state.uncertain && !state.predicted ? style.fill * 0.45 : style.fill
+        const marked = fill > 0
 
         return (
           <View key={i} className="relative flex-1 items-center gap-1">
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
             {marked ? (
-              <DayCircle
-                size={20}
-                fill={style.fill}
-                colors={style.colors}
-                opacity={style.opacity}
-              />
+              <DayCircle size={20} fill={fill} colors={style.colors} opacity={style.opacity} />
             ) : (
               <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
             )}

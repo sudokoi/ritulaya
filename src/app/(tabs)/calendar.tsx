@@ -3,59 +3,36 @@ import { useState, useMemo, useCallback } from "react"
 import { format, endOfMonth } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
+import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { refreshAll } from "@/data/refresh"
-import { saveDayEntry } from "@/domain/day-entry"
-import { deriveCycleDays } from "@/lib/cycle-derivation"
-import type { FlowIntensity } from "@/types/day-log"
-import type { SymptomKey } from "@/constants/symptoms"
-import type { MoodKey } from "@/constants/moods"
+import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
 
 export default function CalendarScreen() {
-  const { prediction, periodLength, avgCycleLength } = usePrediction()
-  const { logs, upsertDayLog, deleteDayLog, getLogForDate } = useDayLogs()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [viewedMonth, setViewedMonth] = useState(() => new Date())
+
+  const monthEnd = useMemo(() => endOfMonth(viewedMonth), [viewedMonth])
+  const dayStates = useCycleDayStates(monthEnd)
+  const { periodLength, avgCycleLength } = usePrediction()
+  const { deleteDayLog, upsertDayLog, getLogForDate } = useDayLogs()
 
   const existingLog = useMemo(() => {
     if (!selectedDate) return null
     return getLogForDate(format(selectedDate, "yyyy-MM-dd"))
   }, [selectedDate, getLogForDate])
 
-  const flowDays = useMemo(
-    () =>
-      logs
-        .filter((log) => log.flowIntensity && log.flowIntensity !== "none")
-        .map((log) => log.date),
-    [logs],
-  )
-
-  const throughDate = useMemo(() => endOfMonth(viewedMonth), [viewedMonth])
-
-  const { periodDays, predictedDays, fertileDays, ovulationDays } = useMemo(
-    () => deriveCycleDays(prediction, flowDays, { avgCycleLength, throughDate }),
-    [prediction, flowDays, avgCycleLength, throughDate],
-  )
-
-  const loggedDays = useMemo(() => logs.map((log) => log.date), [logs])
-
   const handleSave = useCallback(
-    async (data: {
-      flowIntensity: FlowIntensity | null
-      symptoms: SymptomKey[]
-      mood: MoodKey | null
-      notes: string | null
-    }) => {
-      if (!selectedDate) return
-      const date = format(selectedDate, "yyyy-MM-dd")
-      saveDayEntry({ date, ...data }, periodLength)
-        .then(() => setSelectedDate(null))
-        .catch(() =>
-          Alert.alert("Save failed", "Something went wrong while saving the entry."),
-        )
+    async (entry: DayEntryInput) => {
+      try {
+        await saveDayEntry(entry, periodLength)
+      } catch {
+        Alert.alert("Save failed", "Something went wrong while saving the entry.")
+      }
+      setSelectedDate(null)
     },
-    [selectedDate, periodLength],
+    [periodLength],
   )
 
   const handleDelete = useCallback(() => {
@@ -105,11 +82,7 @@ export default function CalendarScreen() {
         <MonthGrid
           currentMonth={viewedMonth}
           onMonthChange={setViewedMonth}
-          periodDays={periodDays}
-          predictedDays={predictedDays}
-          fertileDays={fertileDays}
-          ovulationDays={ovulationDays}
-          loggedDays={loggedDays}
+          dayStates={dayStates}
           onDayPress={setSelectedDate}
         />
 
@@ -117,10 +90,7 @@ export default function CalendarScreen() {
           key={selectedDate ? format(selectedDate, "yyyy-MM-dd") : "closed"}
           visible={selectedDate !== null}
           date={selectedDate ?? new Date()}
-          existingFlow={existingLog?.flowIntensity}
-          existingSymptoms={existingLog?.symptoms ?? []}
-          existingMood={existingLog?.mood}
-          existingNotes={existingLog?.notes}
+          existing={existingLog}
           onSave={handleSave}
           onClearPeriod={existingLog ? handleClearPeriod : undefined}
           onDelete={existingLog ? handleDelete : undefined}
