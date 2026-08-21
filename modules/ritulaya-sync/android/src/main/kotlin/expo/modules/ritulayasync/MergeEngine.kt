@@ -15,7 +15,11 @@ object MergeEngine {
             if (localRow == null) {
                 if (remoteRow.deletedAt == null) merged[remoteRow.id] = remoteRow
             } else if (remoteRow.deletedAt != null) {
-                merged.remove(remoteRow.id)
+                if (localRow.deletedAt != null) {
+                    merged.remove(remoteRow.id)
+                } else if (parseIso(remoteRow.deletedAt) >= parseIso(localRow.updatedAt)) {
+                    merged.remove(remoteRow.id)
+                }
             } else if (localRow.deletedAt != null) {
                 merged[remoteRow.id] = localRow
             } else {
@@ -36,7 +40,11 @@ object MergeEngine {
             if (localRow == null) {
                 if (remoteRow.deletedAt == null) merged[remoteRow.id] = remoteRow
             } else if (remoteRow.deletedAt != null) {
-                merged.remove(remoteRow.id)
+                if (localRow.deletedAt != null) {
+                    merged.remove(remoteRow.id)
+                } else if (parseIso(remoteRow.deletedAt) >= parseIso(localRow.updatedAt)) {
+                    merged.remove(remoteRow.id)
+                }
             } else if (localRow.deletedAt != null) {
                 merged[remoteRow.id] = localRow
             } else {
@@ -70,6 +78,6 @@ object MergeEngine {
                 .parse(timestamp)
                 .toEpochMilli()
         } catch (e: Exception) {
-            0L
+            Long.MIN_VALUE
         }
 }
