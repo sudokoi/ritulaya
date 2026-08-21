@@ -233,8 +233,20 @@ class RitulayaDataStore(
         snapshotTombstones: List<SyncTombstoneEntity>,
     ) {
         db.withTransaction {
-            cycles.forEach { dao.insertCycle(it) }
-            dayLogs.forEach { dao.upsertDayLog(it) }
+            // Last-write-wins against live rows so a local edit made while the
+            // sync was running is not clobbered by a snapshot-era merged row.
+            cycles.forEach { incoming ->
+                val live = dao.getCycleById(incoming.id)
+                if (live == null || incoming.updatedAt >= live.updatedAt) {
+                    dao.insertCycle(incoming)
+                }
+            }
+            dayLogs.forEach { incoming ->
+                val live = dao.getDayLogById(incoming.id)
+                if (live == null || incoming.updatedAt >= live.updatedAt) {
+                    dao.upsertDayLog(incoming)
+                }
+            }
             deletedCycleIds.forEach { dao.deleteCycleById(it) }
             deletedDayLogIds.forEach { dao.deleteDayLogById(it) }
             snapshotTombstones.forEach {

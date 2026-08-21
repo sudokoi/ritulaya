@@ -10,6 +10,9 @@ interface RitulayaDao {
     @Query("SELECT * FROM cycles ORDER BY start_date DESC")
     suspend fun listCycles(): List<CycleEntity>
 
+    @Query("SELECT * FROM cycles WHERE id = :id")
+    suspend fun getCycleById(id: String): CycleEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCycle(cycle: CycleEntity)
 
@@ -25,6 +28,9 @@ interface RitulayaDao {
 
     @Query("SELECT * FROM day_logs WHERE date = :date LIMIT 1")
     suspend fun getDayLogByDate(date: String): DayLogEntity?
+
+    @Query("SELECT * FROM day_logs WHERE id = :id")
+    suspend fun getDayLogById(id: String): DayLogEntity?
 
     @Query(
         "SELECT date FROM day_logs WHERE flow_intensity IS NOT NULL AND flow_intensity != 'none' " +
