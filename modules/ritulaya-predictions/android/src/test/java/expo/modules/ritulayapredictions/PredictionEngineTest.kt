@@ -72,9 +72,11 @@ class PredictionEngineTest {
 
         assertThat(result.nextPeriodStart).isEqualTo(today)
         assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse(daysAhead(4)))
-        assertThat(result.ovulationDay).isEqualTo(LocalDate.parse(daysAhead(14)))
-        assertThat(result.fertileWindowStart).isEqualTo(LocalDate.parse(daysAhead(11)))
-        assertThat(result.fertileWindowEnd).isEqualTo(LocalDate.parse(daysAhead(15)))
+        // Ovulation stays anchored to the predicted period start, so an
+        // overdue period puts ovulation and the fertile window in the past.
+        assertThat(result.ovulationDay).isEqualTo(today.minusDays(14))
+        assertThat(result.fertileWindowStart).isEqualTo(today.minusDays(17))
+        assertThat(result.fertileWindowEnd).isEqualTo(today.minusDays(13))
     }
 
     @Test
