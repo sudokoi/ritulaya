@@ -29,7 +29,11 @@ interface RitulayaSyncNativeModule {
   syncNow(): Promise<SyncStatus>
   scheduleBackgroundSync(intervalMinutes: number): Promise<void>
   getSyncStatus(): Promise<SyncStatus>
-  addListener(event: "syncStatusChanged" | "syncConflictDetected"): void
+  addListener(
+    event: "syncStatusChanged",
+    listener: (event: SyncStatus) => void,
+  ): { remove(): void }
+
   removeListeners(count: number): void
 }
 

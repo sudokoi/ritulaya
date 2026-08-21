@@ -26,16 +26,17 @@ class SyncOrchestrator(
 
     suspend fun sync(): Map<String, Any> {
         val token = tokenStore.load("github_token")
-        if (token == null) return errorResult("Not authenticated")
+        if (token == null) return notRunResult()
 
         val owner = prefs.getString("repo_owner", null)
-        if (owner == null) return errorResult("Repo not configured")
+        if (owner == null) return notRunResult()
         val repo = prefs.getString("repo_name", null)
-        if (repo == null) return errorResult("Repo not configured")
+        if (repo == null) return notRunResult()
         val branch = prefs.getString("repo_branch", "main")!!
 
         val api = GithubApiClient(token)
 
+        setStatus("syncing")
         return try {
             syncMutex.withLock { fetchMergePush(api, owner, repo, branch) }
         } catch (e: Exception) {
@@ -44,8 +45,19 @@ class SyncOrchestrator(
             if (failures >= 3) {
                 prefs.edit().putBoolean("sync_warning", true).apply()
             }
+            setStatus("error")
             errorResult(e.message ?: "Sync failed")
         }
+    }
+
+    private fun setStatus(status: String) {
+        prefs.edit().putString("sync_status", status).apply()
+    }
+
+    /** Sync could not run at all (unauthenticated/unconfigured) — not an error. */
+    private fun notRunResult(): Map<String, Any> {
+        setStatus("idle")
+        return errorResult("Sync not ready")
     }
 
     private suspend fun fetchMergePush(
@@ -139,6 +151,7 @@ class SyncOrchestrator(
             .putLong("last_sync_at", System.currentTimeMillis())
             .putInt("consecutive_failures", 0)
             .putBoolean("sync_warning", false)
+            .putString("sync_status", "inSync")
             .apply()
 
         return mapOf(

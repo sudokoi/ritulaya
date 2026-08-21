@@ -90,6 +90,13 @@ export function getSyncStatus(): Promise<SyncStatus | null> {
   )
 }
 
+export function onSyncStatusChanged(
+  callback: (status: SyncStatus) => void,
+): () => void {
+  const subscription = native.sync?.addListener("syncStatusChanged", callback)
+  return () => subscription?.remove()
+}
+
 export function disconnect(): Promise<void> {
   return nativeCall(native.sync, (sync) => sync.disconnect(), undefined)
 }
