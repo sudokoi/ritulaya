@@ -49,8 +49,11 @@ export default function CalendarScreen() {
     }) => {
       if (!selectedDate) return
       const date = format(selectedDate, "yyyy-MM-dd")
-      await saveDayEntry({ date, ...data }, periodLength)
-      setSelectedDate(null)
+      saveDayEntry({ date, ...data }, periodLength)
+        .then(() => setSelectedDate(null))
+        .catch(() =>
+          Alert.alert("Save failed", "Something went wrong while saving the entry."),
+        )
     },
     [selectedDate, periodLength],
   )
