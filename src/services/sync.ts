@@ -29,7 +29,8 @@ export async function pollForToken(isCancelled?: () => boolean): Promise<string 
         if (isCancelled?.()) return null
 
         const result = await sync.pollOnce(GITHUB_OAUTH_CLIENT_ID)
-        if (result?.status === "granted") return result.token ?? null
+        // The token itself is stored natively; "granted" is all JS needs.
+        if (result?.status === "granted") return "granted"
         if (result?.status === "error") return null
 
         await sleep(result?.status === "slow_down" ? SLOW_DOWN_MS : POLL_INTERVAL_MS)

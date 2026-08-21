@@ -39,8 +39,8 @@ class RitulayaSyncModule : Module() {
                 if (result.token != null) {
                     tokenStore.save("github_token", result.token)
                 }
+                // The token is persisted natively and never crosses the bridge.
                 mapOf(
-                    "token" to result.token,
                     "status" to result.status,
                 )
             }

@@ -18,9 +18,11 @@ class GithubAuthFlow(
     companion object {
         private const val DEVICE_CODE_URL = "https://github.com/login/device/code"
         private const val ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
+        private const val MAX_NETWORK_FAILURES = 5
     }
 
     private var deviceCode: String = ""
+    private var consecutiveNetworkFailures: Int = 0
 
     fun initiateDeviceFlow(clientId: String): Pair<String, String> {
         val json =
@@ -49,6 +51,7 @@ class GithubAuthFlow(
 
         return try {
             val response = postJson(ACCESS_TOKEN_URL, json, "application/json")
+            consecutiveNetworkFailures = 0
             val token = response.optString("access_token", "")
             if (token.isNotEmpty()) {
                 PollResult(token, "granted")
@@ -61,7 +64,15 @@ class GithubAuthFlow(
                 }
             }
         } catch (e: Exception) {
-            PollResult(null, "pending")
+            // Network failures stay pending so a transient outage doesn't abort
+            // the flow, but repeated failures surface as an error instead of
+            // silently waiting for the timeout.
+            consecutiveNetworkFailures++
+            if (consecutiveNetworkFailures >= MAX_NETWORK_FAILURES) {
+                PollResult(null, "error")
+            } else {
+                PollResult(null, "pending")
+            }
         }
     }
 
