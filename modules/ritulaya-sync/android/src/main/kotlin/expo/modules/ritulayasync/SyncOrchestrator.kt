@@ -6,6 +6,7 @@ import expo.modules.ritulayadb.CycleEntity
 import expo.modules.ritulayadb.DayLogEntity
 import expo.modules.ritulayadb.RitulayaDataStore
 import expo.modules.ritulayadb.SettingsEntity
+import expo.modules.ritulayadb.SyncTombstoneEntity
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
 import kotlinx.coroutines.sync.Mutex
@@ -67,6 +68,9 @@ class SyncOrchestrator(
         val localCycles = loadCycles()
         val localLogs = loadDayLogs()
         val localSettings = loadSettings()
+        // Captured with the snapshot: only these tombstones are cleared after
+        // a successful sync, so deletions made mid-sync survive to be pushed.
+        val snapshotTombstones = dataStore.listTombstones()
 
         val mergedCycles = MergeEngine.mergeCycles(localCycles, remoteCycles)
         val mergedLogs = MergeEngine.mergeDayLogs(localLogs, remoteLogs)
@@ -126,6 +130,7 @@ class SyncOrchestrator(
             localLogs,
             remoteCycles,
             remoteLogs,
+            snapshotTombstones,
         )
         mergedSettings?.let { persistSettings(it) }
 
@@ -187,6 +192,7 @@ class SyncOrchestrator(
         localLogs: List<DayLogRow>,
         remoteCycles: List<CycleRow>,
         remoteLogs: List<DayLogRow>,
+        snapshotTombstones: List<SyncTombstoneEntity>,
     ) {
         val cycleEntities =
             mergedCycles
@@ -220,7 +226,13 @@ class SyncOrchestrator(
         val deletedCycleIds = (localCycles.map { it.id } + remoteCycles.map { it.id }).toSet() - liveCycleIds
         val deletedDayLogIds = (localLogs.map { it.id } + remoteLogs.map { it.id }).toSet() - liveLogIds
 
-        dataStore.applyMerge(cycleEntities, logEntities, deletedCycleIds, deletedDayLogIds)
+        dataStore.applyMerge(
+            cycleEntities,
+            logEntities,
+            deletedCycleIds,
+            deletedDayLogIds,
+            snapshotTombstones,
+        )
     }
 
     private suspend fun persistSettings(settings: SettingsEntity) {

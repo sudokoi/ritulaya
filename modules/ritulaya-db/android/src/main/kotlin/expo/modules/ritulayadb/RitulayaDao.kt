@@ -53,6 +53,12 @@ interface RitulayaDao {
     @Query("DELETE FROM sync_tombstones")
     suspend fun clearTombstones()
 
+    @Query("DELETE FROM sync_tombstones WHERE entity = :entity AND entity_id = :entityId")
+    suspend fun deleteTombstone(
+        entity: String,
+        entityId: String,
+    )
+
     @Query("DELETE FROM cycles")
     suspend fun deleteAllCycles()
 
