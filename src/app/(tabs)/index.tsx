@@ -14,10 +14,12 @@ import { useDayLogs } from "@/hooks/use-day-logs"
 import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
 import { refreshAll } from "@/data/refresh"
 import { cn } from "@/lib/utils"
-import { PHASE_TIPS, PHASE_NAMES } from "@/lib/phase"
+import { phaseNameKey, phaseTipKey } from "@/lib/phase"
+import { useTranslation } from "react-i18next"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 
 export default function TodayScreen() {
+  const { t } = useTranslation()
   const { currentCycle, isLoaded } = useCycles()
   const { avgCycleLength } = useSettings()
   const { prediction, phase } = usePrediction()
@@ -83,7 +85,7 @@ export default function TodayScreen() {
             style={{ backgroundColor: phaseColor }}
           />
           <Text className="text-lg font-medium" style={{ color: phaseTextColor }}>
-            {PHASE_NAMES[phase]}
+            {t(phaseNameKey(phase))}
           </Text>
         </View>
         <View className="mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-[var(--bg-muted)]">
@@ -96,8 +98,9 @@ export default function TodayScreen() {
           />
         </View>
         <Text className="mt-2 text-sm text-[var(--text-muted)]">
-          {lowConfidence ? "roughly " : ""}
-          {daysUntilPeriod} days until next period
+          {lowConfidence
+            ? t("today.roughlyDaysUntil", { count: daysUntilPeriod })
+            : t("today.daysUntil", { count: daysUntilPeriod })}
         </Text>
         {prediction ? (
           <>
@@ -106,14 +109,16 @@ export default function TodayScreen() {
               {format(prediction.nextPeriodEnd, "MMM d")}
             </Text>
             <Text className="mt-0.5 text-xs text-[var(--text-muted)] opacity-70">
-              Could start {format(prediction.uncertaintyWindow.start, "MMM d")} –{" "}
-              {format(prediction.uncertaintyWindow.end, "MMM d")}
+              {t("today.couldStart", {
+                start: format(prediction.uncertaintyWindow.start, "MMM d"),
+                end: format(prediction.uncertaintyWindow.end, "MMM d"),
+              })}
             </Text>
           </>
         ) : null}
         {lowConfidence ? (
           <Text className="mt-2 text-xs text-[var(--text-muted)] opacity-70">
-            Log a few more cycles for better predictions
+            {t("today.logMoreCycles")}
           </Text>
         ) : null}
       </View>
@@ -123,13 +128,13 @@ export default function TodayScreen() {
           className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4 active:opacity-60"
           onPress={() => router.push("/seed")}
           accessibilityRole="button"
-          accessibilityLabel="Set up your cycle"
+          accessibilityLabel={t("today.setupTitle")}
         >
           <Text className="text-base font-semibold text-[var(--text-primary)]">
-            Set up your cycle
+            {t("today.setupTitle")}
           </Text>
           <Text className="mt-1 text-sm text-[var(--text-muted)]">
-            Plant your last period so predictions work right away.
+            {t("today.setupBody")}
           </Text>
         </Pressable>
       ) : null}
@@ -138,15 +143,17 @@ export default function TodayScreen() {
         className="mx-4 mb-4 rounded-card bg-accent px-6 py-4 active:opacity-60"
         onPress={() => logPeriodToday()}
         accessibilityRole="button"
-        accessibilityLabel="Log period today"
+        accessibilityLabel={t("today.logPeriodA11y")}
       >
         <Text className="text-center text-lg font-semibold text-white">
-          Log Period Today
+          {t("today.logPeriodToday")}
         </Text>
       </Pressable>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
-        <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">TODAY</Text>
+        <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">
+          {t("today.sectionToday")}
+        </Text>
         {todayLog ? (
           <>
             <View className="mb-3 flex-row justify-center gap-2">
@@ -184,14 +191,14 @@ export default function TodayScreen() {
           </>
         ) : (
           <Text className="text-sm text-[var(--text-muted)]">
-            Nothing logged yet today
+            {t("today.nothingLogged")}
           </Text>
         )}
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">
-          THIS WEEK
+          {t("today.sectionWeek")}
         </Text>
         <WeekStrip days={weekDays} />
       </View>
@@ -201,7 +208,7 @@ export default function TodayScreen() {
         style={{ backgroundColor: `${phaseTextColor}1f` }}
       >
         <Text className="text-sm font-medium" style={{ color: phaseTextColor }}>
-          {PHASE_TIPS[phase]}
+          {t(phaseTipKey(phase))}
         </Text>
       </View>
     </ScrollView>

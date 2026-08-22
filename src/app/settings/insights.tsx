@@ -15,12 +15,11 @@ import {
   phaseCorrelations,
   regularityCopy,
 } from "@/lib/cycle-insights"
-import { SYMPTOM_CATALOG } from "@/constants/symptoms"
-import { MOOD_CATALOG } from "@/constants/moods"
-import { PHASE_NAMES } from "@/lib/phase"
+import { phaseNameKey } from "@/lib/phase"
+import { useTranslation } from "react-i18next"
 
-function frequency(items: (string | null)[]): [string, number][] {
-  const counts = new Map<string, number>()
+function frequency<K extends string>(items: (K | null)[]): [K, number][] {
+  const counts = new Map<K, number>()
   for (const item of items) {
     if (!item) continue
     counts.set(item, (counts.get(item) ?? 0) + 1)
@@ -29,6 +28,7 @@ function frequency(items: (string | null)[]): [string, number][] {
 }
 
 export default function InsightsScreen() {
+  const { t } = useTranslation()
   const { cycles } = useCycles()
   const { logs } = useDayLogs()
   const {
@@ -66,39 +66,37 @@ export default function InsightsScreen() {
           className="p-2 active:opacity-60"
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t("common.back")}
         >
           <ChevronLeft size={24} color={muted} />
         </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "Insights", "Details")}
+          {discreetLabel(discreet, t("insights.title"), t("discreet.insightsTitle"))}
         </Text>
       </View>
 
       <View className="mx-4 mt-2 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <View className="flex-row justify-between">
-          <Stat
-            value={`${avgCycleLength}`}
-            label={discreetLabel(discreet, "avg cycle", "avg")}
-          />
-          <Stat
-            value={`${periodLength}`}
-            label={discreetLabel(discreet, "period days", "days")}
-          />
-          <Stat
-            value={`${cycles.length}`}
-            label={discreetLabel(discreet, "cycles", "total")}
-          />
+          <Stat value={`${avgCycleLength}`} label={t("calendar.avgCycle")} />
+          <Stat value={`${periodLength}`} label={t("calendar.periodDays")} />
+          <Stat value={`${cycles.length}`} label={t("insights.cyclesCount")} />
         </View>
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "Cycle Lengths", "History")}
+          {discreetLabel(
+            discreet,
+            t("insights.cycleLengths"),
+            t("discreet.cycleLengths"),
+          )}
         </Text>
         {stats ? (
           <Text className="mb-3 text-sm text-[var(--text-muted)]">
-            {regularityCopy(stats.sigma)}
+            {(() => {
+              const copy = regularityCopy(stats.sigma)
+              return t(copy.key, { days: copy.days })
+            })()}
           </Text>
         ) : null}
         {lengthRows.length > 0 ? (
@@ -115,21 +113,25 @@ export default function InsightsScreen() {
                   <View className="h-1.5 w-1.5 rounded-full bg-[var(--bg-muted)]" />
                 )}
                 <Text className="text-sm text-[var(--text-muted)]">
-                  {row.length} days
+                  {t("insights.lengthDays", { count: row.length })}
                 </Text>
               </View>
             </View>
           ))
         ) : (
           <Text className="text-sm text-[var(--text-muted)]">
-            {discreetLabel(discreet, "No completed cycles yet", "Nothing yet")}
+            {discreetLabel(
+              discreet,
+              t("insights.noCompletedCycles"),
+              t("discreet.nothingYet"),
+            )}
           </Text>
         )}
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "By Phase", "Patterns")}
+          {discreetLabel(discreet, t("insights.byPhase"), t("discreet.byPhase"))}
         </Text>
         {(Object.keys(byPhase) as (keyof typeof byPhase)[])
           .filter(
@@ -139,7 +141,7 @@ export default function InsightsScreen() {
           .map((phase) => (
             <View key={phase} className="mb-3">
               <Text className="mb-1 text-sm font-medium text-[var(--text-primary)]">
-                {PHASE_NAMES[phase]}
+                {t(phaseNameKey(phase))}
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 {byPhase[phase].symptoms.slice(0, 3).map(([key, count]) => (
@@ -148,7 +150,7 @@ export default function InsightsScreen() {
                     className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5"
                   >
                     <Text className="text-xs text-[var(--text-primary)]">
-                      {SYMPTOM_CATALOG.find((s) => s.key === key)?.label ?? key} · {count}
+                      {t(`symptoms.${key}`)} · {count}
                     </Text>
                   </View>
                 ))}
@@ -158,7 +160,7 @@ export default function InsightsScreen() {
                     className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5"
                   >
                     <Text className="text-xs text-[var(--text-muted)]">
-                      {MOOD_CATALOG.find((m) => m.key === key)?.label ?? key} · {count}
+                      {t(`moods.${key}`)} · {count}
                     </Text>
                   </View>
                 ))}
@@ -169,47 +171,51 @@ export default function InsightsScreen() {
           (p) => p.symptoms.length === 0 && p.moods.length === 0,
         ) ? (
           <Text className="text-sm text-[var(--text-muted)]">
-            {discreetLabel(discreet, "Log a few entries to see patterns", "Nothing yet")}
+            {discreetLabel(discreet, t("insights.noPatterns"), t("discreet.noPatterns"))}
           </Text>
         ) : null}
       </View>
 
       <View className="mx-4 mt-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "Common Symptoms", "Common Tags")}
+          {discreetLabel(
+            discreet,
+            t("insights.commonSymptoms"),
+            t("discreet.commonSymptoms"),
+          )}
         </Text>
         {symptomFreq.length > 0 ? (
           symptomFreq.slice(0, 10).map(([key, count]) => (
             <View key={key} className="flex-row items-center justify-between py-1.5">
               <Text className="text-sm text-[var(--text-primary)]">
-                {SYMPTOM_CATALOG.find((s) => s.key === key)?.label ?? key}
+                {t(`symptoms.${key}`)}
               </Text>
               <Text className="text-sm text-[var(--text-muted)]">{count}</Text>
             </View>
           ))
         ) : (
           <Text className="text-sm text-[var(--text-muted)]">
-            {discreetLabel(discreet, "No symptoms logged yet", "Nothing yet")}
+            {discreetLabel(discreet, t("insights.noSymptoms"), t("discreet.nothingYet"))}
           </Text>
         )}
       </View>
 
       <View className="mx-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
-          Common Moods
+          {t("insights.commonMoods")}
         </Text>
         {moodFreq.length > 0 ? (
           moodFreq.map(([key, count]) => (
             <View key={key} className="flex-row items-center justify-between py-1.5">
               <Text className="text-sm text-[var(--text-primary)]">
-                {MOOD_CATALOG.find((m) => m.key === key)?.label ?? key}
+                {t(`moods.${key}`)}
               </Text>
               <Text className="text-sm text-[var(--text-muted)]">{count}</Text>
             </View>
           ))
         ) : (
           <Text className="text-sm text-[var(--text-muted)]">
-            {discreetLabel(discreet, "No moods logged yet", "Nothing yet")}
+            {discreetLabel(discreet, t("insights.noMoods"), t("discreet.nothingYet"))}
           </Text>
         )}
       </View>

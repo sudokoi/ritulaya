@@ -25,10 +25,12 @@ import { useSettings } from "@/hooks/use-settings"
 import { useThemeColors } from "@/hooks/use-theme-colors"
 import { discreetLabel } from "@/lib/discreet"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "react-i18next"
 
 const REPO_NAME_PATTERN = /^[A-Za-z0-9._-]+$/
 
 export default function GithubSyncScreen() {
+  const { t } = useTranslation()
   const sync = useSync()
   const { discreetMode: discreet } = useSettings()
   const { muted, accent, danger } = useThemeColors()
@@ -58,9 +60,9 @@ export default function GithubSyncScreen() {
   }
 
   const validateRepoName = (name: string): string | null => {
-    if (!name) return "Enter a repository name."
+    if (!name) return t("sync.emptyNameError")
     if (!REPO_NAME_PATTERN.test(name)) {
-      return "Repository names can only contain letters, numbers, dots, dashes and underscores."
+      return t("sync.charsetError")
     }
     return null
   }
@@ -69,10 +71,7 @@ export default function GithubSyncScreen() {
     const name = repoName.trim()
     const problem = validateRepoName(name)
     if (problem) {
-      Alert.alert(
-        discreetLabel(discreet, "Invalid repository name", "Invalid name"),
-        problem,
-      )
+      Alert.alert(t("sync.invalidNameTitle"), problem)
       return
     }
     void sync.createNewRepo(name)
@@ -81,12 +80,9 @@ export default function GithubSyncScreen() {
   const handleUseExistingRepo = () => {
     const owner = existingOwner.trim() || sync.username || ""
     const repo = existingRepo.trim()
-    const problem = validateRepoName(repo) ?? (owner ? null : "Enter an owner.")
+    const problem = validateRepoName(repo) ?? (owner ? null : t("sync.ownerError"))
     if (problem) {
-      Alert.alert(
-        discreetLabel(discreet, "Invalid repository", "Invalid repository"),
-        problem,
-      )
+      Alert.alert(t("sync.invalidRepoTitle"), problem)
       return
     }
     void sync.useExistingRepo(owner, repo)
@@ -103,12 +99,12 @@ export default function GithubSyncScreen() {
           className="p-2 active:opacity-60"
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t("common.back")}
         >
           <ChevronLeft size={24} color={muted} />
         </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
+          {discreetLabel(discreet, t("sync.title"), t("discreet.githubSync"))}
         </Text>
       </View>
 
@@ -124,14 +120,10 @@ export default function GithubSyncScreen() {
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Cloud size={40} color={muted} />
           <Text className="mt-4 text-lg font-semibold text-[var(--text-primary)]">
-            {discreetLabel(discreet, "Back up to GitHub", "Back up your data")}
+            {t("sync.backUpTitle")}
           </Text>
           <Text className="mt-2 text-sm text-[var(--text-muted)]">
-            {discreetLabel(
-              discreet,
-              "Sync your cycles to a private GitHub repository you control. It syncs automatically in the background.",
-              "Sync your data to a private repository you control. It syncs automatically.",
-            )}
+            {t("sync.backUpBody")}
           </Text>
           <Pressable
             onPress={() => void sync.connect()}
@@ -143,7 +135,7 @@ export default function GithubSyncScreen() {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text className="text-center font-semibold text-white">
-                {discreetLabel(discreet, "Connect GitHub", "Connect")}
+                {t("sync.connect")}
               </Text>
             )}
           </Pressable>
@@ -153,20 +145,16 @@ export default function GithubSyncScreen() {
       {sync.deviceFlow ? (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
-            {discreetLabel(discreet, "Authorize on GitHub", "Authorize")}
+            {t("sync.authorizeTitle")}
           </Text>
           <Text className="mt-2 text-sm text-[var(--text-muted)]">
-            {discreetLabel(
-              discreet,
-              "Enter this code on GitHub to authorize:",
-              "Enter this code to authorize:",
-            )}
+            {t("sync.authorizeBody")}
           </Text>
           <Pressable
             onPress={() => void copyUserCode()}
             className="mt-4 flex-row items-center justify-between rounded-card bg-[var(--bg-primary)] px-6 py-4 active:opacity-60"
             accessibilityRole="button"
-            accessibilityLabel="Copy code to clipboard"
+            accessibilityLabel={t("sync.copyCode")}
           >
             <Text className="flex-1 text-center text-3xl font-bold tracking-[0.3em] text-[var(--text-primary)]">
               {sync.deviceFlow.userCode}
@@ -183,14 +171,12 @@ export default function GithubSyncScreen() {
             accessibilityRole="button"
           >
             <Text className="text-center font-semibold text-white">
-              {discreetLabel(discreet, "Open GitHub", "Open Browser")}
+              {t("sync.openGithub")}
             </Text>
           </Pressable>
           <View className="mt-4 flex-row items-center justify-center gap-2">
             <ActivityIndicator size="small" color={muted} />
-            <Text className="text-sm text-[var(--text-muted)]">
-              {discreetLabel(discreet, "Waiting for authorization…", "Waiting…")}
-            </Text>
+            <Text className="text-sm text-[var(--text-muted)]">{t("sync.waiting")}</Text>
           </View>
         </View>
       ) : null}
@@ -198,18 +184,18 @@ export default function GithubSyncScreen() {
       {sync.connected && !sync.config ? (
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
-            Choose a repository
+            {t("sync.chooseRepo")}
           </Text>
 
           <Text className="mt-4 text-sm font-medium text-[var(--text-muted)]">
-            {discreetLabel(discreet, "Create a new repository", "Create new")}
+            {t("sync.createNew")}
           </Text>
           <View className="mt-2 flex-row items-center gap-2">
             <TextInput
               value={repoName}
               onChangeText={setRepoName}
               className="flex-1 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
-              placeholder="repository-name"
+              placeholder={t("sync.repoNamePlaceholder")}
               placeholderTextColor={muted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -221,20 +207,20 @@ export default function GithubSyncScreen() {
               disabled={sync.busy}
               className="rounded-button bg-accent p-3.5 active:opacity-60"
               accessibilityRole="button"
-              accessibilityLabel="Create repository"
+              accessibilityLabel={t("sync.createRepo")}
             >
               <Plus size={20} color="#fff" />
             </Pressable>
           </View>
 
           <Text className="mt-6 text-sm font-medium text-[var(--text-muted)]">
-            {discreetLabel(discreet, "Or use an existing repository", "Or use existing")}
+            {t("sync.orUseExisting")}
           </Text>
           <TextInput
             value={existingOwner}
             onChangeText={setExistingOwner}
             className="mt-2 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
-            placeholder={sync.username ?? "owner"}
+            placeholder={sync.username ?? t("sync.ownerPlaceholder")}
             placeholderTextColor={muted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -246,7 +232,7 @@ export default function GithubSyncScreen() {
             value={existingRepo}
             onChangeText={setExistingRepo}
             className="mt-2 rounded-button bg-[var(--bg-primary)] px-4 py-3 text-[var(--text-primary)]"
-            placeholder="repository-name"
+            placeholder={t("sync.repoNamePlaceholder")}
             placeholderTextColor={muted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -268,7 +254,7 @@ export default function GithubSyncScreen() {
                 existingRepo.trim() ? "text-white" : "text-[var(--text-muted)]",
               )}
             >
-              Use Repository
+              {t("sync.useRepo")}
             </Text>
           </Pressable>
         </View>
@@ -283,7 +269,7 @@ export default function GithubSyncScreen() {
                 {sync.config.repoOwner}/{sync.config.repoName}
               </Text>
               <Text className="text-sm text-[var(--text-muted)]">
-                {sync.status?.syncedAt ? "Synced" : "Not synced yet"}
+                {sync.status?.syncedAt ? t("sync.synced") : t("sync.notSyncedYet")}
               </Text>
             </View>
             <View className="h-2.5 w-2.5 rounded-full bg-accent" />
@@ -300,7 +286,7 @@ export default function GithubSyncScreen() {
             ) : (
               <RefreshCw size={18} color="#fff" />
             )}
-            <Text className="font-semibold text-white">Sync Now</Text>
+            <Text className="font-semibold text-white">{t("sync.syncNow")}</Text>
           </Pressable>
 
           <Pressable
@@ -308,11 +294,11 @@ export default function GithubSyncScreen() {
             disabled={sync.busy}
             className="mt-3 flex-row items-center justify-center gap-2 rounded-button bg-[var(--bg-muted)] px-6 py-4 active:opacity-60"
             accessibilityRole="button"
-            accessibilityLabel="Disconnect repository"
+            accessibilityLabel={t("sync.disconnect")}
           >
             <Trash2 size={18} color={danger} />
             <Text className="font-semibold" style={{ color: danger }}>
-              Disconnect
+              {t("sync.disconnect")}
             </Text>
           </Pressable>
         </View>
