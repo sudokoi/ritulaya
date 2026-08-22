@@ -924,7 +924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.18.6, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.25.0":
+"@babel/runtime@npm:^7.18.6, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/runtime@npm:7.29.7"
   checksum: 10/9883b4951787779fd382b121f22f92966d85f19434841f65fb00b2dfec232107e139683f47c6f252891826ad8ee18317b46c3a0e4819116a9885f47b46d7126a
@@ -5882,6 +5882,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-localization@npm:~57.0.1":
+  version: 57.0.1
+  resolution: "expo-localization@npm:57.0.1"
+  dependencies:
+    rtl-detect: "npm:^1.0.2"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/11cf5ec127cb4a8c49d3db39d287661463260da4b499e5aa3c75a5e135aace384b5b62748e5c5e7680b7982a828ea84683421c30d80d3f797608e6cf09fb8a2b
+  languageName: node
+  linkType: hard
+
 "expo-modules-autolinking@npm:~57.0.9":
   version: 57.0.9
   resolution: "expo-modules-autolinking@npm:57.0.9"
@@ -6783,6 +6795,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-parse-stringify@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "html-parse-stringify@npm:4.0.1"
+  checksum: 10/c30ce1fbc81c32c87808d8a527519a7524c73499b223cf2002e9fddd49ecf98626ee8c13bb011a3cc283803831d67fdb75ae9f566666d05c915e460d5b5016cc
+  languageName: node
+  linkType: hard
+
 "http-errors@npm:~2.0.1":
   version: 2.0.1
   resolution: "http-errors@npm:2.0.1"
@@ -6847,6 +6866,18 @@ __metadata:
   version: 1.1.0
   resolution: "hyphenate-style-name@npm:1.1.0"
   checksum: 10/b9ed74e29181d96bd58a2d0e62fc4a19879db591dba268275829ff0ae595fcdf11faafaeaa63330a45c3004664d7db1f0fc7cdb372af8ee4615ed8260302c207
+  languageName: node
+  linkType: hard
+
+"i18next@npm:26.4.0":
+  version: 26.4.0
+  resolution: "i18next@npm:26.4.0"
+  peerDependencies:
+    typescript: ^5 || ^6 || ^7
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/22368a457a67391ab11ffd95acf0eed306cce27fdcc8828206acd9eb0ec5993e403db34edf95ec5a45d6e3914c03153b0e8509b589a77536127a6a1622970c78
   languageName: node
   linkType: hard
 
@@ -6961,6 +6992,13 @@ __metadata:
     hasown: "npm:^2.0.2"
     side-channel: "npm:^1.1.0"
   checksum: 10/1d5219273a3dab61b165eddf358815eefc463207db33c20fcfca54717da02e3f492003757721f972fd0bf21e4b426cab389c5427b99ceea4b8b670dc88ee6d4a
+  languageName: node
+  linkType: hard
+
+"intl-pluralrules@npm:2.0.1":
+  version: 2.0.1
+  resolution: "intl-pluralrules@npm:2.0.1"
+  checksum: 10/562964d81c4477ab0b66e051c31cdbb2ca599307ffdfdc88a1e16d2cf137e481082b90d5ad81f9d2d5f6767ec5528d764a44462f6752109ac035c04604973e23
   languageName: node
   linkType: hard
 
@@ -9904,6 +9942,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-i18next@npm:17.0.12":
+  version: 17.0.12
+  resolution: "react-i18next@npm:17.0.12"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.7"
+    html-parse-stringify: "npm:^4.0.1"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    i18next: ">= 26.2.0"
+    react: ">= 16.8.0"
+    typescript: ^5 || ^6 || ^7
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+    typescript:
+      optional: true
+  checksum: 10/e09bb19652a7faf62687ee9ef7b28d05d5bfc26c946ec2a434d7ebebfd3b73355a0842eed4ed2854cf548ddebbbbd1bae6d3312a37f28a4b6d050bdaa4f5eb55
+  languageName: node
+  linkType: hard
+
 "react-is-18@npm:react-is@^18.3.1, react-is@npm:^18.0.0":
   version: 18.3.1
   resolution: "react-is@npm:18.3.1"
@@ -10537,6 +10597,7 @@ __metadata:
     expo-linear-gradient: "npm:~57.0.1"
     expo-linking: "npm:57.0.5"
     expo-local-authentication: "npm:57.0.2"
+    expo-localization: "npm:~57.0.1"
     expo-notifications: "npm:57.0.10"
     expo-router: "npm:57.0.12"
     expo-sharing: "npm:57.0.11"
@@ -10544,6 +10605,8 @@ __metadata:
     expo-status-bar: "npm:57.0.1"
     expo-symbols: "npm:57.0.2"
     expo-system-ui: "npm:57.0.2"
+    i18next: "npm:26.4.0"
+    intl-pluralrules: "npm:2.0.1"
     jest: "npm:29.7.0"
     jest-expo: "npm:57.0.4"
     jest-watch-typeahead: "npm:3.0.1"
@@ -10552,6 +10615,7 @@ __metadata:
     prettier: "npm:3.9.6"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
+    react-i18next: "npm:17.0.12"
     react-native: "npm:0.86.2"
     react-native-css-interop: "npm:0.2.6"
     react-native-gesture-handler: "npm:2.32.0"
@@ -10569,6 +10633,13 @@ __metadata:
     typescript-eslint: "npm:8.67.0"
   languageName: unknown
   linkType: soft
+
+"rtl-detect@npm:^1.0.2":
+  version: 1.1.2
+  resolution: "rtl-detect@npm:1.1.2"
+  checksum: 10/d19089c3b5f7a6fbabfa2c4724fcdf8694f313d196d44c8eee3625ba2e46418afe65b4da38e3e92822985291efd0656d85daa4b2ef296a46a65a702d0b156876
+  languageName: node
+  linkType: hard
 
 "run-parallel@npm:^1.1.9":
   version: 1.2.0
@@ -11813,6 +11884,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10/2fec05eb851cdfc4a4657b1dfb434e686f346c3265ffc9db8a974bb58f8128bd4a708a3cc00e8f51655fccf81822ed4419ebed42f41610589e3aab0cf2492edb
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
 
