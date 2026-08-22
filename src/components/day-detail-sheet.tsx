@@ -22,6 +22,7 @@ import type { CervicalMucusKey } from "@/constants/cervical-mucus"
 import type { FlowIntensity } from "@/types/day-log"
 import type { DayEntryInput } from "@/domain/day-entry"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "react-i18next"
 
 const FLOW_LEVELS: { key: FlowIntensity; label: string }[] = [
   { key: "none", label: "None" },
@@ -80,6 +81,7 @@ export function DayDetailSheet({
     existing?.sexualActivity == null ? null : existing.sexualActivity === 1,
   )
   const { muted, danger } = useThemeColors()
+  const { t } = useTranslation()
 
   const toggleSymptom = useCallback((key: SymptomKey) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -134,7 +136,7 @@ export function DayDetailSheet({
                     onPress={handleDelete}
                     className="p-3 active:opacity-60"
                     accessibilityRole="button"
-                    accessibilityLabel="Delete entry"
+                    accessibilityLabel={t("sheet.deleteEntry")}
                   >
                     <Trash2 size={20} color={danger} />
                   </Pressable>
@@ -143,15 +145,15 @@ export function DayDetailSheet({
                   onPress={handleSave}
                   className="rounded-button bg-accent px-5 py-2 active:opacity-60"
                   accessibilityRole="button"
-                  accessibilityLabel="Save entry"
+                  accessibilityLabel={t("sheet.saveEntry")}
                 >
-                  <Text className="font-medium text-white">Save</Text>
+                  <Text className="font-medium text-white">{t("common.save")}</Text>
                 </Pressable>
                 <Pressable
                   onPress={onClose}
                   className="p-3 active:opacity-60"
                   accessibilityRole="button"
-                  accessibilityLabel="Close"
+                  accessibilityLabel={t("common.close")}
                 >
                   <X size={20} color={muted} />
                 </Pressable>
@@ -160,7 +162,7 @@ export function DayDetailSheet({
 
             <ScrollView className="max-h-[70vh]" showsVerticalScrollIndicator={false}>
               <View className="px-6 py-4">
-                <SectionLabel>Flow</SectionLabel>
+                <SectionLabel>{t("sheet.flow")}</SectionLabel>
                 <View className="flex-row gap-2">
                   {FLOW_LEVELS.map((level) => (
                     <Pressable
@@ -174,7 +176,9 @@ export function DayDetailSheet({
                         flow === level.key ? "bg-accent" : "bg-[var(--bg-muted)]",
                       )}
                       accessibilityRole="button"
-                      accessibilityLabel={`Flow ${level.label}`}
+                      accessibilityLabel={t("sheet.flowState", {
+                        label: t(`flow.${level.key}`),
+                      })}
                       accessibilityState={{ selected: flow === level.key }}
                     >
                       <Text
@@ -185,7 +189,7 @@ export function DayDetailSheet({
                             : "text-[var(--text-primary)]",
                         )}
                       >
-                        {level.label}
+                        {t(`flow.${level.key}`)}
                       </Text>
                     </Pressable>
                   ))}
@@ -197,17 +201,17 @@ export function DayDetailSheet({
                     onPress={handleClearPeriod}
                     className="mt-3 self-start active:opacity-60"
                     accessibilityRole="button"
-                    accessibilityLabel="Remove period"
+                    accessibilityLabel={t("sheet.removePeriod")}
                   >
                     <Text className="text-sm font-medium" style={{ color: danger }}>
-                      Remove Period
+                      {t("sheet.removePeriod")}
                     </Text>
                   </Pressable>
                 ) : null}
               </View>
 
               <View className="px-6 py-4">
-                <SectionLabel>Mood</SectionLabel>
+                <SectionLabel>{t("sheet.mood")}</SectionLabel>
                 <View className="flex-row flex-wrap gap-3">
                   {MOOD_CATALOG.map((m) => (
                     <Pressable
@@ -221,18 +225,22 @@ export function DayDetailSheet({
                         mood === m.key && "bg-accent/20",
                       )}
                       accessibilityRole="button"
-                      accessibilityLabel={`Mood ${m.label}`}
+                      accessibilityLabel={t("sheet.moodState", {
+                        label: t(`moods.${m.key}`),
+                      })}
                       accessibilityState={{ selected: mood === m.key }}
                     >
                       <Text className="text-2xl">{m.emoji}</Text>
-                      <Text className="text-xs text-[var(--text-muted)]">{m.label}</Text>
+                      <Text className="text-xs text-[var(--text-muted)]">
+                        {t(`moods.${m.key}`)}
+                      </Text>
                     </Pressable>
                   ))}
                 </View>
               </View>
 
               <View className="px-6 py-4">
-                <SectionLabel>Symptoms</SectionLabel>
+                <SectionLabel>{t("sheet.symptoms")}</SectionLabel>
                 <View className="flex-row flex-wrap gap-2">
                   {SYMPTOM_CATALOG.map((symptom) => (
                     <Pressable
@@ -245,7 +253,7 @@ export function DayDetailSheet({
                           : "bg-[var(--bg-muted)]",
                       )}
                       accessibilityRole="button"
-                      accessibilityLabel={symptom.label}
+                      accessibilityLabel={t(`symptoms.${symptom.key}`)}
                       accessibilityState={{ selected: symptoms.includes(symptom.key) }}
                     >
                       <Text
@@ -256,7 +264,7 @@ export function DayDetailSheet({
                             : "text-[var(--text-primary)]",
                         )}
                       >
-                        {symptom.label}
+                        {t(`symptoms.${symptom.key}`)}
                       </Text>
                     </Pressable>
                   ))}
@@ -264,7 +272,7 @@ export function DayDetailSheet({
               </View>
 
               <View className="px-6 py-4">
-                <SectionLabel>Cervical Mucus</SectionLabel>
+                <SectionLabel>{t("sheet.cervicalMucus")}</SectionLabel>
                 <View className="flex-row flex-wrap gap-2">
                   {CERVICAL_MUCUS_CATALOG.map((mucus) => (
                     <Pressable
@@ -280,7 +288,9 @@ export function DayDetailSheet({
                           : "bg-[var(--bg-muted)]",
                       )}
                       accessibilityRole="button"
-                      accessibilityLabel={`Cervical mucus ${mucus.label}`}
+                      accessibilityLabel={t("sheet.mucusState", {
+                        label: t(`mucus.${mucus.key}`),
+                      })}
                       accessibilityState={{ selected: cervicalMucus === mucus.key }}
                     >
                       <Text
@@ -291,7 +301,7 @@ export function DayDetailSheet({
                             : "text-[var(--text-primary)]",
                         )}
                       >
-                        {mucus.label}
+                        {t(`mucus.${mucus.key}`)}
                       </Text>
                     </Pressable>
                   ))}
@@ -299,10 +309,10 @@ export function DayDetailSheet({
               </View>
 
               <View className="px-6 py-4">
-                <SectionLabel>Body</SectionLabel>
+                <SectionLabel>{t("sheet.body")}</SectionLabel>
                 <View className="flex-row items-center justify-between">
                   <Text className="text-base text-[var(--text-primary)]">
-                    Basal body temperature (°C)
+                    {t("sheet.bbtLabel")}
                   </Text>
                   <TextInput
                     value={bbt}
@@ -312,12 +322,12 @@ export function DayDetailSheet({
                     keyboardType="decimal-pad"
                     returnKeyType="done"
                     className="w-24 rounded-button bg-[var(--bg-surface)] px-3 py-2 text-right text-[var(--text-primary)]"
-                    accessibilityLabel="Basal body temperature in degrees Celsius"
+                    accessibilityLabel={t("sheet.bbtA11y")}
                   />
                 </View>
                 <View className="mt-4 flex-row items-center justify-between">
                   <Text className="text-base text-[var(--text-primary)]">
-                    Sexual activity
+                    {t("sheet.sexualActivity")}
                   </Text>
                   <Pressable
                     onPress={() => {
@@ -329,8 +339,8 @@ export function DayDetailSheet({
                       sexualActivity ? "bg-accent" : "bg-[var(--bg-muted)]",
                     )}
                     accessibilityRole="button"
-                    accessibilityLabel="Sexual activity"
-                    accessibilityState={{ selected: sexualActivity }}
+                    accessibilityLabel={t("sheet.sexualActivity")}
+                    accessibilityState={{ selected: sexualActivity ?? false }}
                   >
                     <Text
                       className={cn(
@@ -338,18 +348,22 @@ export function DayDetailSheet({
                         sexualActivity ? "text-white" : "text-[var(--text-primary)]",
                       )}
                     >
-                      {sexualActivity ? "Yes" : (sexualActivity === false ? "No" : "—")}
+                      {sexualActivity
+                        ? t("common.yes")
+                        : sexualActivity === false
+                          ? t("common.no")
+                          : "—"}
                     </Text>
                   </Pressable>
                 </View>
               </View>
 
               <View className="px-6 py-4">
-                <SectionLabel>Notes</SectionLabel>
+                <SectionLabel>{t("sheet.notes")}</SectionLabel>
                 <TextInput
                   value={notes}
                   onChangeText={setNotes}
-                  placeholder="How are you feeling today?"
+                  placeholder={t("sheet.notesPlaceholder")}
                   placeholderTextColor={muted}
                   multiline
                   numberOfLines={3}

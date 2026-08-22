@@ -2,6 +2,8 @@ import { differenceInDays, parseISO } from "date-fns"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog } from "@/types/day-log"
 import type { Phase } from "@/constants/phase-colors"
+import type { SymptomKey } from "@/constants/symptoms"
+import type { MoodKey } from "@/constants/moods"
 
 export interface CycleLengthRow {
   startDate: string
@@ -21,23 +23,26 @@ export function completedCycleLengths(cycles: Cycle[]): CycleLengthRow[] {
 }
 
 /**
- * Plain-language framing of spread, mirroring how the engine measures it
- * (median absolute deviation scaled to a standard deviation).
+ * Translation key + parameter framing the spread, mirroring how the engine
+ * measures it (median absolute deviation scaled to a standard deviation).
  */
-export function regularityCopy(sigma: number): string {
+export function regularityCopy(sigma: number): {
+  key: "insights.regular" | "insights.fairlyRegular" | "insights.quiteVaried"
+  days: number
+} {
   const days = Math.max(1, Math.round(sigma))
-  if (days <= 4) return `Varies by about ±${days} days — regular`
-  if (days <= 7) return `Varies by about ±${days} days — fairly regular`
-  return `Varies by about ±${days} days — quite varied`
+  if (days <= 4) return { key: "insights.regular", days }
+  if (days <= 7) return { key: "insights.fairlyRegular", days }
+  return { key: "insights.quiteVaried", days }
 }
 
 export interface PhaseTally {
-  symptoms: [string, number][]
-  moods: [string, number][]
+  symptoms: [SymptomKey, number][]
+  moods: [MoodKey, number][]
 }
 
-function tally(values: (string | null)[]): [string, number][] {
-  const counts = new Map<string, number>()
+function tally<K extends string>(values: (K | null)[]): [K, number][] {
+  const counts = new Map<K, number>()
   for (const value of values) {
     if (!value) continue
     counts.set(value, (counts.get(value) ?? 0) + 1)

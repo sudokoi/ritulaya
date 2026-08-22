@@ -49,7 +49,10 @@ export const predictionStore = createStore({
 let inFlight = false
 let pending = false
 
-function dataVersion(cycles: { updatedAt: string }[], logs: { updatedAt: string }[]): string {
+function dataVersion(
+  cycles: { updatedAt: string }[],
+  logs: { updatedAt: string }[],
+): string {
   let latest = ""
   for (const row of [...cycles, ...logs]) {
     if (row.updatedAt > latest) latest = row.updatedAt

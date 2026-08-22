@@ -1,6 +1,7 @@
 import * as Clipboard from "expo-clipboard"
 import { Alert, Linking } from "react-native"
 import { logger } from "@/services/logger"
+import i18n from "@/i18n"
 
 const REPO_URL = "https://github.com/sudokoi/ritulaya"
 
@@ -11,17 +12,13 @@ export async function reportBug() {
     await Clipboard.setStringAsync(logs)
   }
 
-  Alert.alert(
-    "Report a Bug",
-    "Device logs (app diagnostics only — no cycle or health data) were copied to your clipboard. Paste them into the GitHub issue that opens.",
-    [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Open GitHub",
-        onPress: () => {
-          void Linking.openURL(`${REPO_URL}/issues/new`)
-        },
+  Alert.alert(i18n.t("bugReport.title"), i18n.t("bugReport.message"), [
+    { text: i18n.t("common.cancel"), style: "cancel" },
+    {
+      text: i18n.t("bugReport.openGithub"),
+      onPress: () => {
+        void Linking.openURL(`${REPO_URL}/issues/new`)
       },
-    ],
-  )
+    },
+  ])
 }
