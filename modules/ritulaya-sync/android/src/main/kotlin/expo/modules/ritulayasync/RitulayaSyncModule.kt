@@ -108,7 +108,7 @@ class RitulayaSyncModule : Module() {
             "syncedAt" to if (syncedAt > 0) syncedAt.toString() else null,
             "warning" to prefs.getBoolean("sync_warning", false),
             "consecutiveFailures" to prefs.getInt("consecutive_failures", 0),
-            "status" to (prefs.getString("sync_status", "idle") ?: "idle"),
+            "status" to orchestrator.effectiveStatus(),
         )
     }
 }

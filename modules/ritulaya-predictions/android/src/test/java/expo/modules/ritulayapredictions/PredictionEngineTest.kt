@@ -40,8 +40,9 @@ class PredictionEngineTest {
         val result = PredictionEngine.predict(cycles, config)
 
         assertThat(result.cyclesUsed).isEqualTo(3)
-        assertThat(result.confidence).isGreaterThan(0.0)
-        assertThat(result.confidence).isAtMost(1.0)
+        // Lengths 29/29/26 give a perfectly regular history by the MAD measure:
+        // regularity factor 1.0 times the 3-cycle volume tier 0.7.
+        assertThat(result.confidence).isEqualTo(0.7)
         assertThat(result.engine).isEqualTo("wma")
         assertThat(result.nextPeriodStart).isEqualTo(LocalDate.parse(daysAgo(26)).plusDays(28))
         assertThat(result.nextPeriodEnd).isEqualTo(LocalDate.parse(daysAgo(26)).plusDays(32))

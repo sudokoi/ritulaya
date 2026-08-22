@@ -20,6 +20,9 @@ class SyncOrchestrator(
     private val dataStore = RitulayaDataStore(appContext)
 
     companion object {
+        /** How long a persisted "syncing" status is trusted before a read treats it as crashed. */
+        private const val SYNCING_STALE_MS = 10 * 60 * 1000L
+
         // Serializes syncs across orchestrator instances (JS syncNow vs background worker).
         private val syncMutex = Mutex()
     }
@@ -51,7 +54,24 @@ class SyncOrchestrator(
     }
 
     private fun setStatus(status: String) {
-        prefs.edit().putString("sync_status", status).apply()
+        val editor = prefs.edit().putString("sync_status", status)
+        if (status == "syncing") {
+            editor.putLong("sync_started_at", System.currentTimeMillis())
+        }
+        editor.apply()
+    }
+
+    /**
+     * The persisted status with one repair applied: a process kill mid-sync
+     * leaves "syncing" behind with no transition out, so an entry whose sync
+     * started long ago is reported as an error instead of hanging forever.
+     */
+    fun effectiveStatus(): String {
+        val status = prefs.getString("sync_status", "idle") ?: "idle"
+        if (status != "syncing") return status
+        val startedAt = prefs.getLong("sync_started_at", 0L)
+        val fresh = System.currentTimeMillis() - startedAt < SYNCING_STALE_MS
+        return if (fresh) "syncing" else "error"
     }
 
     /** Sync could not run at all (unauthenticated/unconfigured) — not an error. */
