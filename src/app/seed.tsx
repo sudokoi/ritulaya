@@ -97,7 +97,7 @@ export default function SeedCycleScreen() {
       )
       router.back()
     } catch {
-      Alert.alert("Save failed", "Something went wrong while setting up your cycle.")
+      Alert.alert(t("seed.saveFailedTitle"), t("seed.saveFailedBody"))
     } finally {
       setSaving(false)
     }

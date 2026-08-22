@@ -1,3 +1,6 @@
+// Hermes can lack Intl.PluralRules; the polyfill is a no-op when native
+// support exists and must load before i18next initialises pluralization.
+import "intl-pluralrules"
 import i18next, { type i18n as I18n } from "i18next"
 import { setDefaultOptions } from "date-fns"
 import {

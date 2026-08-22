@@ -1,6 +1,7 @@
 import {
   completedCycleLengths,
   phaseCorrelations,
+  phaseOfDayInCycle,
   regularityCopy,
 } from "@/lib/cycle-insights"
 import type { Cycle } from "@/types/cycle"
@@ -98,5 +99,32 @@ describe("phaseCorrelations", () => {
     const result = phaseCorrelations([], [log("2026-06-02", ["cramps"])], config)
 
     expect(Object.values(result).every((p) => p.symptoms.length === 0)).toBe(true)
+  })
+})
+
+/**
+ * Drift guard: these fixtures mirror PredictionEngineTest's
+ * "phase derives boundaries from config" in the Kotlin engine. If one of
+ * these expectations changes, PredictionEngine.phaseOfDayInCycle and this
+ * JS mirror must change together.
+ */
+describe("phaseOfDayInCycle parity with PredictionEngine", () => {
+  const custom = { avgCycleLength: 35, avgPeriodLength: 7, lutealPhaseLength: 12 }
+  // The Kotlin fixtures use days-until-next; day-in-cycle = 35 - daysUntilNext.
+  const fromDaysUntil = (daysUntilNext: number) =>
+    phaseOfDayInCycle(35 - daysUntilNext, custom)
+
+  it("matches the engine's boundaries", () => {
+    expect(fromDaysUntil(5)).toBe("menstrual")
+    expect(fromDaysUntil(28)).toBe("menstrual")
+    expect(fromDaysUntil(27)).toBe("follicular")
+    expect(fromDaysUntil(16)).toBe("follicular")
+    expect(fromDaysUntil(15)).toBe("ovulation")
+    expect(fromDaysUntil(11)).toBe("ovulation")
+    expect(fromDaysUntil(10)).toBe("luteal")
+  })
+
+  it("treats logs past the typical cycle as wrap-around menstrual", () => {
+    expect(phaseOfDayInCycle(36, custom)).toBe("menstrual")
   })
 })

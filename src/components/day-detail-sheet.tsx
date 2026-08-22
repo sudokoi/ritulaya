@@ -1,13 +1,4 @@
-import {
-  View,
-  Text,
-  TextInput,
-  Modal,
-  ScrollView,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native"
+import { View, Text, TextInput, Modal, ScrollView, Pressable } from "react-native"
 import { useState, useCallback } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
@@ -24,12 +15,12 @@ import type { DayEntryInput } from "@/domain/day-entry"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 
-const FLOW_LEVELS: { key: FlowIntensity; label: string }[] = [
-  { key: "none", label: "None" },
-  { key: "spotting", label: "Spotting" },
-  { key: "light", label: "Light" },
-  { key: "medium", label: "Medium" },
-  { key: "heavy", label: "Heavy" },
+const FLOW_LEVELS: { key: FlowIntensity }[] = [
+  { key: "none" },
+  { key: "spotting" },
+  { key: "light" },
+  { key: "medium" },
+  { key: "heavy" },
 ]
 
 interface DayDetailSheetProps {
@@ -121,10 +112,7 @@ export function DayDetailSheet({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <Pressable className="flex-1 bg-black/30" onPress={onClose}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="mt-auto"
-        >
+        <View className="mt-auto">
           <Pressable className="rounded-t-3xl bg-[var(--bg-primary)] pb-8">
             <View className="flex-row items-center justify-between border-b border-[var(--border)] px-6 py-4">
               <Text className="text-lg font-semibold text-[var(--text-primary)]">
@@ -374,7 +362,7 @@ export function DayDetailSheet({
               </View>
             </ScrollView>
           </Pressable>
-        </KeyboardAvoidingView>
+        </View>
       </Pressable>
     </Modal>
   )

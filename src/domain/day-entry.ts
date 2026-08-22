@@ -48,8 +48,9 @@ export async function saveDayEntry(input: DayEntryInput, periodDays: number) {
   }
 
   // The sheet always submits the full form, so null here means the user
-  // cleared the field. The native layer treats "" (and 0 for BBT) as an
-  // explicit clear, while an omitted field keeps its existing value.
+  // cleared the field. The native decoder resolveDayLogFields
+  // (modules/ritulaya-db/.../DayLogPatch.kt) treats "" and 0 as explicit
+  // clears; an omitted field keeps its existing value.
   await upsertDayLog({
     date: input.date,
     flowIntensity: input.flowIntensity,

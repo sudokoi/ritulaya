@@ -4,7 +4,7 @@ import { Platform } from "react-native"
 import { discreetLabel } from "@/lib/discreet"
 import i18n from "@/i18n"
 
-const REMINDER_CHANNEL_ID = "reminders"
+const REMINDER_CHANNEL_PREFIX = "reminders"
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -16,13 +16,29 @@ Notifications.setNotificationHandler({
   }),
 })
 
-async function ensureReminderChannel() {
-  if (Platform.OS !== "android") return
-  await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
+/**
+ * One channel per active language: Android never updates an existing
+ * channel's name, so a language switch creates a fresh, correctly named
+ * channel and the stale ones are removed.
+ */
+async function ensureReminderChannel(language: string): Promise<string> {
+  const channelId = `${REMINDER_CHANNEL_PREFIX}-${language}`
+  if (Platform.OS !== "android") return channelId
+  await Notifications.setNotificationChannelAsync(channelId, {
     name: i18n.t("notifications.channelName"),
     importance: Notifications.AndroidImportance.DEFAULT,
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
   })
+  const channels = await Notifications.getNotificationChannelsAsync()
+  await Promise.all(
+    channels
+      .filter(
+        (channel) =>
+          channel.id.startsWith(REMINDER_CHANNEL_PREFIX) && channel.id !== channelId,
+      )
+      .map((channel) => Notifications.deleteNotificationChannelAsync(channel.id)),
+  )
+  return channelId
 }
 
 export async function requestNotificationPermissions(): Promise<boolean> {
@@ -47,7 +63,7 @@ export async function schedulePeriodReminder(
 
   if (triggerDate <= new Date()) return
 
-  await ensureReminderChannel()
+  const channelId = await ensureReminderChannel(i18n.language)
   const t = i18n.t.bind(i18n)
   await Notifications.scheduleNotificationAsync({
     content: {
@@ -69,14 +85,14 @@ export async function schedulePeriodReminder(
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: triggerDate,
-      channelId: REMINDER_CHANNEL_ID,
+      channelId,
     },
   })
 }
 
 export async function scheduleDailyLogReminder(discreet: boolean) {
   const t = i18n.t.bind(i18n)
-  await ensureReminderChannel()
+  const channelId = await ensureReminderChannel(i18n.language)
   await Notifications.scheduleNotificationAsync({
     content: {
       title: discreetLabel(
@@ -95,14 +111,14 @@ export async function scheduleDailyLogReminder(discreet: boolean) {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: 20,
       minute: 0,
-      channelId: REMINDER_CHANNEL_ID,
+      channelId,
     },
   })
 }
 
 export async function scheduleOverdueNudge(discreet: boolean) {
   const t = i18n.t.bind(i18n)
-  await ensureReminderChannel()
+  const channelId = await ensureReminderChannel(i18n.language)
   await Notifications.scheduleNotificationAsync({
     content: {
       title: discreetLabel(
@@ -121,7 +137,7 @@ export async function scheduleOverdueNudge(discreet: boolean) {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: 9,
       minute: 0,
-      channelId: REMINDER_CHANNEL_ID,
+      channelId,
     },
   })
 }

@@ -26,6 +26,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors"
 import { discreetLabel } from "@/lib/discreet"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
+import { i18n } from "@/i18n"
 
 const REPO_NAME_PATTERN = /^[A-Za-z0-9._-]+$/
 
@@ -52,6 +53,27 @@ export default function GithubSyncScreen() {
       void Linking.openURL(sync.deviceFlow.verificationUrl)
     }
   }
+
+  const syncStatus = sync.status?.status ?? "idle"
+  const statusColor =
+    syncStatus === "inSync" ? accent : syncStatus === "error" ? danger : muted
+  const syncedAt = sync.status?.syncedAt ? new Date(Number(sync.status.syncedAt)) : null
+  const syncStateLabel = (() => {
+    switch (syncStatus) {
+      case "syncing":
+        return t("sync.statusSyncing")
+      case "error":
+        return t("sync.statusError")
+      case "inSync":
+        return syncedAt && !Number.isNaN(syncedAt.getTime())
+          ? t("sync.lastSynced", {
+              formatted: syncedAt.toLocaleString(i18n.language),
+            })
+          : t("sync.statusInSync")
+      default:
+        return t("sync.notSyncedYet")
+    }
+  })()
 
   const copyUserCode = async () => {
     if (!sync.deviceFlow) return
@@ -272,12 +294,26 @@ export default function GithubSyncScreen() {
               <Text className="text-lg font-semibold text-[var(--text-primary)]">
                 {sync.config.repoOwner}/{sync.config.repoName}
               </Text>
-              <Text className="text-sm text-[var(--text-muted)]">
-                {sync.status?.syncedAt ? t("sync.synced") : t("sync.notSyncedYet")}
+              <Text className="text-sm text-[var(--text-muted)]">{syncStateLabel}</Text>
+            </View>
+            <View
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: statusColor }}
+            />
+          </View>
+
+          {sync.status?.warning ? (
+            <View className="mt-4 rounded-card bg-red-500/10 px-4 py-3">
+              <Text className="text-sm font-medium" style={{ color: danger }}>
+                {t("sync.warningTitle")}
+              </Text>
+              <Text className="mt-1 text-sm" style={{ color: danger }}>
+                {t("sync.warningBody", {
+                  count: sync.status.consecutiveFailures,
+                })}
               </Text>
             </View>
-            <View className="h-2.5 w-2.5 rounded-full bg-accent" />
-          </View>
+          ) : null}
 
           <Pressable
             onPress={() => void sync.syncNow()}

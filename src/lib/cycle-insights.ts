@@ -36,6 +36,24 @@ export function regularityCopy(sigma: number): {
   return { key: "insights.quiteVaried", days }
 }
 
+/**
+ * Phase boundaries for historical grouping. This mirrors
+ * PredictionEngine.phaseOfDayInCycle (Kotlin) — including the wrap-around
+ * rule for logs past the typical cycle start — so insights label phases
+ * exactly like the engine does. Change both together.
+ */
+export function phaseOfDayInCycle(
+  day: number,
+  config: { avgCycleLength: number; avgPeriodLength: number; lutealPhaseLength: number },
+): Phase {
+  const ovulationDay = config.avgCycleLength - config.lutealPhaseLength
+  if (day <= config.avgPeriodLength) return "menstrual"
+  if (day >= config.avgCycleLength - config.avgPeriodLength) return "menstrual"
+  if (day < ovulationDay - 3) return "follicular"
+  if (day <= ovulationDay + 1) return "ovulation"
+  return "luteal"
+}
+
 export interface PhaseTally {
   symptoms: [SymptomKey, number][]
   moods: [MoodKey, number][]
@@ -69,14 +87,6 @@ export function phaseCorrelations(
   if (cycles.length === 0) return result
 
   const sorted = [...cycles].sort((a, b) => (a.startDate < b.startDate ? -1 : 1))
-  const ovulationDay = config.avgCycleLength - config.lutealPhaseLength
-
-  const phaseOfDayInCycle = (day: number): Phase => {
-    if (day <= config.avgPeriodLength) return "menstrual"
-    if (day < ovulationDay - 3) return "follicular"
-    if (day <= ovulationDay + 1) return "ovulation"
-    return "luteal"
-  }
 
   for (const log of logs) {
     const cycle = sorted.findLast(
@@ -87,7 +97,7 @@ export function phaseCorrelations(
     const dayInCycle = differenceInDays(parseISO(log.date), parseISO(cycle.startDate)) + 1
     if (dayInCycle < 1) continue
 
-    const phase = phaseOfDayInCycle(dayInCycle)
+    const phase = phaseOfDayInCycle(dayInCycle, config)
     result[phase].symptoms = tally([
       ...result[phase].symptoms.map(([k]) => k),
       ...log.symptoms,

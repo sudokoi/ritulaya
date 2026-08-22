@@ -1,5 +1,6 @@
 import { View, Alert } from "react-native"
 import { router } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
@@ -11,6 +12,7 @@ import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
  * sheet directly so a single tap lands in the logging flow.
  */
 export default function LogTodayScreen() {
+  const { t } = useTranslation()
   const { getLogForDate } = useDayLogs()
   const { periodLength } = usePrediction()
   const existing = getLogForDate(todayISO())
@@ -26,10 +28,15 @@ export default function LogTodayScreen() {
           // The sheet closes itself via onClose, which owns the navigation
           // pop; here we only surface save failures.
           saveDayEntry(entry, periodLength).catch(() =>
-            Alert.alert("Save failed", "Something went wrong while saving the entry."),
+            Alert.alert(t("calendar.saveFailedTitle"), t("calendar.saveFailedBody")),
           )
         }}
-        onClose={() => router.back()}
+        onClose={() => {
+          // Cold start from the widget deep link has no history to pop;
+          // fall back to the Today tab instead of exiting the app.
+          if (router.canGoBack()) router.back()
+          else router.replace("/(tabs)")
+        }}
       />
     </View>
   )

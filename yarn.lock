@@ -5882,7 +5882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-localization@npm:~57.0.1":
+"expo-localization@npm:57.0.1":
   version: 57.0.1
   resolution: "expo-localization@npm:57.0.1"
   dependencies:
@@ -10597,7 +10597,7 @@ __metadata:
     expo-linear-gradient: "npm:~57.0.1"
     expo-linking: "npm:57.0.5"
     expo-local-authentication: "npm:57.0.2"
-    expo-localization: "npm:~57.0.1"
+    expo-localization: "npm:57.0.1"
     expo-notifications: "npm:57.0.10"
     expo-router: "npm:57.0.12"
     expo-sharing: "npm:57.0.11"
