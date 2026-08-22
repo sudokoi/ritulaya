@@ -49,6 +49,10 @@ class RitulayaDbModule : Module() {
                 runBlocking { store.getSettings()?.toMap() }
             }
 
+            AsyncFunction("latestDataChange") {
+                runBlocking { store.latestDataChange() }
+            }
+
             AsyncFunction("updateSettings") Coroutine { patch: SettingsPatch ->
                 store.updateSettings(patch)
             }

@@ -62,9 +62,6 @@ interface RitulayaDao {
     @Query("SELECT * FROM sync_tombstones")
     suspend fun listTombstones(): List<SyncTombstoneEntity>
 
-    @Query("DELETE FROM sync_tombstones")
-    suspend fun clearTombstones()
-
     @Query("DELETE FROM sync_tombstones WHERE entity = :entity AND entity_id = :entityId")
     suspend fun deleteTombstone(
         entity: String,

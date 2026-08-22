@@ -31,18 +31,7 @@ class RitulayaDataStore(
 
     suspend fun listDayLogs(): List<DayLogEntity> = dao.listDayLogs()
 
-    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
-        writeDayLog(
-            date = input.date,
-            cycleId = input.cycleId,
-            flowIntensity = input.flowIntensity,
-            symptoms = input.symptoms,
-            mood = input.mood,
-            notes = input.notes,
-            cervicalMucus = input.cervicalMucus,
-            bbt = input.bbt,
-            sexualActivity = input.sexualActivity,
-        )
+    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity = writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
 
     suspend fun logPeriod(
         flow: String,
@@ -100,13 +89,11 @@ class RitulayaDataStore(
                 writeDayLog(
                     date = start.plusDays(i.toLong()).toString(),
                     cycleId = cycleId,
-                    flowIntensity = flow,
-                    symptoms = emptyList(),
-                    mood = null,
-                    notes = null,
-                    cervicalMucus = null,
-                    bbt = null,
-                    sexualActivity = null,
+                    input =
+                        DayLogInput().apply {
+                            flowIntensity = flow
+                            symptoms = emptyList()
+                        },
                 )
             }
         }
@@ -115,35 +102,23 @@ class RitulayaDataStore(
     private suspend fun writeDayLog(
         date: String,
         cycleId: String?,
-        flowIntensity: String?,
-        symptoms: List<String>?,
-        mood: String?,
-        notes: String?,
-        cervicalMucus: String?,
-        bbt: Double?,
-        sexualActivity: Boolean?,
+        input: DayLogInput,
     ): DayLogEntity {
         val now = nowISO()
         val existing = dao.getDayLogByDate(date)
-        val symptomsJson = symptomsJson(symptoms)
-        // An empty string is an explicit clear for text fields, 0.0 clears the
-        // BBT (an impossible body temperature); null keeps the existing value.
-        val clearedMood = mood == ""
-        val clearedNotes = notes == ""
-        val clearedMucus = cervicalMucus == ""
-        val clearedBbt = bbt == 0.0
+        val fields = resolveDayLogFields(input, existing)
 
         if (existing != null) {
             val updated =
                 existing.copy(
-                    flowIntensity = flowIntensity ?: existing.flowIntensity,
-                    symptoms = symptomsJson,
-                    mood = if (clearedMood) null else mood ?: existing.mood,
-                    notes = if (clearedNotes) null else notes ?: existing.notes,
-                    cervicalMucus = if (clearedMucus) null else cervicalMucus ?: existing.cervicalMucus,
-                    bbt = if (clearedBbt) null else bbt ?: existing.bbt,
-                    sexualActivity = sexualActivity?.let { if (it) 1 else 0 } ?: existing.sexualActivity,
-                    cycleId = cycleId ?: existing.cycleId,
+                    flowIntensity = fields.flowIntensity,
+                    symptoms = fields.symptomsJson,
+                    mood = fields.mood,
+                    notes = fields.notes,
+                    cervicalMucus = fields.cervicalMucus,
+                    bbt = fields.bbt,
+                    sexualActivity = fields.sexualActivity,
+                    cycleId = fields.cycleId,
                     updatedAt = now,
                 )
             dao.upsertDayLog(updated)
@@ -154,14 +129,14 @@ class RitulayaDataStore(
             DayLogEntity(
                 id = generateId(),
                 date = date,
-                cycleId = cycleId,
-                flowIntensity = flowIntensity,
-                symptoms = symptomsJson,
-                mood = if (clearedMood) null else mood,
-                notes = if (clearedNotes) null else notes,
-                cervicalMucus = if (clearedMucus) null else cervicalMucus,
-                bbt = if (clearedBbt) null else bbt,
-                sexualActivity = if (sexualActivity == true) 1 else 0,
+                cycleId = fields.cycleId,
+                flowIntensity = fields.flowIntensity,
+                symptoms = fields.symptomsJson,
+                mood = fields.mood,
+                notes = fields.notes,
+                cervicalMucus = fields.cervicalMucus,
+                bbt = fields.bbt,
+                sexualActivity = fields.sexualActivity,
                 createdAt = now,
                 updatedAt = now,
             )
@@ -229,36 +204,79 @@ class RitulayaDataStore(
      * was in flight: live rows are upserted, only rows that were deleted on
      * either side are removed, and only the tombstones captured when the sync
      * started are cleared — tombstones created mid-sync survive so their
-     * deletions are pushed on a later sync.
+     * deletions are pushed on a later sync. Deletion maps carry each row's
+     * deletion timestamp; a live row edited after that timestamp survives,
+     * mirroring the recency rule the merge applies to snapshot-era rows.
      */
     suspend fun applyMerge(
         cycles: List<CycleEntity>,
         dayLogs: List<DayLogEntity>,
-        deletedCycleIds: Set<String>,
-        deletedDayLogIds: Set<String>,
+        deletedCycles: Map<String, String>,
+        deletedDayLogs: Map<String, String>,
         snapshotTombstones: List<SyncTombstoneEntity>,
     ) {
         db.withTransaction {
+            // A deletion made while the sync was running (a tombstone newer
+            // than the merged row) must not be resurrected by the upsert
+            // pass — the merge only saw the pre-deletion snapshot.
+            val tombstones =
+                dao
+                    .listTombstones()
+                    .associateBy { "${it.entity}:${it.entityId}" }
+                    .mapValues { it.value.deletedAt }
             // Last-write-wins against live rows so a local edit made while the
             // sync was running is not clobbered by a snapshot-era merged row.
             cycles.forEach { incoming ->
+                if (isDeletedNewer(tombstones, "cycle", incoming.id, incoming.updatedAt)) return@forEach
                 val live = dao.getCycleById(incoming.id)
                 if (live == null || incoming.updatedAt >= live.updatedAt) {
                     dao.insertCycle(incoming)
                 }
             }
             dayLogs.forEach { incoming ->
+                if (isDeletedNewer(tombstones, "day_log", incoming.id, incoming.updatedAt)) return@forEach
                 val live = dao.getDayLogById(incoming.id)
                 if (live == null || incoming.updatedAt >= live.updatedAt) {
                     dao.upsertDayLog(incoming)
                 }
             }
-            deletedCycleIds.forEach { dao.deleteCycleById(it) }
-            deletedDayLogIds.forEach { dao.deleteDayLogById(it) }
+            deletedCycles.forEach { (id, deletedAt) ->
+                val live = dao.getCycleById(id)
+                if (live == null || !isEditedAfter(live.updatedAt, deletedAt)) {
+                    dao.deleteCycleById(id)
+                }
+            }
+            deletedDayLogs.forEach { (id, deletedAt) ->
+                val live = dao.getDayLogById(id)
+                if (live == null || !isEditedAfter(live.updatedAt, deletedAt)) {
+                    dao.deleteDayLogById(id)
+                }
+            }
             snapshotTombstones.forEach {
                 dao.deleteTombstone(entity = it.entity, entityId = it.entityId)
             }
         }
+    }
+
+    private fun isEditedAfter(
+        updatedAt: String,
+        deletedAt: String,
+    ): Boolean =
+        try {
+            Instant.parse(updatedAt).toEpochMilli() > Instant.parse(deletedAt).toEpochMilli()
+        } catch (e: Exception) {
+            false
+        }
+
+    /** True when the row was deleted (mid-sync) at or after its incoming edit. */
+    private fun isDeletedNewer(
+        tombstones: Map<String, String>,
+        entity: String,
+        id: String,
+        updatedAt: String,
+    ): Boolean {
+        val deletedAt = tombstones["$entity:$id"] ?: return false
+        return !isEditedAfter(updatedAt, deletedAt)
     }
 
     /**
@@ -270,11 +288,6 @@ class RitulayaDataStore(
         val cycleUpdate = dao.latestCycleUpdate()
         val dayLogUpdate = dao.latestDayLogUpdate()
         return listOfNotNull(cycleUpdate, dayLogUpdate).maxOrNull()
-    }
-
-    private fun symptomsJson(symptoms: List<String>?): String {
-        if (symptoms.isNullOrEmpty()) return "[]"
-        return org.json.JSONArray(symptoms).toString()
     }
 
     companion object {

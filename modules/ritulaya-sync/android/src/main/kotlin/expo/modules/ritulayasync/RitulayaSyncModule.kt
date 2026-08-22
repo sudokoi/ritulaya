@@ -86,7 +86,7 @@ class RitulayaSyncModule : Module() {
                 val result = runBlocking { orchestrator.sync() }
                 // Emit the full status shape so listeners can consume it
                 // directly, identical to getSyncStatus.
-                sendEvent("syncStatusChanged", statusSnapshot())
+                sendEvent("syncStatusChanged", orchestrator.statusSnapshot())
                 result
             }
 
@@ -95,20 +95,10 @@ class RitulayaSyncModule : Module() {
             }
 
             AsyncFunction("getSyncStatus") {
-                statusSnapshot()
+                orchestrator.statusSnapshot()
             }
 
             Events("syncStatusChanged")
             Events("syncConflictDetected")
         }
-
-    private fun statusSnapshot(): Map<String, Any?> {
-        val syncedAt = prefs.getLong("last_sync_at", 0L)
-        return mapOf(
-            "syncedAt" to if (syncedAt > 0) syncedAt.toString() else null,
-            "warning" to prefs.getBoolean("sync_warning", false),
-            "consecutiveFailures" to prefs.getInt("consecutive_failures", 0),
-            "status" to orchestrator.effectiveStatus(),
-        )
-    }
 }

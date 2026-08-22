@@ -39,6 +39,7 @@ interface RitulayaDbNativeModule {
   deleteDayLog(id: string): Promise<void>
   getSettings(): Promise<SettingsRow | null>
   updateSettings(patch: SettingsPatch): Promise<void>
+  latestDataChange(): Promise<string | null>
 }
 
 export default requireOptionalNativeModule<RitulayaDbNativeModule>("RitulayaDb")
