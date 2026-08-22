@@ -78,6 +78,16 @@ module.exports = {
       "expo-local-authentication",
       "./plugins/withRitulayaWidget",
       [
+        "expo-build-properties",
+        {
+          android: {
+            buildArchs: ["arm64-v8a"],
+            enableMinifyInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+          },
+        },
+      ],
+      [
         "expo-splash-screen",
         {
           backgroundColor: "#1A1A1C",

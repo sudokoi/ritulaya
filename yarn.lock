@@ -5754,6 +5754,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-build-properties@npm:~57.0.13":
+  version: 57.0.13
+  resolution: "expo-build-properties@npm:57.0.13"
+  dependencies:
+    "@expo/schema-utils": "npm:^57.0.2"
+    resolve-from: "npm:^5.0.0"
+    semver: "npm:^7.6.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/ea2440a691ee3ebc3606adfb7567ac3574ff64aa76fa32b67875ca54569b4dee00728d432839a9e402ab0c2407a10b5cea8ac17fca5e2f314dbb40d079704952
+  languageName: node
+  linkType: hard
+
 "expo-clipboard@npm:57.0.1":
   version: 57.0.1
   resolution: "expo-clipboard@npm:57.0.1"
@@ -10587,6 +10600,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:7.1.1"
     eslint-plugin-react-native: "npm:5.0.0"
     expo: "npm:57.0.12"
+    expo-build-properties: "npm:~57.0.13"
     expo-clipboard: "npm:57.0.1"
     expo-constants: "npm:57.0.10"
     expo-file-system: "npm:57.0.2"
