@@ -55,7 +55,9 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             widgetId: Int,
         ) {
-            val discreet = RitulayaDataStore(context.applicationContext).getSettings()?.discreetMode == 1
+            val store = RitulayaDataStore(context.applicationContext)
+            val settings = store.getSettings()
+            val discreet = settings?.discreetMode == 1
 
             // Prefer the snapshot the app persisted with its last prediction so
             // the widget always matches what the user sees in-app; counters are
@@ -64,7 +66,6 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             // matches the database (e.g. a background sync merged newer cycles
             // while the app was closed) is ignored so the render falls back to
             // computing locally from live rows.
-            val store = RitulayaDataStore(context.applicationContext)
             val snapshot = readSnapshot(context)
             val dataVersion = store.latestDataChange()
             if (snapshot != null && snapshot.dataVersion == (dataVersion ?: "")) {
@@ -89,7 +90,6 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
 
             val cycles = store.listCycles().map { PredictionEngine.CycleInput(it.id, it.startDate, it.endDate) }
             val logs = store.listDayLogs().map { PredictionEngine.DayLogInput(it.date, it.cycleId, it.flowIntensity) }
-            val settings = store.getSettings()
             val config =
                 PredictionEngine.Config(
                     avgCycleLength = settings?.avgCycleLength ?: 28,
