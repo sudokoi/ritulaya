@@ -8,8 +8,10 @@ import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { refreshAll } from "@/data/refresh"
 import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
+import { useTranslation } from "react-i18next"
 
 export default function CalendarScreen() {
+  const { t } = useTranslation()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [viewedMonth, setViewedMonth] = useState(() => new Date())
 
@@ -28,22 +30,21 @@ export default function CalendarScreen() {
       try {
         await saveDayEntry(entry, periodLength)
       } catch {
-        Alert.alert("Save failed", "Something went wrong while saving the entry.")
+        Alert.alert(t("calendar.saveFailedTitle"), t("calendar.saveFailedBody"))
       }
       setSelectedDate(null)
     },
-    [periodLength],
+    [periodLength, t],
   )
-
   const handleDelete = useCallback(() => {
     if (!existingLog) return
     deleteDayLog(existingLog.id)
       .then(() => refreshAll())
       .catch(() =>
-        Alert.alert("Delete failed", "Something went wrong while deleting the entry."),
+        Alert.alert(t("calendar.deleteFailedTitle"), t("calendar.deleteFailedBody")),
       )
     setSelectedDate(null)
-  }, [existingLog, deleteDayLog])
+  }, [existingLog, deleteDayLog, t])
 
   const handleClearPeriod = useCallback(() => {
     if (!existingLog) return
@@ -56,10 +57,10 @@ export default function CalendarScreen() {
     })
       .then(() => refreshAll())
       .catch(() =>
-        Alert.alert("Update failed", "Something went wrong while updating the entry."),
+        Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody")),
       )
     setSelectedDate(null)
-  }, [existingLog, upsertDayLog])
+  }, [existingLog, upsertDayLog, t])
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
@@ -69,13 +70,17 @@ export default function CalendarScreen() {
             <Text className="text-2xl font-bold text-[var(--text-primary)]">
               {avgCycleLength}
             </Text>
-            <Text className="text-xs text-[var(--text-muted)]">avg cycle</Text>
+            <Text className="text-xs text-[var(--text-muted)]">
+              {t("calendar.avgCycle")}
+            </Text>
           </View>
           <View className="flex-1 items-center">
             <Text className="text-2xl font-bold text-[var(--text-primary)]">
               {periodLength}
             </Text>
-            <Text className="text-xs text-[var(--text-muted)]">period days</Text>
+            <Text className="text-xs text-[var(--text-muted)]">
+              {t("calendar.periodDays")}
+            </Text>
           </View>
         </View>
 

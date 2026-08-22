@@ -9,6 +9,7 @@ import {
   Bell,
   Smartphone,
   ChevronRight,
+  Languages,
   Cloud,
   Info,
   Bug,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react-native"
 import { cn } from "@/lib/utils"
 import { discreetLabel } from "@/lib/discreet"
+import { useTranslation } from "react-i18next"
+import { SUPPORTED_LOCALES, type LanguageSetting } from "@/i18n"
 import { useSettings } from "@/hooks/use-settings"
 import { useThemeColors } from "@/hooks/use-theme-colors"
 import { usePrediction } from "@/hooks/use-predictions"
@@ -24,10 +27,19 @@ import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
 import { useEffect } from "react"
 
+const LANGUAGE_OPTIONS: LanguageSetting[] = ["system", ...SUPPORTED_LOCALES]
+
+function resolveLanguageSetting(setting: string): LanguageSetting {
+  if (setting === "en") return "system"
+  return (LANGUAGE_OPTIONS as string[]).includes(setting)
+    ? (setting as LanguageSetting)
+    : "system"
+}
+
 const THEME_OPTIONS = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+  { value: "system", labelKey: "settings.themeSystem" },
+  { value: "light", labelKey: "settings.themeLight" },
+  { value: "dark", labelKey: "settings.themeDark" },
 ] as const
 const PERIOD_AHEAD_OPTIONS = [0, 1, 2, 3, 5, 7]
 
@@ -76,12 +88,14 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 export default function SettingsScreen() {
+  const { t } = useTranslation()
   const {
     biometricLock,
     discreetMode: discreet,
     theme,
     reminderPeriodAhead,
     reminderDailyLog,
+    language,
     update,
     load,
   } = useSettings()
@@ -109,15 +123,36 @@ export default function SettingsScreen() {
     const enrolled = hasHardware && (await LocalAuthentication.isEnrolledAsync())
     if (!enrolled) {
       Alert.alert(
-        "Biometrics unavailable",
-        "Set up fingerprint or face unlock in your device settings to use the app lock.",
+        t("settings.biometricsUnavailableTitle"),
+        t("settings.biometricsUnavailableBody"),
       )
       return
     }
     update({ biometricLock: true })
   }
 
-  const currentThemeLabel = THEME_OPTIONS.find((option) => option.value === theme)?.label
+  const currentThemeOption = THEME_OPTIONS.find((option) => option.value === theme)
+  const currentThemeLabel = currentThemeOption
+    ? t(currentThemeOption.labelKey)
+    : undefined
+
+  const cycleLanguage = () => {
+    const idx = LANGUAGE_OPTIONS.indexOf(language as LanguageSetting)
+    const next = LANGUAGE_OPTIONS[(idx + 1) % LANGUAGE_OPTIONS.length]
+    update({ language: next })
+  }
+
+  const languageLabels: Record<LanguageSetting, string> = {
+    system: t("settings.system"),
+    "en-US": t("settings.langEnUS"),
+    "en-GB": t("settings.langEnGB"),
+    "en-IN": t("settings.langEnIN"),
+    hi: t("settings.langHi"),
+    ja: t("settings.langJa"),
+    ko: t("settings.langKo"),
+  }
+  const currentLanguageLabel =
+    languageLabels[resolveLanguageSetting(language)] ?? languageLabels.system
 
   const cyclePeriodAhead = () => {
     const idx = PERIOD_AHEAD_OPTIONS.indexOf(reminderPeriodAhead)
@@ -129,7 +164,7 @@ export default function SettingsScreen() {
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="px-6 pb-2" style={{ paddingTop: insets.top + 24 }}>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "Settings", "Preferences")}
+          {discreetLabel(discreet, t("settings.title"), t("discreet.settingsTitle"))}
         </Text>
       </View>
 
@@ -137,13 +172,21 @@ export default function SettingsScreen() {
         className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4 active:opacity-60"
         onPress={() => router.push("/seed")}
         accessibilityRole="button"
-        accessibilityLabel="Adjust cycle lengths"
+        accessibilityLabel={t("settings.adjustCycle")}
       >
         <View className="flex-row justify-between">
-          <StatItem value={`${avgCycleLength}`} label="avg cycle" discreet={discreet} />
-          <StatItem value={`${periodLength}`} label="period days" discreet={discreet} />
+          <StatItem
+            value={`${avgCycleLength}`}
+            label={t("calendar.avgCycle")}
+            discreet={discreet}
+          />
+          <StatItem
+            value={`${periodLength}`}
+            label={t("calendar.periodDays")}
+            discreet={discreet}
+          />
           <View className="flex-1 items-center justify-center">
-            <Text className="text-xs text-[var(--text-muted)]">Edit</Text>
+            <Text className="text-xs text-[var(--text-muted)]">{t("common.edit")}</Text>
           </View>
         </View>
         <Pressable
@@ -152,16 +195,30 @@ export default function SettingsScreen() {
         >
           <BarChart3 size={14} color={colors.accent} />
           <Text className="text-sm font-medium text-accent dark:text-accent-dark">
-            {discreetLabel(discreet, "View Full Insights", "View Details")}
+            {discreetLabel(
+              discreet,
+              t("settings.viewInsights"),
+              t("discreet.viewInsights"),
+            )}
           </Text>
         </Pressable>
       </Pressable>
 
       <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title={discreetLabel(discreet, "Privacy", "Security")} />
+        <SectionHeader
+          title={discreetLabel(
+            discreet,
+            t("settings.sectionPrivacy"),
+            t("discreet.sectionPrivacy"),
+          )}
+        />
         <SettingsRow
           icon={<Shield size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Biometric Lock", "App Lock")}
+          label={discreetLabel(
+            discreet,
+            t("settings.biometricLock"),
+            t("discreet.biometricLock"),
+          )}
           right={
             <Switch
               value={biometricLock}
@@ -172,7 +229,11 @@ export default function SettingsScreen() {
         />
         <SettingsRow
           icon={<EyeOff size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Discreet Mode", "Simple Mode")}
+          label={discreetLabel(
+            discreet,
+            t("settings.discreetMode"),
+            t("discreet.discreetMode"),
+          )}
           right={
             <Switch
               value={discreet}
@@ -184,25 +245,39 @@ export default function SettingsScreen() {
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title={discreetLabel(discreet, "Data", "Storage")} />
+        <SectionHeader
+          title={discreetLabel(
+            discreet,
+            t("settings.sectionData"),
+            t("discreet.sectionData"),
+          )}
+        />
         <SettingsRow
           icon={<Cloud size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "GitHub Sync", "Backup Sync")}
+          label={discreetLabel(
+            discreet,
+            t("settings.githubSync"),
+            t("discreet.githubSync"),
+          )}
           value={
             sync.config
               ? `${sync.config.repoOwner}/${sync.config.repoName}`
-              : discreetLabel(discreet, "Not set up", "Off")
+              : discreetLabel(discreet, t("settings.notSetUp"), t("common.off"))
           }
           onPress={() => router.push("/settings/github-sync")}
         />
         <SettingsRow
           icon={<Download size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Export Data", "Export")}
+          label={discreetLabel(
+            discreet,
+            t("settings.exportData"),
+            t("discreet.exportData"),
+          )}
           onPress={() =>
             exportData().catch(() =>
               Alert.alert(
-                "Export failed",
-                "Something went wrong while preparing your data.",
+                t("settings.exportFailedTitle"),
+                t("settings.exportFailedBody"),
               ),
             )
           }
@@ -210,16 +285,30 @@ export default function SettingsScreen() {
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title={discreetLabel(discreet, "Reminders", "Alerts")} />
+        <SectionHeader
+          title={discreetLabel(
+            discreet,
+            t("settings.sectionReminders"),
+            t("discreet.sectionReminders"),
+          )}
+        />
         <SettingsRow
           icon={<Bell size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Period Ahead", "Alert Ahead")}
-          value={reminderPeriodAhead > 0 ? `${reminderPeriodAhead} days` : "Off"}
+          label={discreetLabel(
+            discreet,
+            t("settings.periodAhead"),
+            t("discreet.periodAhead"),
+          )}
+          value={
+            reminderPeriodAhead > 0
+              ? t("common.days", { count: reminderPeriodAhead })
+              : t("common.off")
+          }
           onPress={cyclePeriodAhead}
         />
         <SettingsRow
           icon={<Bell size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Daily Log", "Daily Alert")}
+          label={discreetLabel(discreet, t("settings.dailyLog"), t("discreet.dailyLog"))}
           right={
             <Switch
               value={reminderDailyLog}
@@ -231,28 +320,54 @@ export default function SettingsScreen() {
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title={discreetLabel(discreet, "Appearance", "Display")} />
+        <SectionHeader
+          title={discreetLabel(
+            discreet,
+            t("settings.sectionAppearance"),
+            t("discreet.sectionAppearance"),
+          )}
+        />
         <SettingsRow
           icon={<Smartphone size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Theme", "Appearance")}
+          label={discreetLabel(discreet, t("settings.theme"), t("discreet.theme"))}
           value={currentThemeLabel}
           onPress={cycleTheme}
+        />
+        <SettingsRow
+          icon={<Languages size={20} color={colors.muted} />}
+          label={t("settings.language")}
+          value={currentLanguageLabel}
+          onPress={cycleLanguage}
         />
       </View>
 
       <View className="mx-4 mt-4 mb-12 rounded-card bg-[var(--bg-surface)] px-5">
-        <SectionHeader title={discreetLabel(discreet, "About", "Info")} />
+        <SectionHeader
+          title={discreetLabel(
+            discreet,
+            t("settings.sectionAbout"),
+            t("discreet.sectionAbout"),
+          )}
+        />
         <SettingsRow
           icon={<Info size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Privacy Policy", "Policy")}
+          label={discreetLabel(
+            discreet,
+            t("settings.privacyPolicy"),
+            t("discreet.privacyPolicy"),
+          )}
           onPress={() => router.push("/settings/privacy")}
         />
         <SettingsRow
           icon={<Bug size={20} color={colors.muted} />}
-          label={discreetLabel(discreet, "Report Bug", "Diagnostics")}
+          label={discreetLabel(
+            discreet,
+            t("settings.reportBug"),
+            t("discreet.reportBug"),
+          )}
           onPress={() =>
             reportBug().catch(() =>
-              Alert.alert("Something went wrong", "Could not prepare diagnostics."),
+              Alert.alert(t("settings.bugFailedTitle"), t("settings.bugFailedBody")),
             )
           }
         />
@@ -260,7 +375,7 @@ export default function SettingsScreen() {
           <View className="flex-row items-center gap-3">
             <Info size={20} color={colors.muted} />
             <Text className="text-base text-[var(--text-primary)]">
-              {discreetLabel(discreet, "Version", "Build")}
+              {discreetLabel(discreet, t("settings.version"), t("discreet.version"))}
             </Text>
           </View>
           <Text className="text-sm text-[var(--text-muted)]">0.1.0</Text>

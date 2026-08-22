@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications"
 import { subDays } from "date-fns"
 import { Platform } from "react-native"
 import { discreetLabel } from "@/lib/discreet"
+import i18n from "@/i18n"
 
 const REMINDER_CHANNEL_ID = "reminders"
 
@@ -18,7 +19,7 @@ Notifications.setNotificationHandler({
 async function ensureReminderChannel() {
   if (Platform.OS !== "android") return
   await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
-    name: "Reminders",
+    name: i18n.t("notifications.channelName"),
     importance: Notifications.AndroidImportance.DEFAULT,
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
   })
@@ -47,13 +48,21 @@ export async function schedulePeriodReminder(
   if (triggerDate <= new Date()) return
 
   await ensureReminderChannel()
+  const t = i18n.t.bind(i18n)
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: discreetLabel(discreet, "Period Ahead", "Reminder"),
+      title: discreetLabel(
+        discreet,
+        t("notifications.periodAheadTitle"),
+        t("discreet.periodAheadReminderTitle"),
+      ),
       body: discreetLabel(
         discreet,
-        `Your period may start in ${daysAhead} ${daysAhead === 1 ? "day" : "days"}.`,
-        `An entry is due in ${daysAhead} ${daysAhead === 1 ? "day" : "days"}.`,
+        t("notifications.periodAheadBody", { count: daysAhead }),
+        t("discreet.periodAheadReminderBody", {
+          count: daysAhead,
+          unit: daysAhead === 1 ? t("common.day") : t("common.daysUnit"),
+        }),
       ),
       data: { type: "period-reminder" },
     },
@@ -66,14 +75,19 @@ export async function schedulePeriodReminder(
 }
 
 export async function scheduleDailyLogReminder(discreet: boolean) {
+  const t = i18n.t.bind(i18n)
   await ensureReminderChannel()
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: discreetLabel(discreet, "Daily Log", "Check-in"),
+      title: discreetLabel(
+        discreet,
+        t("notifications.dailyLogTitle"),
+        t("discreet.dailyLogCheckIn"),
+      ),
       body: discreetLabel(
         discreet,
-        "How are you feeling today? Log your symptoms.",
-        "Time for your daily entry.",
+        t("notifications.dailyLogBody"),
+        t("discreet.dailyLogBody"),
       ),
       data: { type: "daily-log-reminder" },
     },
@@ -87,14 +101,19 @@ export async function scheduleDailyLogReminder(discreet: boolean) {
 }
 
 export async function scheduleOverdueNudge(discreet: boolean) {
+  const t = i18n.t.bind(i18n)
   await ensureReminderChannel()
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: discreetLabel(discreet, "Period Overdue", "Reminder"),
+      title: discreetLabel(
+        discreet,
+        t("notifications.overdueTitle"),
+        t("discreet.overdueReminderTitle"),
+      ),
       body: discreetLabel(
         discreet,
-        "Your period seems late — log it when it starts so predictions stay accurate.",
-        "A daily entry keeps things up to date.",
+        t("notifications.overdueBody"),
+        t("discreet.overdueReminderBody"),
       ),
       data: { type: "overdue-nudge" },
     },
