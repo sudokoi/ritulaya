@@ -191,8 +191,8 @@
   "seed": {
     "title": "चक्र सेट अप करें",
     "lastPeriodStarted": "पिछली पीरियड शुरू हुई",
-    "daysAgo_one": "{{count}} दिन पहले",
-    "daysAgo_other": "{{count}} दिन पहले",
+    "daysAgo_one": "दिन पहले",
+    "daysAgo_other": "दिन पहले",
     "typicalCycleLength": "सामान्य चक्र लंबाई",
     "typicalPeriodLength": "सामान्य पीरियड लंबाई",
     "explainer": "यह आपका पिछला पीरियड दर्ज करता है ताकि पूर्वानुमान तुरंत काम करें। इन संख्याओं को आप कभी भी समायोजित कर सकती हैं।",
@@ -255,7 +255,10 @@
     "overdueReminderTitle": "रिमाइंडर",
     "overdueReminderBody": "दैनिक एंट्री चीज़ों को अपडेट रखती है।",
     "dailyLogCheckIn": "चेक-इन",
-    "dailyLogBody": "आपकी दैनिक एंट्री का समय।"
+    "dailyLogBody": "आपकी दैनिक एंट्री का समय।",
+    "backUpTitle": "अपना डेटा बैक अप करें",
+    "backUpBody": "अपना डेटा किसी निजी रिपॉज़िटरी में सिंक करें। यह स्वतः सिंक होता है।",
+    "authorizeBody": "अधिकृत करने के लिए यह कोड दर्ज करें।"
   },
   "symptoms": {
     "cramps": "ऐंठन",

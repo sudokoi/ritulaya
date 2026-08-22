@@ -191,8 +191,8 @@
   "seed": {
     "title": "Set Up Cycle",
     "lastPeriodStarted": "Last period started",
-    "daysAgo_one": "{{count}} day ago",
-    "daysAgo_other": "{{count}} days ago",
+    "daysAgo_one": "day ago",
+    "daysAgo_other": "days ago",
     "typicalCycleLength": "Typical cycle length",
     "typicalPeriodLength": "Typical period length",
     "explainer": "This plants your last period so predictions work right away. You can adjust these numbers anytime.",
@@ -254,7 +254,10 @@
     "overdueReminderTitle": "Reminder",
     "overdueReminderBody": "A daily entry keeps things up to date.",
     "dailyLogCheckIn": "Check-in",
-    "dailyLogBody": "Time for your daily entry."
+    "dailyLogBody": "Time for your daily entry.",
+    "backUpTitle": "Back up your data",
+    "backUpBody": "Sync your data to a private repository you control. It syncs automatically.",
+    "authorizeBody": "Enter this code to authorize."
   },
   "symptoms": {
     "cramps": "Cramps",

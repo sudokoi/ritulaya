@@ -8,6 +8,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors"
 import { useSettings } from "@/hooks/use-settings"
 import { logPeriodOnDate } from "@/domain/day-entry"
 import { discreetLabel } from "@/lib/discreet"
+import { useTranslation } from "react-i18next"
 
 function Stepper({
   label,
@@ -25,6 +26,7 @@ function Stepper({
   onChange: (value: number) => void
 }) {
   const { muted } = useThemeColors()
+  const { t } = useTranslation()
   return (
     <View className="flex-row items-center justify-between py-3">
       <Text className="text-base text-[var(--text-primary)]">{label}</Text>
@@ -34,7 +36,7 @@ function Stepper({
           disabled={value <= min}
           className="rounded-button bg-[var(--bg-muted)] p-2 active:opacity-60 disabled:opacity-40"
           accessibilityRole="button"
-          accessibilityLabel={`Decrease ${label}`}
+          accessibilityLabel={t("seed.decrease", { label })}
         >
           <Minus size={18} color={muted} />
         </Pressable>
@@ -47,7 +49,7 @@ function Stepper({
           disabled={value >= max}
           className="rounded-button bg-[var(--bg-muted)] p-2 active:opacity-60 disabled:opacity-40"
           accessibilityRole="button"
-          accessibilityLabel={`Increase ${label}`}
+          accessibilityLabel={t("seed.increase", { label })}
         >
           <Plus size={18} color={muted} />
         </Pressable>
@@ -62,6 +64,7 @@ function Stepper({
  * Today screen when no cycles exist, and from Settings for adjustments.
  */
 export default function SeedCycleScreen() {
+  const { t } = useTranslation()
   const {
     discreetMode: discreet,
     avgCycleLength,
@@ -77,6 +80,8 @@ export default function SeedCycleScreen() {
   const [cycleLength, setCycleLength] = useState(avgCycleLength)
   const [periodLength, setPeriodLength] = useState(avgPeriodLength)
   const [saving, setSaving] = useState(false)
+  // The Stepper renders the numeric value itself, so the suffix is unit-only.
+  const daysAgoLabel = daysAgo === 1 ? t("seed.daysAgo_one") : t("seed.daysAgo_other")
 
   const handleSave = async () => {
     setSaving(true)
@@ -109,36 +114,36 @@ export default function SeedCycleScreen() {
           className="p-2 active:opacity-60"
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t("common.back")}
         >
           <ChevronLeft size={24} color={muted} />
         </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "Set Up Cycle", "Setup")}
+          {discreetLabel(discreet, t("seed.title"), t("discreet.seedTitle"))}
         </Text>
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Stepper
-          label="Last period started"
+          label={t("seed.lastPeriodStarted")}
           value={daysAgo}
-          suffix={daysAgo === 1 ? "day ago" : "days ago"}
+          suffix={daysAgoLabel}
           min={0}
           max={90}
           onChange={setDaysAgo}
         />
         <Stepper
-          label="Typical cycle length"
+          label={t("seed.typicalCycleLength")}
           value={cycleLength}
-          suffix="days"
+          suffix={t("common.daysUnit")}
           min={15}
           max={60}
           onChange={setCycleLength}
         />
         <Stepper
-          label="Typical period length"
+          label={t("seed.typicalPeriodLength")}
           value={periodLength}
-          suffix="days"
+          suffix={t("common.daysUnit")}
           min={1}
           max={12}
           onChange={setPeriodLength}
@@ -150,14 +155,15 @@ export default function SeedCycleScreen() {
         disabled={saving}
         className="mx-4 mt-6 rounded-card bg-accent px-6 py-4 active:opacity-60"
         accessibilityRole="button"
-        accessibilityLabel="Save cycle setup"
+        accessibilityLabel={t("seed.title")}
       >
-        <Text className="text-center text-lg font-semibold text-white">Save</Text>
+        <Text className="text-center text-lg font-semibold text-white">
+          {t("common.save")}
+        </Text>
       </Pressable>
 
       <Text className="mx-8 mt-4 text-center text-xs text-[var(--text-muted)] opacity-70">
-        This plants your last period so predictions work right away. You can adjust these
-        numbers anytime.
+        {t("seed.explainer")}
       </Text>
 
       <View className="h-8" />
