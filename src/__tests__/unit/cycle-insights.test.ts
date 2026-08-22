@@ -48,9 +48,10 @@ describe("completedCycleLengths", () => {
 
 describe("regularityCopy", () => {
   it("frames tight spread as regular and wide spread as varied", () => {
-    expect(regularityCopy(2)).toContain("regular")
-    expect(regularityCopy(5)).toContain("fairly regular")
-    expect(regularityCopy(9)).toContain("varied")
+    expect(regularityCopy(2)).toEqual({ key: "insights.regular", days: 2 })
+    expect(regularityCopy(5)).toEqual({ key: "insights.fairlyRegular", days: 5 })
+    expect(regularityCopy(9)).toEqual({ key: "insights.quiteVaried", days: 9 })
+    expect(regularityCopy(0.2)).toEqual({ key: "insights.regular", days: 1 })
   })
 })
 
