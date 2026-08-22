@@ -191,8 +191,8 @@
   "seed": {
     "title": "サイクルを設定",
     "lastPeriodStarted": "前回の生理開始",
-    "daysAgo_one": "{{count}}日前",
-    "daysAgo_other": "{{count}}日前",
+    "daysAgo_one": "日前",
+    "daysAgo_other": "日前",
     "typicalCycleLength": "平均的な周期の長さ",
     "typicalPeriodLength": "平均的な生理日数",
     "explainer": "前回の生理を記録して、すぐに予測が機能するようにします。これらの数値はいつでも調整できます。",
@@ -254,7 +254,10 @@
     "overdueReminderTitle": "リマインダー",
     "overdueReminderBody": "毎日の記録で最新の状態を保ちましょう。",
     "dailyLogCheckIn": "チェックイン",
-    "dailyLogBody": "毎日の記録の時間です。"
+    "dailyLogBody": "毎日の記録の時間です。",
+    "backUpTitle": "データをバックアップ",
+    "backUpBody": "自分が管理するプライベートリポジトリにデータを同期します。自動で同期されます。",
+    "authorizeBody": "認証するにはこのコードを入力してください。"
   },
   "symptoms": {
     "cramps": "生理痛",

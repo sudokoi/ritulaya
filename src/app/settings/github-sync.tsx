@@ -120,10 +120,10 @@ export default function GithubSyncScreen() {
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-6">
           <Cloud size={40} color={muted} />
           <Text className="mt-4 text-lg font-semibold text-[var(--text-primary)]">
-            {t("sync.backUpTitle")}
+            {discreetLabel(discreet, t("sync.backUpTitle"), t("discreet.backUpTitle"))}
           </Text>
           <Text className="mt-2 text-sm text-[var(--text-muted)]">
-            {t("sync.backUpBody")}
+            {discreetLabel(discreet, t("sync.backUpBody"), t("discreet.backUpBody"))}
           </Text>
           <Pressable
             onPress={() => void sync.connect()}
@@ -148,7 +148,11 @@ export default function GithubSyncScreen() {
             {t("sync.authorizeTitle")}
           </Text>
           <Text className="mt-2 text-sm text-[var(--text-muted)]">
-            {t("sync.authorizeBody")}
+            {discreetLabel(
+              discreet,
+              t("sync.authorizeBody"),
+              t("discreet.authorizeBody"),
+            )}
           </Text>
           <Pressable
             onPress={() => void copyUserCode()}
