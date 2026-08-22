@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { Calendar, Home, Settings } from "lucide-react-native"
 import { Pressable } from "react-native"
 import { useColorScheme } from "nativewind"
@@ -35,6 +36,7 @@ function TabBarButton({
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation()
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
   const colors = dark ? palette.dark : palette.light
@@ -64,21 +66,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Today",
+          title: t("tabs.today"),
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: "Calendar",
+          title: t("tabs.calendar"),
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: t("tabs.settings"),
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />

@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react-native"
 import Markdown from "react-native-markdown-display"
 import { useColorScheme } from "nativewind"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useTranslation } from "react-i18next"
 import privacyMarkdown from "../../../privacy.md"
 import { discreetLabel } from "@/lib/discreet"
 import { useSettings } from "@/hooks/use-settings"
@@ -24,6 +25,7 @@ const markdownStyles = {
 }
 
 export default function PrivacyScreen() {
+  const { t } = useTranslation()
   const { discreetMode: discreet } = useSettings()
   const { colorScheme } = useColorScheme()
   const { muted } = useThemeColors()
@@ -52,12 +54,16 @@ export default function PrivacyScreen() {
           className="p-2 active:opacity-60"
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t("common.back")}
         >
           <ChevronLeft size={24} color={muted} />
         </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
-          {discreetLabel(discreet, "Privacy Policy", "Policy")}
+          {discreetLabel(
+            discreet,
+            t("settings.privacyPolicy"),
+            t("discreet.privacyPolicy"),
+          )}
         </Text>
       </View>
       <ScrollView className="flex-1 px-6 pb-12">

@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { AppState, Text, Pressable, View } from "react-native"
 import * as LocalAuthentication from "expo-local-authentication"
 import { Fingerprint } from "lucide-react-native"
+import { useTranslation } from "react-i18next"
 import { useSettings } from "@/hooks/use-settings"
 import { useThemeColors } from "@/hooks/use-theme-colors"
 
 export function BiometricGate({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
   const { biometricLock, update } = useSettings()
   const { accent, danger } = useThemeColors()
   const [unlocked, setUnlocked] = useState(!biometricLock)
@@ -27,8 +29,8 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
     setUnavailable(false)
     try {
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: "Unlock Ritulaya",
-        cancelLabel: "Cancel",
+        promptMessage: t("gate.unlock"),
+        cancelLabel: t("common.cancel"),
       })
       if (result.success) {
         setUnlocked(true)
@@ -39,14 +41,14 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
         result.error !== "system_cancel" &&
         result.error !== "app_cancel"
       ) {
-        setError("Authentication failed. Please try again.")
+        setError(t("gate.failed"))
       }
     } catch {
       setUnavailable(true)
     } finally {
       promptingRef.current = false
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (!biometricLock || unlocked) return
@@ -74,14 +76,14 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
     <View className="flex-1 items-center justify-center bg-[var(--bg-primary)] px-6">
       <Fingerprint size={48} color={accent} />
       <Text className="mt-4 text-xl font-semibold text-[var(--text-primary)]">
-        Ritulaya is locked
+        {t("gate.lockedTitle")}
       </Text>
       <Text className="mt-2 text-center text-sm text-[var(--text-muted)]">
-        Authenticate to view your data.
+        {t("gate.lockedBody")}
       </Text>
       {unavailable ? (
         <Text className="mt-2 text-center text-sm" style={{ color: danger }}>
-          Biometric authentication is unavailable on this device.
+          {t("gate.unavailable")}
         </Text>
       ) : error ? (
         <Text className="mt-2 text-center text-sm" style={{ color: danger }}>
@@ -92,10 +94,10 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
         onPress={authenticate}
         className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
         accessibilityRole="button"
-        accessibilityLabel="Unlock"
+        accessibilityLabel={t("gate.unlock")}
       >
         <Text className="font-semibold text-white">
-          {unavailable ? "Try again" : "Unlock"}
+          {unavailable ? t("gate.tryAgain") : t("gate.unlock")}
         </Text>
       </Pressable>
       {unavailable ? (
@@ -103,7 +105,9 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
           onPress={() => update({ biometricLock: false })}
           className="mt-3 rounded-button px-6 py-4 active:opacity-60"
         >
-          <Text className="font-semibold text-[var(--text-muted)]">Turn off lock</Text>
+          <Text className="font-semibold text-[var(--text-muted)]">
+            {t("gate.turnOffLock")}
+          </Text>
         </Pressable>
       ) : null}
     </View>

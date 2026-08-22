@@ -7,17 +7,22 @@ import { useWidget } from "@/hooks/use-widget"
 import { useAppRefresh } from "@/hooks/use-app-refresh"
 import { useSettings } from "@/hooks/use-settings"
 import { BiometricGate } from "@/components/biometric-gate"
+import { changeLanguage } from "@/i18n"
 import "@/global.css"
 
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme()
-  const { theme, load } = useSettings()
+  const { theme, language, load } = useSettings()
 
   useAppRefresh()
 
   useEffect(() => {
     setColorScheme(theme)
   }, [theme, setColorScheme])
+
+  useEffect(() => {
+    void changeLanguage(language)
+  }, [language])
 
   useEffect(() => {
     load()

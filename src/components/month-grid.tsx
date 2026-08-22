@@ -6,6 +6,7 @@ import { memo, useMemo } from "react"
 import { getDaysInMonthGrid } from "@/utils/date"
 import { cn } from "@/lib/utils"
 import { useThemeColors } from "@/hooks/use-theme-colors"
+import { useTranslation } from "react-i18next"
 import { DayCircle } from "@/components/day-circle"
 import { dayGradient, resolveDayStyle } from "@/lib/day-colors"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
@@ -37,6 +38,7 @@ const DayCell = memo(function DayCell({
   dark,
   onPress,
 }: DayCellProps) {
+  const { t } = useTranslation()
   const marked =
     state.period ||
     state.predicted ||
@@ -61,12 +63,12 @@ const DayCell = memo(function DayCell({
       : "text-[var(--text-primary)]"
 
   const stateParts = [
-    state.period ? "period" : null,
-    state.predicted ? "predicted period" : null,
-    state.uncertain && !state.predicted ? "possible period start" : null,
-    state.ovulation ? "ovulation" : null,
-    state.fertile > 0 ? "fertile" : null,
-    state.logged ? "logged" : null,
+    state.period ? t("calendar.statePeriod") : null,
+    state.predicted ? t("calendar.statePredicted") : null,
+    state.uncertain && !state.predicted ? t("calendar.statePossible") : null,
+    state.ovulation ? t("calendar.stateOvulation") : null,
+    state.fertile > 0 ? t("calendar.stateFertile") : null,
+    state.logged ? t("calendar.stateLogged") : null,
   ].filter(Boolean)
 
   const accessibilityLabel = `${format(date, "MMMM d")}${stateParts.length > 0 ? `, ${stateParts.join(", ")}` : ""}`
@@ -127,6 +129,7 @@ export function MonthGrid({
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
   const { muted } = useThemeColors()
+  const { t } = useTranslation()
   // Memoized on the month so DayCell props keep stable identities and the
   // cell memoization actually engages.
   const days = useMemo(() => getDaysInMonthGrid(currentMonth), [currentMonth])
@@ -144,7 +147,7 @@ export function MonthGrid({
           className="active:opacity-60"
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Previous month"
+          accessibilityLabel={t("calendar.prevMonth")}
         >
           <ChevronLeft size={20} color={muted} />
         </Pressable>
@@ -156,7 +159,7 @@ export function MonthGrid({
           className="active:opacity-60"
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Next month"
+          accessibilityLabel={t("calendar.nextMonth")}
         >
           <ChevronRight size={20} color={muted} />
         </Pressable>
@@ -188,21 +191,33 @@ export function MonthGrid({
       </View>
 
       <View className="flex-row justify-center gap-3 px-4 py-3">
-        <Legend colors={dayGradient("menstrual", dark)} fill={1} label="Period" />
+        <Legend
+          colors={dayGradient("menstrual", dark)}
+          fill={1}
+          label={t("calendar.legendPeriod")}
+        />
         <Legend
           colors={dayGradient("menstrual", dark)}
           fill={1}
           opacity={0.45}
-          label="Predicted"
+          label={t("calendar.legendPredicted")}
         />
         <Legend
           colors={dayGradient("menstrual", dark)}
           fill={0.45}
           opacity={0.45}
-          label="Maybe"
+          label={t("calendar.legendMaybe")}
         />
-        <Legend colors={dayGradient("ovulation", dark)} fill={0.6} label="Fertile" />
-        <Legend colors={dayGradient("ovulation", dark)} fill={1} label="Ovulation" />
+        <Legend
+          colors={dayGradient("ovulation", dark)}
+          fill={0.6}
+          label={t("calendar.legendFertile")}
+        />
+        <Legend
+          colors={dayGradient("ovulation", dark)}
+          fill={1}
+          label={t("calendar.legendOvulation")}
+        />
       </View>
     </View>
   )
