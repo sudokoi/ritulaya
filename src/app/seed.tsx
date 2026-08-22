@@ -62,13 +62,20 @@ function Stepper({
  * Today screen when no cycles exist, and from Settings for adjustments.
  */
 export default function SeedCycleScreen() {
-  const { discreetMode: discreet, update } = useSettings()
+  const {
+    discreetMode: discreet,
+    avgCycleLength,
+    avgPeriodLength,
+    update,
+  } = useSettings()
   const { muted } = useThemeColors()
   const insets = useSafeAreaInsets()
 
+  // Typical lengths start from the stored settings so the screen shows the
+  // user's current configuration when reached from Settings, not defaults.
   const [daysAgo, setDaysAgo] = useState(0)
-  const [cycleLength, setCycleLength] = useState(28)
-  const [periodLength, setPeriodLength] = useState(5)
+  const [cycleLength, setCycleLength] = useState(avgCycleLength)
+  const [periodLength, setPeriodLength] = useState(avgPeriodLength)
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
