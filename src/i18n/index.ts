@@ -2,6 +2,7 @@
 // support exists and must load before i18next initialises pluralization.
 import "intl-pluralrules"
 import i18next, { type i18n as I18n } from "i18next"
+import { initReactI18next } from "react-i18next"
 import { setDefaultOptions } from "date-fns"
 import {
   enUS,
@@ -92,7 +93,7 @@ export async function changeLanguage(setting: string): Promise<void> {
   setDefaultOptions({ locale: DATE_LOCALES[locale] })
 }
 
-i18next.init({
+i18next.use(initReactI18next).init({
   resources: Object.fromEntries(
     Object.entries(RESOURCES).map(([lng, translation]) => [lng, { translation }]),
   ),
@@ -100,6 +101,7 @@ i18next.init({
   fallbackLng: "en-US",
   interpolation: { escapeValue: false },
   returnNull: false,
+  react: { useSuspense: false },
 })
 
 // Align date formatting with the initial locale.
