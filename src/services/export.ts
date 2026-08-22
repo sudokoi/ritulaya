@@ -6,8 +6,9 @@ import type { DayLog } from "@/types/day-log"
 
 export function csvCell(value: string): string {
   const escaped = value.replace(/"/g, '""')
-  // Neutralize spreadsheet formula injection (=, +, @ prefixes).
-  const safe = /^[=+@]/.test(escaped) ? `'${escaped}` : escaped
+  // Neutralize spreadsheet formula injection (=, +, -, @ prefixes, and
+  // leading tab/CR per OWASP CSV injection guidance).
+  const safe = /^[=+\-@\t\r]/.test(escaped) ? `'${escaped}` : escaped
   return `"${safe}"`
 }
 

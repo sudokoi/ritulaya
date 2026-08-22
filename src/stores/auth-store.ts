@@ -44,9 +44,9 @@ export async function connectDeviceFlow(isCancelled: () => boolean): Promise<boo
   try {
     const flow = await initiateDeviceFlow()
     authStore.send({ type: "setDeviceFlow", deviceFlow: flow })
-    const token = await pollForToken(isCancelled)
+    const granted = await pollForToken(isCancelled)
     authStore.send({ type: "setDeviceFlow", deviceFlow: null })
-    if (!token) {
+    if (!granted) {
       if (!isCancelled()) {
         authStore.send({
           type: "setError",

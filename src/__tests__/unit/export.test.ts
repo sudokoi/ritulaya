@@ -49,7 +49,9 @@ describe("csvCell", () => {
     expect(csvCell("=cmd")).toBe('"\'=cmd"')
     expect(csvCell("+sum")).toBe('"\'+sum"')
     expect(csvCell("@x")).toBe('"\'@x"')
-    expect(csvCell("-1")).toBe('"-1"')
+    expect(csvCell("-1")).toBe('"\'-1"')
+    expect(csvCell("\t=cmd")).toBe('"\'\t=cmd"')
+    expect(csvCell("\r=cmd")).toBe('"\'\r=cmd"')
   })
 })
 

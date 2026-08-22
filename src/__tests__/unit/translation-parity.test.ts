@@ -60,4 +60,16 @@ describe("translation parity", () => {
       expect({ missing, extra }).toEqual({ missing: [], extra: [] })
     })
   }
+
+  // The widget pipeline replaces {{count}} with a %d placeholder that Kotlin
+  // formats at render time; a translation dropping the placeholder would
+  // render a literal "%d" on the home-screen widget.
+  it("keeps the widget countdown placeholders intact", () => {
+    for (const locale of localeDirs) {
+      const translation = JSON.parse(
+        readFileSync(join(LOCALES_DIR, `${locale}/translation.json`), "utf8"),
+      )
+      expect(translation.widget.daysUntilMany).toContain("{{count}}")
+    }
+  })
 })
