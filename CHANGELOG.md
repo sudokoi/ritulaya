@@ -1,5 +1,53 @@
 # ritulaya
 
+## 0.1.0-alpha.4
+
+### Minor Changes
+
+- 4279c34: Localization across six locales
+
+  - Full translations for en-US, en-GB, en-IN, hi, ja, and ko, with a language picker (including system default) in Settings
+  - All user-facing strings moved into translation files, including discreet-mode label pairs and notification copy
+  - Locales bundle statically; the stored language setting resolves against device languages with legacy "en" migration
+  - Type-safe translation keys derived from the en-US source of truth
+
+- f92864b: Prediction engine v2, widget theming, and live sync status
+
+  - Predictions weight each cycle by recency and similarity to the user's own typical pattern (median/MAD), so irregular cycles damp out without discarding data or using population heuristics
+  - Confidence now reflects both history volume and regularity; predictions expose an ~80% uncertainty window around the next period start
+  - History older than 90 days resets predictions to population defaults
+  - Phase boundaries derive from the user's configured period and luteal lengths instead of hardcoded day thresholds
+  - The home-screen widget renders the app's persisted prediction snapshot (no more widget/app divergence) and follows the system light/dark theme
+  - Sync status is a real state machine persisted through background syncs, with live updates in the app while it's open
+
+- 1a5ec7d: Day entry fields, cycle seeding, and richer insights
+
+  - Day entries now support cervical mucus, basal body temperature, and sexual activity, with a single canonical day-entry shape shared by the sheet, screens, and domain layer
+  - New seed-cycle flow: plant your last period plus typical lengths at first run (or adjust later from Settings) so predictions work immediately
+  - The home-screen widget deep-links straight into logging today's entry
+  - Calendar shades uncertainty-window days as "maybe" alongside predicted days; Today softens its copy when prediction confidence is low
+  - Insights gains a Cycle Lengths history card with regularity summary and a By Phase view grouping symptoms and moods by cycle phase
+  - A daily discreet-aware nudge replaces the period-ahead reminder while a period is overdue
+
+### Patch Changes
+
+- 894048d: Fix sync correctness, privacy, and UX issues found in a codebase audit
+
+  - GitHub sync now fails loudly on API errors instead of reporting success, keeps writes made mid-sync from being wiped, and serializes concurrent sync runs
+  - Sync conflicts resolve by recency instead of delete-always-wins; overdue periods no longer project a fertile window two weeks late
+  - The OAuth token never crosses the JS bridge and device flow survives transient network outages
+  - Exported CSVs are properly quoted and formula-injection safe, and temp export files are deleted after sharing
+  - Reminders use a private lock-screen channel; sexual activity can be unset; background failures are logged instead of dropped
+  - Accessibility roles/labels and 44px touch targets across interactive UI, keyboard handling in the day sheet and GitHub sync, repository-name validation, and calendar rendering performance improvements
+
+- a5c858b: Fixes and polish from a combined review of the four feature stacks
+
+  - Sync: mid-sync edits and deletions now beat stale snapshot rows on both the upsert and delete paths; status payloads return `null` (never `"0"`) for never-synced, and an unauthenticated run reports idle instead of an error shape
+  - Sync screen: renders the live status machine — status label and dot color, last-synced time, and a repeated-failure warning showing the failure count
+  - Widget: display strings come from `locales/*.json` via the prediction snapshot (English fallback only when rendering from local computation), counters clamp at zero, language switches re-render immediately, and cold-starting from the deep link lands on Today instead of exiting
+  - i18n: notification copy and the Android reminder channel follow language changes, remaining hardcoded alerts translated, `intl-pluralrules` polyfill imported, `expo-localization` pinned exact
+  - Internals: phase boundaries defined once in the engine with a JS mirror guarded by a fixture test; day-log clear convention decoded in one pure tested function; widget staleness reads its version from the database itself; dead code removed
+
 ## 0.1.0-alpha.3
 
 ### Patch Changes
