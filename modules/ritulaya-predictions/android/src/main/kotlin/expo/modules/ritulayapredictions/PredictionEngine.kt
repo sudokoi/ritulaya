@@ -115,12 +115,21 @@ object PredictionEngine {
     fun phase(
         daysUntilNext: Int,
         config: Config,
+    ): String = phaseOfDayInCycle(config.avgCycleLength - daysUntilNext, config)
+
+    /**
+     * Single source of truth for phase boundaries. The JS mirror in
+     * src/lib/cycle-insights.ts (used for historical grouping) must stay in
+     * sync with this — change both together.
+     */
+    fun phaseOfDayInCycle(
+        dayInCycle: Int,
+        config: Config,
     ): String {
         val ovulationDay = config.avgCycleLength - config.lutealPhaseLength
-        val dayInCycle = config.avgCycleLength - daysUntilNext
         return when {
-            daysUntilNext <= config.avgPeriodLength -> "menstrual"
             dayInCycle <= config.avgPeriodLength -> "menstrual"
+            dayInCycle >= config.avgCycleLength - config.avgPeriodLength -> "menstrual"
             dayInCycle < ovulationDay - 3 -> "follicular"
             dayInCycle <= ovulationDay + 1 -> "ovulation"
             else -> "luteal"
@@ -242,8 +251,13 @@ object PredictionEngine {
 
     private fun median(lengths: List<Int>): Double {
         val sorted = lengths.sorted()
+        return evenOddMedian(sorted.map { it.toDouble() })
+    }
+
+    /** Median of a pre-sorted list, averaging the middle pair for even sizes. */
+    private fun evenOddMedian(sorted: List<Double>): Double {
         val mid = sorted.size / 2
-        return if (sorted.size % 2 == 0) (sorted[mid - 1] + sorted[mid]) / 2.0 else sorted[mid].toDouble()
+        return if (sorted.size % 2 == 0) (sorted[mid - 1] + sorted[mid]) / 2.0 else sorted[mid]
     }
 
     /** Median absolute deviation scaled to be comparable to a standard deviation. */
@@ -257,14 +271,7 @@ object PredictionEngine {
     private fun rawSigma(lengths: List<Int>): Double {
         val med = median(lengths)
         val deviations = lengths.map { kotlin.math.abs(it - med) }.sorted()
-        val mid = deviations.size / 2
-        val mad =
-            if (deviations.size % 2 == 0) {
-                (deviations[mid - 1] + deviations[mid]) / 2.0
-            } else {
-                deviations[mid].toDouble()
-            }
-        return 1.4826 * mad
+        return 1.4826 * evenOddMedian(deviations)
     }
 
     private fun baseStart(all: List<CycleInput>): LocalDate = LocalDate.parse(all.first().startDate)

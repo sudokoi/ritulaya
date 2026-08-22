@@ -33,3 +33,24 @@ class PredictionConfigRecord : Record {
      */
     @Field var dataVersion: String = ""
 }
+
+/**
+ * Localized widget copy captured from JS at compute time so the widget never
+ * needs its own translation table. Templates carry a %d placeholder that the
+ * widget fills at render time.
+ */
+class WidgetCopyRecord : Record {
+    @Field var menstrual: String = ""
+
+    @Field var follicular: String = ""
+
+    @Field var ovulation: String = ""
+
+    @Field var luteal: String = ""
+
+    @Field var today: String = ""
+
+    @Field var dayUntilSingular: String = ""
+
+    @Field var daysUntilMany: String = ""
+}

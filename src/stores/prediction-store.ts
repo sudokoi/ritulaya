@@ -1,5 +1,6 @@
 import { createStore } from "@xstate/store"
 import { computePrediction } from "@/services/predictions"
+import { native, nativeCall } from "@/lib/native"
 import { cycleStore } from "@/stores/cycle-store"
 import { dayLogStore } from "@/stores/day-log-store"
 import { settingsStore } from "@/stores/settings-store"
@@ -49,15 +50,16 @@ export const predictionStore = createStore({
 let inFlight = false
 let pending = false
 
-function dataVersion(
-  cycles: { updatedAt: string }[],
-  logs: { updatedAt: string }[],
-): string {
-  let latest = ""
-  for (const row of [...cycles, ...logs]) {
-    if (row.updatedAt > latest) latest = row.updatedAt
-  }
-  return latest
+/**
+ * The widget compares this against the database's own max updated_at, so it
+ * is read natively from the same source rather than recomputed from store
+ * rows — the two computations drifting apart would wrongly invalidate good
+ * widget snapshots.
+ */
+function latestDataVersion(): Promise<string> {
+  return nativeCall(native.db, (db) => db.latestDataChange(), null).then(
+    (value) => value ?? "",
+  )
 }
 
 export async function recomputePrediction(): Promise<void> {
@@ -78,7 +80,7 @@ export async function recomputePrediction(): Promise<void> {
         avgCycleLength: settingsCtx.avgCycleLength,
         avgPeriodLength: settingsCtx.avgPeriodLength,
         lutealPhaseLength: settingsCtx.lutealPhaseLength,
-        dataVersion: dataVersion(cycleCtx.cycles, logCtx.logs),
+        dataVersion: await latestDataVersion(),
       })
 
       if (!bundle) return
@@ -103,7 +105,9 @@ cycleStore.subscribe(() => void recomputePrediction())
 dayLogStore.subscribe(() => void recomputePrediction())
 settingsStore.subscribe((snapshot) => {
   const s = snapshot.context
-  const key = `${s.avgCycleLength}:${s.avgPeriodLength}:${s.lutealPhaseLength}`
+  // Language participates: the widget snapshot captures localized display
+  // strings at compute time, so switching languages must rewrite it.
+  const key = `${s.avgCycleLength}:${s.avgPeriodLength}:${s.lutealPhaseLength}:${s.language}`
   if (key === lastSettingsKey) return
   lastSettingsKey = key
   void recomputePrediction()

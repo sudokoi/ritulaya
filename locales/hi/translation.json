@@ -180,6 +180,12 @@
     "useRepo": "रिपॉजिटरी उपयोग करें",
     "synced": "सिंक हो गया",
     "notSyncedYet": "अभी तक सिंक नहीं हुआ",
+    "statusSyncing": "सिंक हो रहा है…",
+    "statusInSync": "अप टू डेट",
+    "statusError": "सिंक विफल हुआ",
+    "lastSynced": "अंतिम सिंक {{formatted}}",
+    "warningTitle": "सिंक समस्या",
+    "warningBody": "सिंक लगातार {{count}} बार विफल हुआ है। आपका डेटा इस डिवाइस पर सुरक्षित है — अपना GitHub कनेक्शन जाँचें।",
     "syncNow": "अभी सिंक करें",
     "disconnect": "डिस्कनेक्ट करें",
     "invalidNameTitle": "अमान्य रिपॉजिटरी नाम",
@@ -195,6 +201,8 @@
     "daysAgo_other": "दिन पहले",
     "typicalCycleLength": "सामान्य चक्र लंबाई",
     "typicalPeriodLength": "सामान्य पीरियड लंबाई",
+    "saveFailedTitle": "सेव करने में विफल",
+    "saveFailedBody": "आपका साइकल सेट अप करते समय कुछ गलत हो गया।",
     "explainer": "यह आपका पिछला पीरियड दर्ज करता है ताकि पूर्वानुमान तुरंत काम करें। इन संख्याओं को आप कभी भी समायोजित कर सकती हैं।",
     "decrease": "{{label}} घटाएं",
     "increase": "{{label}} बढ़ाएं"
@@ -287,5 +295,10 @@
     "irritable": "चिड़चिड़ा",
     "tired": "थका हुआ",
     "loved": "प्रेम महसूस"
+  },
+  "widget": {
+    "today": "आज",
+    "daysUntilOne": "अगली पीरियड में 1 दिन",
+    "daysUntilMany": "अगली पीरियड में {{count}} दिन"
   }
 }

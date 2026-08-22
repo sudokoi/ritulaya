@@ -16,6 +16,7 @@ class RitulayaPredictionsModule : Module() {
                 cycles: List<CycleInputRecord>,
                 logs: List<DayLogInputRecord>,
                 config: PredictionConfigRecord,
+                copy: WidgetCopyRecord,
                 ->
                 val engineCycles = cycles.map { PredictionEngine.CycleInput(it.id, it.startDate, it.endDate) }
                 val engineLogs = logs.map { PredictionEngine.DayLogInput(it.date, it.cycleId, it.flowIntensity) }
@@ -46,7 +47,7 @@ class RitulayaPredictionsModule : Module() {
                             },
                     )
 
-                persistWidgetSnapshot(output.nextPeriodStart, currentCycle?.startDate, engineConfig, config.dataVersion)
+                persistWidgetSnapshot(output.nextPeriodStart, currentCycle?.startDate, engineConfig, config.dataVersion, copy)
                 result
             }
         }
@@ -55,13 +56,16 @@ class RitulayaPredictionsModule : Module() {
      * Persists a widget-facing snapshot so the home-screen widget renders
      * exactly what the app computed instead of re-running its own copy of the
      * prediction pipeline. Dates are stored rather than derived counters so
-     * the widget stays current across reboots without an app-side recompute.
+     * the widget stays current across reboots without an app-side recompute;
+     * localized display strings ride along so the translation files stay the
+     * only source of widget copy.
      */
     private fun persistWidgetSnapshot(
         nextPeriodStart: LocalDate,
         cycleStartDate: String?,
         config: PredictionEngine.Config,
         dataVersion: String,
+        copy: WidgetCopyRecord,
     ) {
         val context: Context = appContext.reactContext?.applicationContext ?: return
         context
@@ -76,7 +80,17 @@ class RitulayaPredictionsModule : Module() {
                     .put("avgPeriodLength", config.avgPeriodLength)
                     .put("lutealPhaseLength", config.lutealPhaseLength)
                     .put("dataVersion", dataVersion)
-                    .toString(),
+                    .put(
+                        "copy",
+                        JSONObject()
+                            .put("menstrual", copy.menstrual)
+                            .put("follicular", copy.follicular)
+                            .put("ovulation", copy.ovulation)
+                            .put("luteal", copy.luteal)
+                            .put("today", copy.today)
+                            .put("dayUntilSingular", copy.dayUntilSingular)
+                            .put("daysUntilMany", copy.daysUntilMany),
+                    ).toString(),
             ).apply()
     }
 }

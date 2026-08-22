@@ -1,5 +1,6 @@
 import { native, nativeCall } from "@/lib/native"
 import { parseISO } from "date-fns"
+import i18n from "@/i18n"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog } from "@/types/day-log"
 import type { PredictionResult } from "@/types/prediction"
@@ -30,6 +31,25 @@ export interface PredictionBundle {
   stats: CycleStats | null
 }
 
+/**
+ * Localized widget copy captured from locales/*.json at compute time so
+ * translation.json stays the single source of home-screen widget strings.
+ * The days-until templates keep a %d placeholder; the widget formats the
+ * live counter at render time.
+ */
+function widgetCopy() {
+  const t = i18n.t.bind(i18n)
+  return {
+    menstrual: t("phase.menstrual.name"),
+    follicular: t("phase.follicular.name"),
+    ovulation: t("phase.ovulation.name"),
+    luteal: t("phase.luteal.name"),
+    today: t("widget.today"),
+    dayUntilSingular: t("widget.daysUntilOne"),
+    daysUntilMany: t("widget.daysUntilMany").replace("{{count}}", "%d"),
+  }
+}
+
 export async function computePrediction(
   cycles: Cycle[],
   logs: DayLog[],
@@ -50,6 +70,7 @@ export async function computePrediction(
           flowIntensity: log.flowIntensity,
         })),
         config,
+        widgetCopy(),
       )
       if (!result) return null
 

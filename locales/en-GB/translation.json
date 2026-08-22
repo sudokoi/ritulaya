@@ -180,6 +180,12 @@
     "useRepo": "Use Repository",
     "synced": "Synced",
     "notSyncedYet": "Not synced yet",
+    "statusSyncing": "Syncing…",
+    "statusInSync": "Up to date",
+    "statusError": "Sync failed",
+    "lastSynced": "Last synced {{formatted}}",
+    "warningTitle": "Sync problem",
+    "warningBody": "Sync has failed {{count}} times in a row. Your data is still safe on this device — check your GitHub connection.",
     "syncNow": "Sync Now",
     "disconnect": "Disconnect",
     "invalidNameTitle": "Invalid repository name",
@@ -195,6 +201,8 @@
     "daysAgo_other": "days ago",
     "typicalCycleLength": "Typical cycle length",
     "typicalPeriodLength": "Typical period length",
+    "saveFailedTitle": "Save failed",
+    "saveFailedBody": "Something went wrong while setting up your cycle.",
     "explainer": "This plants your last period so predictions work right away. You can adjust these numbers anytime.",
     "decrease": "Decrease {{label}}",
     "increase": "Increase {{label}}"
@@ -286,5 +294,10 @@
     "irritable": "Irritable",
     "tired": "Tired",
     "loved": "Loved"
+  },
+  "widget": {
+    "today": "Today",
+    "daysUntilOne": "1 day until next",
+    "daysUntilMany": "{{count}} days until next"
   }
 }

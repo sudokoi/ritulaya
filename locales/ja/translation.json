@@ -180,6 +180,12 @@
     "useRepo": "リポジトリを使用",
     "synced": "同期済み",
     "notSyncedYet": "まだ同期されていません",
+    "statusSyncing": "同期中…",
+    "statusInSync": "最新です",
+    "statusError": "同期に失敗しました",
+    "lastSynced": "最終同期 {{formatted}}",
+    "warningTitle": "同期の問題",
+    "warningBody": "同期が {{count}} 回連続で失敗しました。データはこの端末に安全に保存されています。GitHub 接続を確認してください。",
     "syncNow": "今すぐ同期",
     "disconnect": "接続を解除",
     "invalidNameTitle": "リポジトリ名が無効です",
@@ -195,6 +201,8 @@
     "daysAgo_other": "日前",
     "typicalCycleLength": "平均的な周期の長さ",
     "typicalPeriodLength": "平均的な生理日数",
+    "saveFailedTitle": "保存に失敗しました",
+    "saveFailedBody": "サイクルの設定中に問題が発生しました。",
     "explainer": "前回の生理を記録して、すぐに予測が機能するようにします。これらの数値はいつでも調整できます。",
     "decrease": "{{label}}を減らす",
     "increase": "{{label}}を増やす"
@@ -286,5 +294,10 @@
     "irritable": "短気",
     "tired": "つかれた",
     "loved": "愛されている"
+  },
+  "widget": {
+    "today": "今日",
+    "daysUntilOne": "次の生理まであと1日",
+    "daysUntilMany": "次の生理まであと{{count}}日"
   }
 }

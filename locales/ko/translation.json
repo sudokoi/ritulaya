@@ -180,6 +180,12 @@
     "useRepo": "저장소 사용",
     "synced": "동기화됨",
     "notSyncedYet": "아직 동기화되지 않음",
+    "statusSyncing": "동기화 중…",
+    "statusInSync": "최신 상태",
+    "statusError": "동기화 실패",
+    "lastSynced": "마지막 동기화 {{formatted}}",
+    "warningTitle": "동기화 문제",
+    "warningBody": "동기화가 연속으로 {{count}}번 실패했습니다. 데이터는 이 기기에 안전하게 저장되어 있습니다. GitHub 연결을 확인하세요.",
     "syncNow": "지금 동기화",
     "disconnect": "연결 해제",
     "invalidNameTitle": "잘못된 저장소 이름",
@@ -195,6 +201,8 @@
     "daysAgo_other": "일 전",
     "typicalCycleLength": "평소 주기 길이",
     "typicalPeriodLength": "평소 생리 일수",
+    "saveFailedTitle": "저장 실패",
+    "saveFailedBody": "주기 설정 중 문제가 발생했습니다.",
     "explainer": "지난 생리를 기록해 예측이 바로 작동하도록 합니다. 이 수치는 언제든 조정할 수 있습니다.",
     "decrease": "{{label}} 줄이기",
     "increase": "{{label}} 늘리기"
@@ -286,5 +294,10 @@
     "irritable": "짜증",
     "tired": "피곤함",
     "loved": "사랑받는 느낌"
+  },
+  "widget": {
+    "today": "오늘",
+    "daysUntilOne": "다음 생리까지 1일",
+    "daysUntilMany": "다음 생리까지 {{count}}일"
   }
 }

@@ -68,6 +68,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             // computing locally from live rows.
             val snapshot = readSnapshot(context)
             val dataVersion = store.latestDataChange()
+            val copy = snapshot?.copy ?: WidgetCopy.fallback()
             if (snapshot != null && snapshot.dataVersion == (dataVersion ?: "")) {
                 val today = LocalDate.now()
                 val dayNumber =
@@ -84,7 +85,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                             snapshot.lutealPhaseLength,
                         ),
                     )
-                render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet)
+                render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet, copy)
                 return
             }
 
@@ -108,7 +109,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val daysUntilNext = ChronoUnit.DAYS.between(today, output.nextPeriodStart).toInt()
             val phase = PredictionEngine.phase(daysUntilNext, config)
 
-            render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet)
+            render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet, copy)
         }
 
         private data class WidgetSnapshot(
@@ -118,6 +119,8 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val avgPeriodLength: Int,
             val lutealPhaseLength: Int,
             val dataVersion: String,
+            /** Localized display strings captured by the app; null in old snapshots. */
+            val copy: WidgetCopy?,
         )
 
         private fun readSnapshot(context: Context): WidgetSnapshot? {
@@ -132,6 +135,27 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                     avgPeriodLength = o.getInt("avgPeriodLength"),
                     lutealPhaseLength = o.getInt("lutealPhaseLength"),
                     dataVersion = o.optString("dataVersion"),
+                    copy = readCopy(o.optJSONObject("copy")),
+                )
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        private fun readCopy(o: org.json.JSONObject?): WidgetCopy? {
+            if (o == null) return null
+            return try {
+                WidgetCopy(
+                    phases =
+                        mapOf(
+                            "menstrual" to o.getString("menstrual"),
+                            "follicular" to o.getString("follicular"),
+                            "ovulation" to o.getString("ovulation"),
+                            "luteal" to o.getString("luteal"),
+                        ),
+                    today = o.getString("today"),
+                    daysUntilTemplate = o.getString("daysUntilMany"),
+                    dayUntilSingular = o.getString("dayUntilSingular"),
                 )
             } catch (_: Exception) {
                 null
@@ -144,9 +168,14 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             widgetId: Int,
             dayNumber: Int,
             phase: String,
-            daysUntilNext: Int,
+            rawDaysUntilNext: Int,
             discreetMode: Boolean,
+            copy: WidgetCopy,
         ) {
+            // The widget only re-renders when the app refreshes it; if the
+            // stored next period passes in the meantime, show 0 rather than
+            // a negative countdown.
+            val daysUntilNext = maxOf(0, rawDaysUntilNext)
             val layoutId =
                 if (discreetMode) {
                     context.resources.getIdentifier(
@@ -169,11 +198,11 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             )
             views.setTextViewText(
                 context.resources.getIdentifier("phase_name", "id", context.packageName),
-                if (discreetMode) "Today" else phase,
+                if (discreetMode) copy.today else copy.phase(phase),
             )
             views.setTextViewText(
                 context.resources.getIdentifier("days_until", "id", context.packageName),
-                if (discreetMode) "$daysUntilNext" else "$daysUntilNext days until next",
+                if (discreetMode) "$daysUntilNext" else copy.daysUntil(daysUntilNext),
             )
 
             // Deep-link straight into the log-today flow via the app's
@@ -184,7 +213,6 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                     ?.apply {
                         action = android.content.Intent.ACTION_VIEW
                         data = android.net.Uri.parse("ritulaya://log-today")
-                        putExtra("widget_launch", true)
                     }
             val pendingIntent =
                 PendingIntent.getActivity(
