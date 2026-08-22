@@ -6,7 +6,7 @@ package expo.modules.ritulayawidget
  * class only supplies the degraded English fallback for the rare path where
  * the snapshot is missing/stale and the widget must render from live rows.
  */
-internal class WidgetCopy private constructor(
+internal class WidgetCopy internal constructor(
     private val phases: Map<String, String>,
     val today: String,
     private val daysUntilTemplate: String,
