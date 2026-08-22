@@ -74,7 +74,11 @@ export function DayDetailSheet({
     (existing?.cervicalMucus as CervicalMucusKey) ?? null,
   )
   const [bbt, setBbt] = useState(existing?.bbt != null ? String(existing.bbt) : "")
-  const [sexualActivity, setSexualActivity] = useState(existing?.sexualActivity === 1)
+  // Null until first toggled so an entry that never recorded sexual
+  // activity is not saved as an explicit "No".
+  const [sexualActivity, setSexualActivity] = useState<boolean | null>(
+    existing?.sexualActivity == null ? null : existing.sexualActivity === 1,
+  )
   const { muted, danger } = useThemeColors()
 
   const toggleSymptom = useCallback((key: SymptomKey) => {
@@ -318,7 +322,7 @@ export function DayDetailSheet({
                   <Pressable
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      setSexualActivity(!sexualActivity)
+                      setSexualActivity(!(sexualActivity ?? false))
                     }}
                     className={cn(
                       "rounded-pill px-5 py-2 active:opacity-60",
@@ -334,7 +338,7 @@ export function DayDetailSheet({
                         sexualActivity ? "text-white" : "text-[var(--text-primary)]",
                       )}
                     >
-                      {sexualActivity ? "Yes" : "No"}
+                      {sexualActivity ? "Yes" : (sexualActivity === false ? "No" : "—")}
                     </Text>
                   </Pressable>
                 </View>

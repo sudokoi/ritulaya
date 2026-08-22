@@ -47,14 +47,17 @@ export async function saveDayEntry(input: DayEntryInput, periodDays: number) {
     await logPeriodOn(input.date, flow, periodDays)
   }
 
+  // The sheet always submits the full form, so null here means the user
+  // cleared the field. The native layer treats "" (and 0 for BBT) as an
+  // explicit clear, while an omitted field keeps its existing value.
   await upsertDayLog({
     date: input.date,
     flowIntensity: input.flowIntensity,
     symptoms: input.symptoms,
-    mood: input.mood,
-    notes: input.notes,
-    cervicalMucus: input.cervicalMucus,
-    bbt: input.bbt,
+    mood: input.mood ?? "",
+    notes: input.notes ?? "",
+    cervicalMucus: input.cervicalMucus ?? "",
+    bbt: input.bbt ?? 0,
     sexualActivity: input.sexualActivity ?? undefined,
   })
 

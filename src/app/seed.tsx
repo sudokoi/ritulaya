@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable } from "react-native"
+import { View, Text, ScrollView, Pressable, Alert } from "react-native"
 import { useState } from "react"
 import { router } from "expo-router"
 import { format, subDays } from "date-fns"
@@ -84,6 +84,8 @@ export default function SeedCycleScreen() {
         periodLength,
       )
       router.back()
+    } catch {
+      Alert.alert("Save failed", "Something went wrong while setting up your cycle.")
     } finally {
       setSaving(false)
     }
