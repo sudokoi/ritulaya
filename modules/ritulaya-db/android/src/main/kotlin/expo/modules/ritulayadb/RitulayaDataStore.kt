@@ -126,16 +126,22 @@ class RitulayaDataStore(
         val now = nowISO()
         val existing = dao.getDayLogByDate(date)
         val symptomsJson = symptomsJson(symptoms)
+        // An empty string is an explicit clear for text fields, 0.0 clears the
+        // BBT (an impossible body temperature); null keeps the existing value.
+        val clearedMood = mood == ""
+        val clearedNotes = notes == ""
+        val clearedMucus = cervicalMucus == ""
+        val clearedBbt = bbt == 0.0
 
         if (existing != null) {
             val updated =
                 existing.copy(
                     flowIntensity = flowIntensity ?: existing.flowIntensity,
                     symptoms = symptomsJson,
-                    mood = mood ?: existing.mood,
-                    notes = notes ?: existing.notes,
-                    cervicalMucus = cervicalMucus ?: existing.cervicalMucus,
-                    bbt = bbt ?: existing.bbt,
+                    mood = if (clearedMood) null else mood ?: existing.mood,
+                    notes = if (clearedNotes) null else notes ?: existing.notes,
+                    cervicalMucus = if (clearedMucus) null else cervicalMucus ?: existing.cervicalMucus,
+                    bbt = if (clearedBbt) null else bbt ?: existing.bbt,
                     sexualActivity = sexualActivity?.let { if (it) 1 else 0 } ?: existing.sexualActivity,
                     cycleId = cycleId ?: existing.cycleId,
                     updatedAt = now,
@@ -151,10 +157,10 @@ class RitulayaDataStore(
                 cycleId = cycleId,
                 flowIntensity = flowIntensity,
                 symptoms = symptomsJson,
-                mood = mood,
-                notes = notes,
-                cervicalMucus = cervicalMucus,
-                bbt = bbt,
+                mood = if (clearedMood) null else mood,
+                notes = if (clearedNotes) null else notes,
+                cervicalMucus = if (clearedMucus) null else cervicalMucus,
+                bbt = if (clearedBbt) null else bbt,
                 sexualActivity = if (sexualActivity == true) 1 else 0,
                 createdAt = now,
                 updatedAt = now,

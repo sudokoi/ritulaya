@@ -1,6 +1,7 @@
-import { View } from "react-native"
+import { View, Alert } from "react-native"
 import { router } from "expo-router"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
+import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { todayISO } from "@/utils/date"
 import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
@@ -11,6 +12,7 @@ import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
  */
 export default function LogTodayScreen() {
   const { getLogForDate } = useDayLogs()
+  const { periodLength } = usePrediction()
   const existing = getLogForDate(todayISO())
 
   return (
@@ -21,7 +23,11 @@ export default function LogTodayScreen() {
         date={new Date()}
         existing={existing}
         onSave={(entry: DayEntryInput) => {
-          void saveDayEntry(entry, 3).then(() => router.back())
+          // The sheet closes itself via onClose, which owns the navigation
+          // pop; here we only surface save failures.
+          saveDayEntry(entry, periodLength).catch(() =>
+            Alert.alert("Save failed", "Something went wrong while saving the entry."),
+          )
         }}
         onClose={() => router.back()}
       />

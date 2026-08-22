@@ -197,8 +197,8 @@ export function MonthGrid({
         />
         <Legend
           colors={dayGradient("menstrual", dark)}
-          fill={0.45 * 0.45}
-          opacity={0.7}
+          fill={0.45}
+          opacity={0.45}
           label="Maybe"
         />
         <Legend colors={dayGradient("ovulation", dark)} fill={0.6} label="Fertile" />
