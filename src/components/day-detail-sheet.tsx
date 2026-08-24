@@ -178,7 +178,9 @@ export function DayDetailSheet({
                       }}
                       className={cn(
                         "flex-1 rounded-button py-2.5 active:opacity-60",
-                        flow === level.key ? "bg-accent" : "bg-[var(--bg-muted)]",
+                        flow === level.key
+                          ? "bg-[var(--accent)]"
+                          : "bg-[var(--bg-muted)]",
                       )}
                       accessibilityRole="button"
                       accessibilityLabel={t("sheet.flowState", {
@@ -227,7 +229,7 @@ export function DayDetailSheet({
                       }}
                       className={cn(
                         "items-center gap-1 rounded-xl px-3 py-2 active:opacity-60",
-                        mood === m.key && "bg-accent/20",
+                        mood === m.key && "bg-[var(--accent)]/20",
                       )}
                       accessibilityRole="button"
                       accessibilityLabel={t("sheet.moodState", {
@@ -254,7 +256,7 @@ export function DayDetailSheet({
                       className={cn(
                         "rounded-pill px-4 py-2.5 active:opacity-60",
                         symptoms.includes(symptom.key)
-                          ? "bg-accent"
+                          ? "bg-[var(--accent)]"
                           : "bg-[var(--bg-muted)]",
                       )}
                       accessibilityRole="button"
@@ -289,7 +291,7 @@ export function DayDetailSheet({
                       className={cn(
                         "rounded-pill px-4 py-2.5 active:opacity-60",
                         cervicalMucus === mucus.key
-                          ? "bg-accent"
+                          ? "bg-[var(--accent)]"
                           : "bg-[var(--bg-muted)]",
                       )}
                       accessibilityRole="button"
@@ -341,7 +343,7 @@ export function DayDetailSheet({
                     }}
                     className={cn(
                       "rounded-pill px-5 py-2 active:opacity-60",
-                      sexualActivity ? "bg-accent" : "bg-[var(--bg-muted)]",
+                      sexualActivity ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
                     )}
                     accessibilityRole="button"
                     accessibilityLabel={t("sheet.sexualActivity")}

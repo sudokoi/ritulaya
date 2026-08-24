@@ -161,11 +161,11 @@ export function MonthGrid({
         >
           <ChevronLeft size={20} color={muted} />
         </Pressable>
-        <View className="flex-1 items-center justify-center gap-1 min-h-[56px]">
+        <View className="flex-1 items-center justify-center gap-1 min-h-[68px]">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
             {format(currentMonth, "MMMM yyyy")}
           </Text>
-          <View className="h-7 justify-center">
+          <View className="min-h-[36px] justify-center">
             {isOffCurrentMonth ? (
               <Button
                 variant="muted"

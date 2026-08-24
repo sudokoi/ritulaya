@@ -19,7 +19,7 @@ interface ButtonProps {
 }
 
 const variantClass: Record<ButtonVariant, string> = {
-  primary: "bg-accent active:opacity-60",
+  primary: "bg-[var(--accent)] active:opacity-60",
   muted: "bg-[var(--bg-muted)] active:opacity-60",
   ghost: "bg-transparent active:opacity-60",
 }
@@ -63,7 +63,6 @@ export function Button({
         disabled && "opacity-40",
         className,
       )}
-      style={{ alignItems: "center", justifyContent: "center" }}
     >
       {isTextChild ? (
         <Text
@@ -72,7 +71,6 @@ export function Button({
             variantTextClass[variant],
             textClassName,
           )}
-          style={{ textAlign: "center", textAlignVertical: "center" } as never}
         >
           {children}
         </Text>

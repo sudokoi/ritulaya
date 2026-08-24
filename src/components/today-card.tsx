@@ -30,7 +30,9 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
             accessibilityRole="button"
             accessibilityLabel={t("common.edit")}
           >
-            <Text className="text-sm font-medium text-accent">{t("common.edit")}</Text>
+            <Text className="text-sm font-medium text-[var(--accent)]">
+              {t("common.edit")}
+            </Text>
           </Pressable>
         ) : null}
       </View>
@@ -47,7 +49,7 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
                     onPress={() => onFlowSelect(level)}
                     className={cn(
                       "h-8 w-8 rounded-full active:opacity-60",
-                      selected ? "bg-accent" : "bg-[var(--bg-muted)]",
+                      selected ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
                     )}
                     accessibilityRole="button"
                     accessibilityLabel={t("sheet.flowState", {
@@ -62,7 +64,7 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
                   key={level}
                   className={cn(
                     "h-8 w-8 rounded-full",
-                    selected ? "bg-accent" : "bg-[var(--bg-muted)]",
+                    selected ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
                   )}
                 />
               )
@@ -93,7 +95,9 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
 
           {log.symptoms.length === 0 && !log.mood ? (
             <Pressable onPress={onOpenEditor} className="mt-2 active:opacity-60">
-              <Text className="text-sm text-[var(--text-muted)]">{translate("today.tapToAddDetails")}</Text>
+              <Text className="text-sm text-[var(--text-muted)]">
+                {translate("today.tapToAddDetails")}
+              </Text>
             </Pressable>
           ) : null}
         </>
@@ -103,9 +107,13 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
           className="active:opacity-60"
           accessibilityRole={onOpenEditor ? "button" : undefined}
         >
-          <Text className="text-sm text-[var(--text-muted)]">{t("today.nothingLogged")}</Text>
+          <Text className="text-sm text-[var(--text-muted)]">
+            {t("today.nothingLogged")}
+          </Text>
           {onOpenEditor ? (
-            <Text className="mt-1 text-sm font-medium text-accent">{translate("today.tapToLog")}</Text>
+            <Text className="mt-1 text-sm font-medium text-[var(--accent)]">
+              {translate("today.tapToLog")}
+            </Text>
           ) : null}
         </Pressable>
       )}

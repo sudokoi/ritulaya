@@ -11,6 +11,7 @@
     --text-primary: #2d2d2f;
     --text-muted: #6f6b64;
     --border: #e8e4df;
+    --accent: #0f766e;
   }
 
   .dark:root {
@@ -20,5 +21,6 @@
     --text-primary: #f2f1ee;
     --text-muted: #a9a8a4;
     --border: #2f2f33;
+    --accent: #5eead4;
   }
 }

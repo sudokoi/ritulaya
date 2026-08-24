@@ -92,7 +92,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
       ) : null}
       <Pressable
         onPress={authenticate}
-        className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
+        className="mt-6 rounded-button bg-[var(--accent)] px-6 py-4 active:opacity-60"
         accessibilityRole="button"
         accessibilityLabel={t("gate.unlock")}
       >
