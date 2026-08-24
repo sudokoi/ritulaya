@@ -1,5 +1,5 @@
 import { View, Text, TextInput, Modal, ScrollView, Pressable } from "react-native"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
 import * as Haptics from "expo-haptics"
@@ -14,6 +14,7 @@ import type { FlowIntensity } from "@/types/day-log"
 import type { DayEntryInput } from "@/domain/day-entry"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
 
 const FLOW_LEVELS: { key: FlowIntensity }[] = [
   { key: "none" },
@@ -74,6 +75,17 @@ export function DayDetailSheet({
   const { muted, danger } = useThemeColors()
   const { t } = useTranslation()
 
+  useEffect(() => {
+    if (!visible) return
+    setFlow(existing?.flowIntensity ?? null)
+    setSymptoms(existing?.symptoms ?? [])
+    setMood(existing?.mood ?? null)
+    setNotes(existing?.notes ?? "")
+    setCervicalMucus((existing?.cervicalMucus as CervicalMucusKey) ?? null)
+    setBbt(existing?.bbt != null ? String(existing.bbt) : "")
+    setSexualActivity(existing?.sexualActivity == null ? null : existing.sexualActivity === 1)
+  }, [visible, existing])
+
   const toggleSymptom = useCallback((key: SymptomKey) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     setSymptoms((prev) =>
@@ -129,14 +141,14 @@ export function DayDetailSheet({
                     <Trash2 size={20} color={danger} />
                   </Pressable>
                 ) : null}
-                <Pressable
+                <Button
+                  variant="primary"
+                  size="sm"
                   onPress={handleSave}
-                  className="rounded-button bg-accent px-5 py-2 active:opacity-60"
-                  accessibilityRole="button"
                   accessibilityLabel={t("sheet.saveEntry")}
                 >
-                  <Text className="font-medium text-white">{t("common.save")}</Text>
-                </Pressable>
+                  {t("common.save")}
+                </Button>
                 <Pressable
                   onPress={onClose}
                   className="p-3 active:opacity-60"

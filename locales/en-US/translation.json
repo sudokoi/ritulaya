@@ -47,6 +47,8 @@
     "sectionToday": "TODAY",
     "sectionWeek": "THIS WEEK",
     "nothingLogged": "Nothing logged yet today",
+    "tapToLog": "Tap to log today",
+    "tapToAddDetails": "Tap to add details",
     "logMoreCycles": "Log a few more cycles for better predictions"
   },
   "calendar": {
@@ -60,6 +62,7 @@
     "updateFailedBody": "Something went wrong while updating the entry.",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
+    "today": "Today",
     "legendPeriod": "Period",
     "legendPredicted": "Predicted",
     "legendMaybe": "Maybe",

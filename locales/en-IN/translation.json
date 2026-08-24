@@ -47,7 +47,9 @@
     "sectionToday": "TODAY",
     "sectionWeek": "THIS WEEK",
     "nothingLogged": "Nothing logged yet today",
-    "logMoreCycles": "Log a few more cycles for better predictions"
+    "logMoreCycles": "Log a few more cycles for better predictions",
+    "tapToLog": "Tap to log today",
+    "tapToAddDetails": "Tap to add details"
   },
   "calendar": {
     "avgCycle": "avg cycle",
@@ -70,7 +72,8 @@
     "statePossible": "possible period start",
     "stateOvulation": "ovulation",
     "stateFertile": "fertile",
-    "stateLogged": "logged"
+    "stateLogged": "logged",
+    "today": "Today"
   },
   "sheet": {
     "flow": "Flow",
