@@ -28,6 +28,22 @@ export interface DayStyle {
   opacity?: number
 }
 
+const FLOW_FILL: Record<string, number> = {
+  spotting: 0.35,
+  light: 0.55,
+  medium: 0.8,
+  heavy: 1,
+}
+
+export function flowLevelStyle(
+  level: string | null | undefined,
+  dark: boolean,
+): DayStyle {
+  if (!level || level === "none") return { fill: 0 }
+  const fill = FLOW_FILL[level] ?? 1
+  return { fill, colors: dayGradient("menstrual", dark) }
+}
+
 export function resolveDayStyle({
   isPeriod,
   isPredicted,

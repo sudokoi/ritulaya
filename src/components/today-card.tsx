@@ -1,20 +1,22 @@
-import { View, Text, Pressable } from "react-native"
+import { View, Text } from "react-native"
 import { useTranslation } from "react-i18next"
-import { cn } from "@/lib/utils"
+import { useColorScheme } from "nativewind"
 import { symptomLabel, moodLabel } from "@/domain/day-entry-display"
+import { DayCircle } from "@/components/day-circle"
+import { flowLevelStyle } from "@/lib/day-colors"
 import type { DayLog, FlowIntensity } from "@/types/day-log"
 
 const FLOW_LEVELS: FlowIntensity[] = ["none", "spotting", "light", "medium", "heavy"]
 
 interface TodayCardProps {
   log: DayLog | null
-  onFlowSelect?: (level: FlowIntensity) => void
-  onOpenEditor?: () => void
 }
 
-export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
+export function TodayCard({ log }: TodayCardProps) {
   const { t } = useTranslation()
   const translate = t as unknown as (k: string) => string
+  const { colorScheme } = useColorScheme()
+  const dark = colorScheme === "dark"
 
   return (
     <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
@@ -22,19 +24,6 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
         <Text className="text-sm font-medium text-[var(--text-muted)]">
           {t("today.sectionToday")}
         </Text>
-        {onOpenEditor ? (
-          <Pressable
-            onPress={onOpenEditor}
-            hitSlop={8}
-            className="active:opacity-60"
-            accessibilityRole="button"
-            accessibilityLabel={t("common.edit")}
-          >
-            <Text className="text-sm font-medium text-[var(--accent)]">
-              {t("common.edit")}
-            </Text>
-          </Pressable>
-        ) : null}
       </View>
 
       {log ? (
@@ -42,31 +31,28 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
           <View className="mb-3 flex-row justify-center gap-2">
             {FLOW_LEVELS.map((level) => {
               const selected = log.flowIntensity === level
-              if (onFlowSelect) {
-                return (
-                  <Pressable
-                    key={level}
-                    onPress={() => onFlowSelect(level)}
-                    className={cn(
-                      "h-8 w-8 rounded-full active:opacity-60",
-                      selected ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
-                    )}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("sheet.flowState", {
-                      label: t(`flow.${level}`),
-                    })}
-                    accessibilityState={{ selected }}
-                  />
-                )
-              }
+              const style = flowLevelStyle(selected ? level : null, dark)
+              const isMenstrual = !!style.colors
               return (
                 <View
                   key={level}
-                  className={cn(
-                    "h-8 w-8 rounded-full",
-                    selected ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
+                  className="h-8 w-8 items-center justify-center"
+                  accessibilityRole="image"
+                  accessibilityLabel={t("sheet.flowState", {
+                    label: t(`flow.${level}`),
+                  })}
+                >
+                  {isMenstrual ? (
+                    <DayCircle
+                      size={32}
+                      fill={style.fill}
+                      colors={style.colors}
+                      opacity={style.opacity}
+                    />
+                  ) : (
+                    <View className="h-8 w-8 rounded-full bg-[var(--bg-muted)]" />
                   )}
-                />
+                </View>
               )
             })}
           </View>
@@ -92,30 +78,11 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
               </View>
             ) : null}
           </View>
-
-          {log.symptoms.length === 0 && !log.mood ? (
-            <Pressable onPress={onOpenEditor} className="mt-2 active:opacity-60">
-              <Text className="text-sm text-[var(--text-muted)]">
-                {translate("today.tapToAddDetails")}
-              </Text>
-            </Pressable>
-          ) : null}
         </>
       ) : (
-        <Pressable
-          onPress={onOpenEditor}
-          className="active:opacity-60"
-          accessibilityRole={onOpenEditor ? "button" : undefined}
-        >
-          <Text className="text-sm text-[var(--text-muted)]">
-            {t("today.nothingLogged")}
-          </Text>
-          {onOpenEditor ? (
-            <Text className="mt-1 text-sm font-medium text-[var(--accent)]">
-              {translate("today.tapToLog")}
-            </Text>
-          ) : null}
-        </Pressable>
+        <Text className="text-sm text-[var(--text-muted)]">
+          {t("today.nothingLogged")}
+        </Text>
       )}
     </View>
   )

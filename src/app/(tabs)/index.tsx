@@ -1,27 +1,24 @@
-import { View, Text, ScrollView, Pressable, Alert } from "react-native"
-import { useState, useCallback } from "react"
-import { format, differenceInDays } from "date-fns"
+import { View, Text, ScrollView, Pressable } from "react-native"
+import { useState, useCallback, useMemo } from "react"
+import { format, differenceInDays, isToday } from "date-fns"
 import { useFocusEffect, router } from "expo-router"
 import { useColorScheme } from "nativewind"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { CycleStrip } from "@/components/cycle-strip"
 import { TodayCard } from "@/components/today-card"
-import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { useCycles } from "@/hooks/use-cycles"
 import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useNotifications } from "@/hooks/use-notifications"
-import { useLogPeriod } from "@/hooks/use-log-period"
 import { useDayLogs } from "@/hooks/use-day-logs"
-import { useDayEditor } from "@/hooks/use-day-editor"
 import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
 import { refreshAll } from "@/data/refresh"
 import { phaseNameKey, phaseTipKey } from "@/lib/phase"
 import { useTranslation } from "react-i18next"
 import { PHASE_COLORS } from "@/constants/phase-colors"
-import { todayISO } from "@/utils/date"
-import { saveDayEntry } from "@/domain/day-entry"
-import type { FlowIntensity } from "@/types/day-log"
+import { symptomLabel, moodLabel } from "@/domain/day-entry-display"
+import { DayCircle } from "@/components/day-circle"
+import { flowLevelStyle } from "@/lib/day-colors"
 
 export default function TodayScreen() {
   const { t } = useTranslation()
@@ -32,25 +29,17 @@ export default function TodayScreen() {
   const dark = colorScheme === "dark"
   const insets = useSafeAreaInsets()
   const [today, setToday] = useState(() => new Date())
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(() => new Date())
   useNotifications()
 
-  const { todayLog } = useDayLogs()
-  const { logPeriodToday } = useLogPeriod()
+  const { todayLog, getLogForDate } = useDayLogs()
   const dayStates = useCycleDayStates()
-  const { periodLength } = usePrediction()
-  const {
-    selectedDate,
-    existingLog,
-    open,
-    close,
-    handleSave,
-    handleDelete,
-    handleClearPeriod,
-  } = useDayEditor()
 
   useFocusEffect(
     useCallback(() => {
-      setToday(new Date())
+      const now = new Date()
+      setToday(now)
+      setSelectedWeekDate((prev) => (isToday(prev) ? now : prev))
       void refreshAll()
     }, []),
   )
@@ -66,28 +55,12 @@ export default function TodayScreen() {
     ? Math.max(1, differenceInDays(today, new Date(currentCycle.startDate)) + 1)
     : "-"
 
-  const handleFlowSelect = useCallback(
-    async (level: FlowIntensity) => {
-      try {
-        await saveDayEntry(
-          {
-            date: todayISO(),
-            flowIntensity: level,
-            symptoms: todayLog?.symptoms ?? [],
-            mood: todayLog?.mood ?? null,
-            notes: todayLog?.notes ?? null,
-            cervicalMucus: (todayLog?.cervicalMucus as never) ?? null,
-            bbt: todayLog?.bbt ?? null,
-            sexualActivity: todayLog ? todayLog.sexualActivity === 1 : null,
-          },
-          periodLength,
-        )
-      } catch {
-        Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody"))
-      }
-    },
-    [todayLog, periodLength, t],
+  const selectedWeekLog = useMemo(
+    () => getLogForDate(format(selectedWeekDate, "yyyy-MM-dd")),
+    [selectedWeekDate, getLogForDate],
   )
+  const translate = t as unknown as (k: string) => string
+  const selectedFlowStyle = flowLevelStyle(selectedWeekLog?.flowIntensity ?? null, dark)
 
   // Low-confidence predictions soften the copy so a single number never
   // implies more precision than the history supports.
@@ -159,28 +132,90 @@ export default function TodayScreen() {
         </Pressable>
       ) : null}
 
-      <Pressable
-        className="mx-4 mb-4 rounded-card bg-[var(--accent)] px-6 py-4 active:opacity-60"
-        onPress={() => logPeriodToday()}
-        accessibilityRole="button"
-        accessibilityLabel={t("today.logPeriodA11y")}
-      >
-        <Text className="text-center text-lg font-semibold text-[var(--on-accent)]">
-          {t("today.logPeriodToday")}
-        </Text>
-      </Pressable>
-
-      <TodayCard
-        log={todayLog}
-        onFlowSelect={handleFlowSelect}
-        onOpenEditor={() => open(new Date())}
-      />
+      <TodayCard log={todayLog} />
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
         <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">
           {t("today.sectionWeek")}
         </Text>
-        <CycleStrip centerDate={today} span={7} dayStates={dayStates} onDayPress={open} />
+        <CycleStrip
+          centerDate={today}
+          span={7}
+          dayStates={dayStates}
+          selectedDate={selectedWeekDate}
+          onDayPress={setSelectedWeekDate}
+        />
+
+        <View className="mt-4 rounded-card bg-[var(--bg-primary)] px-4 py-4">
+          <Text className="text-sm font-medium text-[var(--text-primary)]">
+            {format(selectedWeekDate, "EEE, MMM d")}
+            {isToday(selectedWeekDate) ? ` • ${t("calendar.today")}` : ""}
+          </Text>
+
+          {selectedWeekLog ? (
+            <>
+              <View className="mt-3 flex-row items-center gap-3">
+                {selectedWeekLog.flowIntensity &&
+                selectedWeekLog.flowIntensity !== "none" ? (
+                  <DayCircle
+                    size={24}
+                    fill={selectedFlowStyle.fill}
+                    colors={selectedFlowStyle.colors}
+                    opacity={selectedFlowStyle.opacity}
+                  />
+                ) : (
+                  <View className="h-6 w-6 rounded-full bg-[var(--bg-muted)]" />
+                )}
+                <Text className="text-sm text-[var(--text-primary)]">
+                  {translate(`flow.${selectedWeekLog.flowIntensity ?? "none"}`)}
+                </Text>
+              </View>
+
+              <View className="mt-3 flex-row flex-wrap gap-2">
+                {selectedWeekLog.symptoms.length > 0
+                  ? selectedWeekLog.symptoms.map((symptom) => (
+                      <View
+                        key={symptom}
+                        className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5"
+                      >
+                        <Text className="text-xs text-[var(--text-primary)]">
+                          {symptomLabel(symptom, translate)}
+                        </Text>
+                      </View>
+                    ))
+                  : null}
+                {selectedWeekLog.mood ? (
+                  <View className="rounded-pill bg-[var(--bg-muted)] px-3 py-1.5">
+                    <Text className="text-xs text-[var(--text-primary)]">
+                      {moodLabel(selectedWeekLog.mood, translate)}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {selectedWeekLog.notes ? (
+                <Text className="mt-3 text-sm text-[var(--text-muted)]">
+                  {selectedWeekLog.notes}
+                </Text>
+              ) : null}
+            </>
+          ) : (
+            <Text className="mt-2 text-sm text-[var(--text-muted)]">
+              {t("today.nothingLogged")}
+            </Text>
+          )}
+
+          <Pressable
+            onPress={() => router.push("/calendar" as never)}
+            className="mt-4 self-start active:opacity-60"
+            accessibilityRole="button"
+            accessibilityLabel={t("calendar.today")}
+          >
+            <Text className="text-sm font-medium text-[var(--accent)]">
+              {t("common.edit")} {t("tabs.calendar")}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <View
@@ -191,17 +226,6 @@ export default function TodayScreen() {
           {t(phaseTipKey(phase))}
         </Text>
       </View>
-
-      <DayDetailSheet
-        key={selectedDate ? format(selectedDate, "yyyy-MM-dd") : "closed"}
-        visible={selectedDate !== null}
-        date={selectedDate ?? new Date()}
-        existing={existingLog}
-        onSave={handleSave}
-        onClearPeriod={existingLog ? handleClearPeriod : undefined}
-        onDelete={existingLog ? handleDelete : undefined}
-        onClose={close}
-      />
     </ScrollView>
   )
 }
