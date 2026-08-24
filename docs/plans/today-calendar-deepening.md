@@ -6,7 +6,7 @@
 
 1. **Raw-key rendering:** `TODAY` card `src/app/(tabs)/index.tsx:174-189` renders `symptom` (`tender_breasts`) and `mood` verbatim. Sheet `src/components/day-detail-sheet.tsx:254` correctly does `t(`symptoms.${key}`)`.
 2. **No jump-to-today:** `CalendarScreen` `src/app/(tabs)/calendar.tsx:16-17` has `viewedMonth` with only chevron navigation; no `Today` pill like Google Calendar.
-3. **Non-touchable strips:** `TODAY` 5 flow dots are `View` (`index.tsx:162-171`), `THIS WEEK` `WeekStrip` `src/components/week-strip.tsx:30-45` is static `View`. User expects tappable days and tappable flow levels. Question asked: *do we need two strips?*
+3. **Non-touchable strips:** `TODAY` 5 flow dots are `View` (`index.tsx:162-171`), `THIS WEEK` `WeekStrip` `src/components/week-strip.tsx:30-45` is static `View`. User expects tappable days and tappable flow levels. Question asked: _do we need two strips?_
 4. **Save vertical centering:** `DayDetailSheet` Save `Pressable` `src/components/day-detail-sheet.tsx:132-139` `px-5 py-2` without `items-center justify-center`, text baseline drifts on Android vs neighboring `p-3` icon buttons.
 
 All four share root cause: **shallow, duplicated presentation logic at feature screens instead of deep modules behind small interfaces.**
@@ -15,7 +15,7 @@ All four share root cause: **shallow, duplicated presentation logic at feature s
 
 No new top-level terms required; sharpen existing:
 
-- **Day entry** — already defined as "everything on a calendar date." Clarify that its *display name* (Symptom/Mood/Mucus label) is derived, not stored. Store `SymptomKey`, display `symptoms.<key>` via locale.
+- **Day entry** — already defined as "everything on a calendar date." Clarify that its _display name_ (Symptom/Mood/Mucus label) is derived, not stored. Store `SymptomKey`, display `symptoms.<key>` via locale.
 - **Cycle day state** — derived visual state of a date (`period/predicted/uncertain/fertile/ovulation/logged`) `src/hooks/use-cycle-day-states.ts:15-22`. Distinct from persisted `DayLog`. Week strip and month grid share this module; Today card should not re-derive it but should delegate interaction via it.
 - **Day strip** — (propose to add) a consecutive run of dates rendered with `CycleDayState` and an `isToday` marker. Both `WeekStrip` and month grid are specialisations; Today needs `span=7 centered on today`.
 
@@ -23,13 +23,13 @@ Update `CONTEXT.md` with **Day strip** term on implementation.
 
 ## 2. Current architecture friction (deletion test)
 
-| Module | Shape | Why shallow / leaking | Deletion test |
-|---|---|---|---|
-| `TodayScreen` `index.tsx:21-216` | God screen: hero + TODAY detail + WeekStrip + LogPeriod button inline | Owns date math (`addDays` L49), translation, and non-interactive Views. If deleted, its logic scatters into 3 places but no complexity is hidden — pass-through. | Delete it → logic reappears in each caller, no concentration → not deep. |
-| `WeekStrip` `week-strip.tsx:11-50` | `days: {date,label,isToday,state}[]` in, JSX out | Requires caller to precompute `weekDays` (L49-66). Provides no `onDayPress` seam, so callers cannot make it interactive without forking. One adapter (Today) → hypothetical seam. | Delete → caller still builds array, nothing saved. |
-| `TODAY` inline `index.tsx:153-197` | `todayLog` → 5 `View` dots + pills | Same symptom/mood translation duplicated from sheet; flow dots non-pressable duplication of `FLOW_LEVELS` in sheet `L18-24`. | Delete → bug (raw keys) fixes itself only if reimplemented elsewhere — no locality. |
-| `MonthGrid` + `DayDetailSheet` | `MonthGrid` owns chevrons, `CalendarScreen` owns sheet state `L15-26` and handlers `L28-63` | `TodayScreen` cannot reuse sheet → second copy would duplicate `handleSave/handleDelete/handleClearPeriod` + `refreshAll`. | Delete sheet → every screen reimplements save-failure `Alert` + `Haptics`. |
-| Save button `day-detail-sheet.tsx:132-139` | Ad-hoc `Pressable rounded-button bg-accent px-5 py-2` | No `Button` module — `seed.tsx:37`, `github-sync.tsx:153`, `biometric-gate.tsx:95` each re-string classes. `py-2` vs `py-4` drift causes vertical centering bug. | Delete → inconsistency vanishes only because classes were duplicated. |
+| Module                                     | Shape                                                                                       | Why shallow / leaking                                                                                                                                                             | Deletion test                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `TodayScreen` `index.tsx:21-216`           | God screen: hero + TODAY detail + WeekStrip + LogPeriod button inline                       | Owns date math (`addDays` L49), translation, and non-interactive Views. If deleted, its logic scatters into 3 places but no complexity is hidden — pass-through.                  | Delete it → logic reappears in each caller, no concentration → not deep.            |
+| `WeekStrip` `week-strip.tsx:11-50`         | `days: {date,label,isToday,state}[]` in, JSX out                                            | Requires caller to precompute `weekDays` (L49-66). Provides no `onDayPress` seam, so callers cannot make it interactive without forking. One adapter (Today) → hypothetical seam. | Delete → caller still builds array, nothing saved.                                  |
+| `TODAY` inline `index.tsx:153-197`         | `todayLog` → 5 `View` dots + pills                                                          | Same symptom/mood translation duplicated from sheet; flow dots non-pressable duplication of `FLOW_LEVELS` in sheet `L18-24`.                                                      | Delete → bug (raw keys) fixes itself only if reimplemented elsewhere — no locality. |
+| `MonthGrid` + `DayDetailSheet`             | `MonthGrid` owns chevrons, `CalendarScreen` owns sheet state `L15-26` and handlers `L28-63` | `TodayScreen` cannot reuse sheet → second copy would duplicate `handleSave/handleDelete/handleClearPeriod` + `refreshAll`.                                                        | Delete sheet → every screen reimplements save-failure `Alert` + `Haptics`.          |
+| Save button `day-detail-sheet.tsx:132-139` | Ad-hoc `Pressable rounded-button bg-accent px-5 py-2`                                       | No `Button` module — `seed.tsx:37`, `github-sync.tsx:153`, `biometric-gate.tsx:95` each re-string classes. `py-2` vs `py-4` drift causes vertical centering bug.                  | Delete → inconsistency vanishes only because classes were duplicated.               |
 
 **Leverage opportunity:** centralising symptom/mood display, strip interaction, sheet orchestration, and button chrome gives N call sites × M locales payoff.
 

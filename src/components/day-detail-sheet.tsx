@@ -83,7 +83,9 @@ export function DayDetailSheet({
     setNotes(existing?.notes ?? "")
     setCervicalMucus((existing?.cervicalMucus as CervicalMucusKey) ?? null)
     setBbt(existing?.bbt != null ? String(existing.bbt) : "")
-    setSexualActivity(existing?.sexualActivity == null ? null : existing.sexualActivity === 1)
+    setSexualActivity(
+      existing?.sexualActivity == null ? null : existing.sexualActivity === 1,
+    )
   }, [visible, existing])
 
   const toggleSymptom = useCallback((key: SymptomKey) => {

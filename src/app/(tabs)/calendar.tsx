@@ -15,8 +15,15 @@ export default function CalendarScreen() {
   const monthEnd = useMemo(() => endOfMonth(viewedMonth), [viewedMonth])
   const dayStates = useCycleDayStates(monthEnd)
   const { avgCycleLength, periodLength } = usePrediction()
-  const { selectedDate, existingLog, open, close, handleSave, handleDelete, handleClearPeriod } =
-    useDayEditor()
+  const {
+    selectedDate,
+    existingLog,
+    open,
+    close,
+    handleSave,
+    handleDelete,
+    handleClearPeriod,
+  } = useDayEditor()
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">

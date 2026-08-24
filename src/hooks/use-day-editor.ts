@@ -37,7 +37,9 @@ export function useDayEditor() {
     if (!existingLog) return
     deleteDayLog(existingLog.id)
       .then(() => refreshAll())
-      .catch(() => Alert.alert(t("calendar.deleteFailedTitle"), t("calendar.deleteFailedBody")))
+      .catch(() =>
+        Alert.alert(t("calendar.deleteFailedTitle"), t("calendar.deleteFailedBody")),
+      )
     setSelectedDate(null)
   }, [existingLog, deleteDayLog, t])
 
@@ -51,7 +53,9 @@ export function useDayEditor() {
       notes: existingLog.notes,
     })
       .then(() => refreshAll())
-      .catch(() => Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody")))
+      .catch(() =>
+        Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody")),
+      )
     setSelectedDate(null)
   }, [existingLog, upsertDayLog, t])
 

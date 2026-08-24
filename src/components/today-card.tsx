@@ -18,7 +18,9 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
   return (
     <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
       <View className="mb-4 flex-row items-center justify-between">
-        <Text className="text-sm font-medium text-[var(--text-muted)]">{t("today.sectionToday")}</Text>
+        <Text className="text-sm font-medium text-[var(--text-muted)]">
+          {t("today.sectionToday")}
+        </Text>
         {onOpenEditor ? (
           <Pressable
             onPress={onOpenEditor}
@@ -47,7 +49,9 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
                       selected ? "bg-accent" : "bg-[var(--bg-muted)]",
                     )}
                     accessibilityRole="button"
-                    accessibilityLabel={t("sheet.flowState", { label: t(`flow.${level}`) })}
+                    accessibilityLabel={t("sheet.flowState", {
+                      label: t(`flow.${level}`),
+                    })}
                     accessibilityState={{ selected }}
                   />
                 )
@@ -55,7 +59,10 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
               return (
                 <View
                   key={level}
-                  className={cn("h-8 w-8 rounded-full", selected ? "bg-accent" : "bg-[var(--bg-muted)]")}
+                  className={cn(
+                    "h-8 w-8 rounded-full",
+                    selected ? "bg-accent" : "bg-[var(--bg-muted)]",
+                  )}
                 />
               )
             })}
@@ -64,7 +71,10 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
           <View className="flex-row flex-wrap gap-2">
             {log.symptoms.length > 0
               ? log.symptoms.map((symptom) => (
-                  <View key={symptom} className="rounded-pill bg-[var(--bg-muted)] px-4 py-2">
+                  <View
+                    key={symptom}
+                    className="rounded-pill bg-[var(--bg-muted)] px-4 py-2"
+                  >
                     <Text className="text-sm text-[var(--text-primary)]">
                       {symptomLabel(symptom, t as unknown as (k: string) => string)}
                     </Text>
@@ -94,7 +104,9 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
           className="active:opacity-60"
           accessibilityRole={onOpenEditor ? "button" : undefined}
         >
-          <Text className="text-sm text-[var(--text-muted)]">{t("today.nothingLogged")}</Text>
+          <Text className="text-sm text-[var(--text-muted)]">
+            {t("today.nothingLogged")}
+          </Text>
           {onOpenEditor ? (
             <Text className="mt-1 text-sm font-medium text-accent">
               {(t as unknown as (k: string) => string)("today.tapToLog")}
