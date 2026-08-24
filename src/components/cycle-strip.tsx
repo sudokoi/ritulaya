@@ -2,6 +2,7 @@ import { View, Text, Pressable } from "react-native"
 import { useMemo } from "react"
 import { addDays, format, isToday as isTodayFns } from "date-fns"
 import { useColorScheme } from "nativewind"
+import { useTranslation } from "react-i18next"
 import { DayCircle } from "@/components/day-circle"
 import { resolveDayStyle } from "@/lib/day-colors"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
@@ -29,6 +30,7 @@ export function CycleStrip({
   onDayPress,
 }: CycleStripProps) {
   const { colorScheme } = useColorScheme()
+  const { t } = useTranslation()
   const dark = colorScheme === "dark"
 
   const days = useMemo(() => {
@@ -85,7 +87,7 @@ export function CycleStrip({
               onPress={() => onDayPress(day.date)}
               className="relative flex-1 items-center gap-1 py-1 active:opacity-60"
               accessibilityRole="button"
-              accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? ", today" : ""}`}
+              accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}`}
             >
               {content}
             </Pressable>

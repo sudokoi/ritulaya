@@ -14,6 +14,7 @@ interface TodayCardProps {
 
 export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
   const { t } = useTranslation()
+  const translate = t as unknown as (k: string) => string
 
   return (
     <View className="mx-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
@@ -76,7 +77,7 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
                     className="rounded-pill bg-[var(--bg-muted)] px-4 py-2"
                   >
                     <Text className="text-sm text-[var(--text-primary)]">
-                      {symptomLabel(symptom, t as unknown as (k: string) => string)}
+                      {symptomLabel(symptom, translate)}
                     </Text>
                   </View>
                 ))
@@ -84,7 +85,7 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
             {log.mood ? (
               <View className="rounded-pill bg-[var(--bg-muted)] px-4 py-2">
                 <Text className="text-sm text-[var(--text-primary)]">
-                  {moodLabel(log.mood, t as unknown as (k: string) => string)}
+                  {moodLabel(log.mood, translate)}
                 </Text>
               </View>
             ) : null}
@@ -92,9 +93,7 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
 
           {log.symptoms.length === 0 && !log.mood ? (
             <Pressable onPress={onOpenEditor} className="mt-2 active:opacity-60">
-              <Text className="text-sm text-[var(--text-muted)]">
-                {(t as unknown as (k: string) => string)("today.tapToAddDetails")}
-              </Text>
+              <Text className="text-sm text-[var(--text-muted)]">{translate("today.tapToAddDetails")}</Text>
             </Pressable>
           ) : null}
         </>
@@ -104,13 +103,9 @@ export function TodayCard({ log, onFlowSelect, onOpenEditor }: TodayCardProps) {
           className="active:opacity-60"
           accessibilityRole={onOpenEditor ? "button" : undefined}
         >
-          <Text className="text-sm text-[var(--text-muted)]">
-            {t("today.nothingLogged")}
-          </Text>
+          <Text className="text-sm text-[var(--text-muted)]">{t("today.nothingLogged")}</Text>
           {onOpenEditor ? (
-            <Text className="mt-1 text-sm font-medium text-accent">
-              {(t as unknown as (k: string) => string)("today.tapToLog")}
-            </Text>
+            <Text className="mt-1 text-sm font-medium text-accent">{translate("today.tapToLog")}</Text>
           ) : null}
         </Pressable>
       )}

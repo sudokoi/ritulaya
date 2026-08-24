@@ -48,8 +48,8 @@
     "sectionWeek": "이번 주",
     "nothingLogged": "오늘은 아직 기록이 없습니다",
     "logMoreCycles": "더 나은 예측을 위해 주기를 몇 개 더 기록하세요",
-    "tapToLog": "Tap to log today",
-    "tapToAddDetails": "Tap to add details"
+    "tapToLog": "탭하여 오늘 기록",
+    "tapToAddDetails": "탭하여 세부정보 추가"
   },
   "calendar": {
     "avgCycle": "평균 주기",
@@ -73,7 +73,7 @@
     "stateOvulation": "배란",
     "stateFertile": "가임",
     "stateLogged": "기록됨",
-    "today": "Today"
+    "today": "오늘"
   },
   "sheet": {
     "flow": "월경량",
@@ -268,8 +268,7 @@
     "dailyLogBody": "매일 기록할 시간입니다.",
     "backUpTitle": "데이터 백업",
     "backUpBody": "직접 관리하는 비공개 저장소에 데이터를 동기화합니다. 자동으로 동기화됩니다.",
-    "authorizeBody": "인증하려면 이 코드를 입력하세요.",
-    "periodAheadReminderBody": "An entry is due in {{count}} {{unit}}."
+    "authorizeBody": "인증하려면 이 코드를 입력하세요."
   },
   "symptoms": {
     "cramps": "생리통",

@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable } from "react-native"
+import { View, Text, ScrollView, Pressable, Alert } from "react-native"
 import { useState, useCallback } from "react"
 import { format, differenceInDays } from "date-fns"
 import { useFocusEffect, router } from "expo-router"
@@ -83,10 +83,10 @@ export default function TodayScreen() {
           periodLength,
         )
       } catch {
-        // saveDayEntry surfaces via refresh; sheet shows Alert on failure, quick-tap stays silent
+        Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody"))
       }
     },
-    [todayLog, periodLength],
+    [todayLog, periodLength, t],
   )
 
   // Low-confidence predictions soften the copy so a single number never
