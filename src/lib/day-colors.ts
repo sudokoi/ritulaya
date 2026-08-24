@@ -5,6 +5,9 @@ export const DAY_GRADIENTS = {
     light: ["#C27B9A", "#A15878"],
     dark: ["#E9C6D6", "#DFA9C0"],
   },
+  // Ovulation/fertile uses a lighter ramp than PHASE_COLORS.ovulation (#8C6A24 / #E4C585)
+  // so fertile windows remain distinct from the saturated ovulation dot while
+  // staying in family. Keep in sync with palette intent, not the exact hex.
   ovulation: {
     light: ["#EBDDB4", "#D9C285"],
     dark: ["#C9B078", "#B0945E"],

@@ -194,7 +194,7 @@ export default function SettingsScreen() {
           className="mt-3 flex-row items-center justify-center gap-1 active:opacity-60"
         >
           <BarChart3 size={14} color={colors.accent} />
-          <Text className="text-sm font-medium text-accent dark:text-accent-dark">
+          <Text className="text-sm font-medium text-[var(--accent)]">
             {discreetLabel(
               discreet,
               t("settings.viewInsights"),

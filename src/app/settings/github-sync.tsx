@@ -150,7 +150,7 @@ export default function GithubSyncScreen() {
           <Pressable
             onPress={() => void sync.connect()}
             disabled={sync.connecting}
-            className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
+            className="mt-6 rounded-button bg-[var(--accent)] px-6 py-4 active:opacity-60"
             accessibilityRole="button"
           >
             {sync.connecting ? (
@@ -193,7 +193,7 @@ export default function GithubSyncScreen() {
           </Pressable>
           <Pressable
             onPress={openVerification}
-            className="mt-6 rounded-button bg-accent px-6 py-4 active:opacity-60"
+            className="mt-6 rounded-button bg-[var(--accent)] px-6 py-4 active:opacity-60"
             accessibilityRole="button"
           >
             <Text className="text-center font-semibold text-white">
@@ -231,7 +231,7 @@ export default function GithubSyncScreen() {
             <Pressable
               onPress={handleCreateRepo}
               disabled={sync.busy}
-              className="rounded-button bg-accent p-3.5 active:opacity-60"
+              className="rounded-button bg-[var(--accent)] p-3.5 active:opacity-60"
               accessibilityRole="button"
               accessibilityLabel={t("sync.createRepo")}
             >
@@ -270,7 +270,7 @@ export default function GithubSyncScreen() {
             disabled={sync.busy || !existingRepo.trim()}
             className={cn(
               "mt-4 rounded-button px-6 py-3 active:opacity-60",
-              existingRepo.trim() ? "bg-accent" : "bg-[var(--bg-muted)]",
+              existingRepo.trim() ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
             )}
             accessibilityRole="button"
           >
@@ -318,7 +318,7 @@ export default function GithubSyncScreen() {
           <Pressable
             onPress={() => void sync.syncNow()}
             disabled={sync.syncing}
-            className="mt-6 flex-row items-center justify-center gap-2 rounded-button bg-accent px-6 py-4 active:opacity-60"
+            className="mt-6 flex-row items-center justify-center gap-2 rounded-button bg-[var(--accent)] px-6 py-4 active:opacity-60"
             accessibilityRole="button"
           >
             {sync.syncing ? (

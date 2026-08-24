@@ -153,7 +153,7 @@ export default function SeedCycleScreen() {
       <Pressable
         onPress={() => void handleSave()}
         disabled={saving}
-        className="mx-4 mt-6 rounded-card bg-accent px-6 py-4 active:opacity-60"
+        className="mx-4 mt-6 rounded-card bg-[var(--accent)] px-6 py-4 active:opacity-60"
         accessibilityRole="button"
         accessibilityLabel={t("seed.title")}
       >

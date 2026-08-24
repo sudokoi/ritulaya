@@ -160,7 +160,7 @@ export default function TodayScreen() {
       ) : null}
 
       <Pressable
-        className="mx-4 mb-4 rounded-card bg-accent px-6 py-4 active:opacity-60"
+        className="mx-4 mb-4 rounded-card bg-[var(--accent)] px-6 py-4 active:opacity-60"
         onPress={() => logPeriodToday()}
         accessibilityRole="button"
         accessibilityLabel={t("today.logPeriodA11y")}
