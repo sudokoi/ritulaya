@@ -161,22 +161,24 @@ export function MonthGrid({
         >
           <ChevronLeft size={20} color={muted} />
         </Pressable>
-        <View className="flex-1 items-center gap-2">
+        <View className="flex-1 items-center justify-center gap-1 min-h-[56px]">
           <Text className="text-lg font-semibold text-[var(--text-primary)]">
             {format(currentMonth, "MMMM yyyy")}
           </Text>
-          {isOffCurrentMonth ? (
-            <Button
-              variant="muted"
-              size="sm"
-              onPress={goToday}
-              accessibilityLabel={t("calendar.today")}
-              className="px-4 py-1.5"
-              textClassName="text-xs"
-            >
-              {t("calendar.today")}
-            </Button>
-          ) : null}
+          <View className="h-7 justify-center">
+            {isOffCurrentMonth ? (
+              <Button
+                variant="muted"
+                size="sm"
+                onPress={goToday}
+                accessibilityLabel={t("calendar.today")}
+                className="px-4 py-1.5"
+                textClassName="text-xs"
+              >
+                {t("calendar.today")}
+              </Button>
+            ) : null}
+          </View>
         </View>
         <Pressable
           onPress={nextMonth}

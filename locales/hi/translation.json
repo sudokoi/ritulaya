@@ -48,8 +48,8 @@
     "sectionWeek": "इस हफ़्ते",
     "nothingLogged": "आज कुछ भी दर्ज नहीं हुआ",
     "logMoreCycles": "बेहतर अनुमानों के लिए कुछ और चक्र लॉग करें",
-    "tapToLog": "Tap to log today",
-    "tapToAddDetails": "Tap to add details"
+    "tapToLog": "टैप करके आज का लॉग जोड़ें",
+    "tapToAddDetails": "विवरण जोड़ने के लिए टैप करें"
   },
   "calendar": {
     "avgCycle": "औसत चक्र",
@@ -73,7 +73,7 @@
     "stateOvulation": "अंडाणु",
     "stateFertile": "उर्वर",
     "stateLogged": "दर्ज",
-    "today": "Today"
+    "today": "आज"
   },
   "sheet": {
     "flow": "फ्लो",
@@ -269,8 +269,7 @@
     "dailyLogBody": "आपकी दैनिक एंट्री का समय।",
     "backUpTitle": "अपना डेटा बैक अप करें",
     "backUpBody": "अपना डेटा किसी निजी रिपॉज़िटरी में सिंक करें। यह स्वतः सिंक होता है।",
-    "authorizeBody": "अधिकृत करने के लिए यह कोड दर्ज करें।",
-    "periodAheadReminderBody": "An entry is due in {{count}} {{unit}}."
+    "authorizeBody": "अधिकृत करने के लिए यह कोड दर्ज करें।"
   },
   "symptoms": {
     "cramps": "ऐंठन",

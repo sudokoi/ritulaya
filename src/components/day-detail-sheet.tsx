@@ -1,5 +1,5 @@
 import { View, Text, TextInput, Modal, ScrollView, Pressable } from "react-native"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
 import * as Haptics from "expo-haptics"
@@ -74,9 +74,12 @@ export function DayDetailSheet({
   )
   const { muted, danger } = useThemeColors()
   const { t } = useTranslation()
+  const prevVisibleRef = useRef(visible)
 
   useEffect(() => {
-    if (!visible) return
+    const wasVisible = prevVisibleRef.current
+    prevVisibleRef.current = visible
+    if (!visible || wasVisible) return
     setFlow(existing?.flowIntensity ?? null)
     setSymptoms(existing?.symptoms ?? [])
     setMood(existing?.mood ?? null)
