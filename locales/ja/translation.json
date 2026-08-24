@@ -47,7 +47,9 @@
     "sectionToday": "今日",
     "sectionWeek": "今週",
     "nothingLogged": "今日はまだ記録がありません",
-    "logMoreCycles": "より正確な予測のために、もう少し周期を記録しましょう"
+    "logMoreCycles": "より正確な予測のために、もう少し周期を記録しましょう",
+    "tapToLog": "Tap to log today",
+    "tapToAddDetails": "Tap to add details"
   },
   "calendar": {
     "avgCycle": "平均周期",
@@ -70,7 +72,8 @@
     "statePossible": "生理開始の可能性",
     "stateOvulation": "排卵",
     "stateFertile": "妊娠しやすい",
-    "stateLogged": "記録済み"
+    "stateLogged": "記録済み",
+    "today": "Today"
   },
   "sheet": {
     "flow": "経血量",
@@ -265,7 +268,8 @@
     "dailyLogBody": "毎日の記録の時間です。",
     "backUpTitle": "データをバックアップ",
     "backUpBody": "自分が管理するプライベートリポジトリにデータを同期します。自動で同期されます。",
-    "authorizeBody": "認証するにはこのコードを入力してください。"
+    "authorizeBody": "認証するにはこのコードを入力してください。",
+    "periodAheadReminderBody": "An entry is due in {{count}} {{unit}}."
   },
   "symptoms": {
     "cramps": "生理痛",

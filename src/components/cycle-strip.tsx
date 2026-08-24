@@ -1,22 +1,48 @@
 import { View, Text, Pressable } from "react-native"
-import { format } from "date-fns"
+import { useMemo } from "react"
+import { addDays, format, isToday as isTodayFns } from "date-fns"
 import { useColorScheme } from "nativewind"
 import { DayCircle } from "@/components/day-circle"
 import { resolveDayStyle } from "@/lib/day-colors"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
 
-interface WeekStripProps {
-  days: { date: Date; label: string; isToday: boolean; state: CycleDayState }[]
+const EMPTY_STATE: CycleDayState = {
+  period: false,
+  predicted: false,
+  uncertain: false,
+  fertile: 0,
+  ovulation: false,
+  logged: false,
+}
+
+export interface CycleStripProps {
+  centerDate: Date
+  span?: number
+  dayStates: Map<string, CycleDayState>
   onDayPress?: (date: Date) => void
 }
 
-export function WeekStrip({ days, onDayPress }: WeekStripProps) {
+export function CycleStrip({ centerDate, span = 7, dayStates, onDayPress }: CycleStripProps) {
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
 
+  const days = useMemo(() => {
+    const half = Math.floor(span / 2)
+    return Array.from({ length: span }).map((_, i) => {
+      const date = addDays(centerDate, i - half)
+      const iso = format(date, "yyyy-MM-dd")
+      return {
+        date,
+        label: format(date, "EEEEE"),
+        isToday: isTodayFns(date),
+        state: dayStates.get(iso) ?? EMPTY_STATE,
+      }
+    })
+  }, [centerDate, span, dayStates])
+
   return (
     <View className="flex-row justify-between px-2">
-      {days.map((day, i) => {
+      {days.map((day) => {
         const state = day.state
         const style = resolveDayStyle({
           isPeriod: state.period,
@@ -32,12 +58,7 @@ export function WeekStrip({ days, onDayPress }: WeekStripProps) {
           <>
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
             {marked ? (
-              <DayCircle
-                size={20}
-                fill={fill}
-                colors={style.colors}
-                opacity={style.opacity}
-              />
+              <DayCircle size={20} fill={fill} colors={style.colors} opacity={style.opacity} />
             ) : (
               <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
             )}
@@ -50,7 +71,7 @@ export function WeekStrip({ days, onDayPress }: WeekStripProps) {
         if (onDayPress) {
           return (
             <Pressable
-              key={i}
+              key={day.date.toISOString()}
               onPress={() => onDayPress(day.date)}
               className="relative flex-1 items-center gap-1 py-1 active:opacity-60"
               accessibilityRole="button"
@@ -62,7 +83,7 @@ export function WeekStrip({ days, onDayPress }: WeekStripProps) {
         }
 
         return (
-          <View key={i} className="relative flex-1 items-center gap-1 py-1">
+          <View key={day.date.toISOString()} className="relative flex-1 items-center gap-1 py-1">
             {content}
           </View>
         )

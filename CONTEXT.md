@@ -44,3 +44,12 @@ with neutral wording across the app, notifications, and widget.
 
 **Tombstone** — a durable record that an entry was deleted, kept until a
 successful sync pushes the deletion. The pending-deletion queue.
+
+**Day strip** — a consecutive run of calendar dates rendered with their
+Cycle-day state and a today marker (e.g. the 7-day strip on the Today screen).
+The strip owns date maths and interaction; derivation of Cycle-day state lives
+elsewhere.
+
+**Display label** — the locale-aware human string for a stored key (symptom,
+mood, mucus, flow). Keys are persisted; labels are derived at presentation
+time via the translation catalogue.

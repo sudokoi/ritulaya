@@ -1,5 +1,5 @@
 import { View, Text, Pressable } from "react-native"
-import { addMonths, subMonths, format, isSameMonth, isToday } from "date-fns"
+import { addMonths, subMonths, format, isSameMonth, isToday, startOfMonth } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
 import { useColorScheme } from "nativewind"
 import { memo, useMemo } from "react"
@@ -9,6 +9,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors"
 import { useTranslation } from "react-i18next"
 import { DayCircle } from "@/components/day-circle"
 import { dayGradient, resolveDayStyle } from "@/lib/day-colors"
+import { Button } from "@/components/ui/button"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
 
 interface MonthGridProps {
@@ -136,6 +137,8 @@ export function MonthGrid({
 
   const prevMonth = () => onMonthChange(subMonths(currentMonth, 1))
   const nextMonth = () => onMonthChange(addMonths(currentMonth, 1))
+  const isOffCurrentMonth = !isSameMonth(currentMonth, new Date())
+  const goToday = () => onMonthChange(startOfMonth(new Date()))
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -151,9 +154,23 @@ export function MonthGrid({
         >
           <ChevronLeft size={20} color={muted} />
         </Pressable>
-        <Text className="text-lg font-semibold text-[var(--text-primary)]">
-          {format(currentMonth, "MMMM yyyy")}
-        </Text>
+        <View className="flex-1 items-center gap-2">
+          <Text className="text-lg font-semibold text-[var(--text-primary)]">
+            {format(currentMonth, "MMMM yyyy")}
+          </Text>
+          {isOffCurrentMonth ? (
+            <Button
+              variant="muted"
+              size="sm"
+              onPress={goToday}
+              accessibilityLabel={t("calendar.today")}
+              className="px-4 py-1.5"
+              textClassName="text-xs"
+            >
+              {t("calendar.today")}
+            </Button>
+          ) : null}
+        </View>
         <Pressable
           onPress={nextMonth}
           className="active:opacity-60"

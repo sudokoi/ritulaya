@@ -1,66 +1,22 @@
-import { View, Text, ScrollView, Alert } from "react-native"
-import { useState, useMemo, useCallback } from "react"
+import { View, Text, ScrollView } from "react-native"
+import { useState, useMemo } from "react"
 import { format, endOfMonth } from "date-fns"
 import { MonthGrid } from "@/components/month-grid"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
 import { usePrediction } from "@/hooks/use-predictions"
-import { useDayLogs } from "@/hooks/use-day-logs"
-import { refreshAll } from "@/data/refresh"
-import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
+import { useDayEditor } from "@/hooks/use-day-editor"
 import { useTranslation } from "react-i18next"
 
 export default function CalendarScreen() {
   const { t } = useTranslation()
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [viewedMonth, setViewedMonth] = useState(() => new Date())
 
   const monthEnd = useMemo(() => endOfMonth(viewedMonth), [viewedMonth])
   const dayStates = useCycleDayStates(monthEnd)
-  const { periodLength, avgCycleLength } = usePrediction()
-  const { deleteDayLog, upsertDayLog, getLogForDate } = useDayLogs()
-
-  const existingLog = useMemo(() => {
-    if (!selectedDate) return null
-    return getLogForDate(format(selectedDate, "yyyy-MM-dd"))
-  }, [selectedDate, getLogForDate])
-
-  const handleSave = useCallback(
-    async (entry: DayEntryInput) => {
-      try {
-        await saveDayEntry(entry, periodLength)
-      } catch {
-        Alert.alert(t("calendar.saveFailedTitle"), t("calendar.saveFailedBody"))
-      }
-      setSelectedDate(null)
-    },
-    [periodLength, t],
-  )
-  const handleDelete = useCallback(() => {
-    if (!existingLog) return
-    deleteDayLog(existingLog.id)
-      .then(() => refreshAll())
-      .catch(() =>
-        Alert.alert(t("calendar.deleteFailedTitle"), t("calendar.deleteFailedBody")),
-      )
-    setSelectedDate(null)
-  }, [existingLog, deleteDayLog, t])
-
-  const handleClearPeriod = useCallback(() => {
-    if (!existingLog) return
-    upsertDayLog({
-      date: existingLog.date,
-      flowIntensity: "none",
-      symptoms: existingLog.symptoms,
-      mood: existingLog.mood,
-      notes: existingLog.notes,
-    })
-      .then(() => refreshAll())
-      .catch(() =>
-        Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody")),
-      )
-    setSelectedDate(null)
-  }, [existingLog, upsertDayLog, t])
+  const { avgCycleLength, periodLength } = usePrediction()
+  const { selectedDate, existingLog, open, close, handleSave, handleDelete, handleClearPeriod } =
+    useDayEditor()
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
@@ -88,7 +44,7 @@ export default function CalendarScreen() {
           currentMonth={viewedMonth}
           onMonthChange={setViewedMonth}
           dayStates={dayStates}
-          onDayPress={setSelectedDate}
+          onDayPress={open}
         />
 
         <DayDetailSheet
@@ -99,7 +55,7 @@ export default function CalendarScreen() {
           onSave={handleSave}
           onClearPeriod={existingLog ? handleClearPeriod : undefined}
           onDelete={existingLog ? handleDelete : undefined}
-          onClose={() => setSelectedDate(null)}
+          onClose={close}
         />
       </View>
     </ScrollView>
