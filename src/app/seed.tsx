@@ -157,7 +157,7 @@ export default function SeedCycleScreen() {
         accessibilityRole="button"
         accessibilityLabel={t("seed.title")}
       >
-        <Text className="text-center text-lg font-semibold text-white">
+        <Text className="text-center text-lg font-semibold text-[var(--on-accent)]">
           {t("common.save")}
         </Text>
       </Pressable>

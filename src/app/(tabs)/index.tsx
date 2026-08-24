@@ -165,7 +165,7 @@ export default function TodayScreen() {
         accessibilityRole="button"
         accessibilityLabel={t("today.logPeriodA11y")}
       >
-        <Text className="text-center text-lg font-semibold text-white">
+        <Text className="text-center text-lg font-semibold text-[var(--on-accent)]">
           {t("today.logPeriodToday")}
         </Text>
       </Pressable>

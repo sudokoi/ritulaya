@@ -34,7 +34,7 @@ export default function GithubSyncScreen() {
   const { t } = useTranslation()
   const sync = useSync()
   const { discreetMode: discreet } = useSettings()
-  const { muted, accent, danger } = useThemeColors()
+  const { muted, accent, onAccent, danger } = useThemeColors()
 
   const [repoName, setRepoName] = useState("ritulaya-data")
   const [existingOwner, setExistingOwner] = useState("")
@@ -154,9 +154,9 @@ export default function GithubSyncScreen() {
             accessibilityRole="button"
           >
             {sync.connecting ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={onAccent} />
             ) : (
-              <Text className="text-center font-semibold text-white">
+              <Text className="text-center font-semibold text-[var(--on-accent)]">
                 {t("sync.connect")}
               </Text>
             )}
@@ -196,7 +196,7 @@ export default function GithubSyncScreen() {
             className="mt-6 rounded-button bg-[var(--accent)] px-6 py-4 active:opacity-60"
             accessibilityRole="button"
           >
-            <Text className="text-center font-semibold text-white">
+            <Text className="text-center font-semibold text-[var(--on-accent)]">
               {t("sync.openGithub")}
             </Text>
           </Pressable>
@@ -235,7 +235,7 @@ export default function GithubSyncScreen() {
               accessibilityRole="button"
               accessibilityLabel={t("sync.createRepo")}
             >
-              <Plus size={20} color="#fff" />
+              <Plus size={20} color={onAccent} />
             </Pressable>
           </View>
 
@@ -277,7 +277,9 @@ export default function GithubSyncScreen() {
             <Text
               className={cn(
                 "text-center font-semibold",
-                existingRepo.trim() ? "text-white" : "text-[var(--text-muted)]",
+                existingRepo.trim()
+                  ? "text-[var(--on-accent)]"
+                  : "text-[var(--text-muted)]",
               )}
             >
               {t("sync.useRepo")}
@@ -322,11 +324,13 @@ export default function GithubSyncScreen() {
             accessibilityRole="button"
           >
             {sync.syncing ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={onAccent} />
             ) : (
-              <RefreshCw size={18} color="#fff" />
+              <RefreshCw size={18} color={onAccent} />
             )}
-            <Text className="font-semibold text-white">{t("sync.syncNow")}</Text>
+            <Text className="font-semibold text-[var(--on-accent)]">
+              {t("sync.syncNow")}
+            </Text>
           </Pressable>
 
           <Pressable

@@ -16,6 +16,10 @@ module.exports = {
         "luteal-dark": "#BDA9E2",
         accent: "#0F766E",
         "accent-dark": "#5EEAD4",
+        "on-accent": "#ffffff",
+        "on-accent-dark": "#0F2E2A",
+        "accent-wash": "rgba(15, 118, 110, 0.2)",
+        "accent-wash-dark": "rgba(94, 234, 212, 0.2)",
       },
       borderRadius: {
         card: "20px",

@@ -96,7 +96,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
         accessibilityRole="button"
         accessibilityLabel={t("gate.unlock")}
       >
-        <Text className="font-semibold text-white">
+        <Text className="font-semibold text-[var(--on-accent)]">
           {unavailable ? t("gate.tryAgain") : t("gate.unlock")}
         </Text>
       </Pressable>

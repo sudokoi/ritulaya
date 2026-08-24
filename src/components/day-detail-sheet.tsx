@@ -192,7 +192,7 @@ export function DayDetailSheet({
                         className={cn(
                           "text-center text-sm",
                           flow === level.key
-                            ? "font-medium text-white"
+                            ? "font-medium text-[var(--on-accent)]"
                             : "text-[var(--text-primary)]",
                         )}
                       >
@@ -229,7 +229,7 @@ export function DayDetailSheet({
                       }}
                       className={cn(
                         "items-center gap-1 rounded-xl px-3 py-2 active:opacity-60",
-                        mood === m.key && "bg-[var(--accent)]/20",
+                        mood === m.key && "bg-[var(--accent-wash)]",
                       )}
                       accessibilityRole="button"
                       accessibilityLabel={t("sheet.moodState", {
@@ -267,7 +267,7 @@ export function DayDetailSheet({
                         className={cn(
                           "text-sm",
                           symptoms.includes(symptom.key)
-                            ? "font-medium text-white"
+                            ? "font-medium text-[var(--on-accent)]"
                             : "text-[var(--text-primary)]",
                         )}
                       >
@@ -304,7 +304,7 @@ export function DayDetailSheet({
                         className={cn(
                           "text-sm",
                           cervicalMucus === mucus.key
-                            ? "font-medium text-white"
+                            ? "font-medium text-[var(--on-accent)]"
                             : "text-[var(--text-primary)]",
                         )}
                       >
@@ -352,7 +352,9 @@ export function DayDetailSheet({
                     <Text
                       className={cn(
                         "text-sm font-medium",
-                        sexualActivity ? "text-white" : "text-[var(--text-primary)]",
+                        sexualActivity
+                          ? "text-[var(--on-accent)]"
+                          : "text-[var(--text-primary)]",
                       )}
                     >
                       {sexualActivity
