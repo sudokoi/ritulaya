@@ -20,6 +20,7 @@ export interface CycleStripProps {
   centerDate: Date
   span?: number
   dayStates: Map<string, CycleDayState>
+  selectedDate?: Date | null
   onDayPress?: (date: Date) => void
 }
 
@@ -27,11 +28,13 @@ export function CycleStrip({
   centerDate,
   span = 7,
   dayStates,
+  selectedDate,
   onDayPress,
 }: CycleStripProps) {
   const { colorScheme } = useColorScheme()
   const { t } = useTranslation()
   const dark = colorScheme === "dark"
+  const selectedIso = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
 
   const days = useMemo(() => {
     const half = Math.floor(span / 2)
@@ -40,12 +43,14 @@ export function CycleStrip({
       const iso = format(date, "yyyy-MM-dd")
       return {
         date,
+        iso,
         label: format(date, "EEEEE"),
         isToday: isTodayFns(date),
+        isSelected: iso === selectedIso,
         state: dayStates.get(iso) ?? EMPTY_STATE,
       }
     })
-  }, [centerDate, span, dayStates])
+  }, [centerDate, span, dayStates, selectedIso])
 
   return (
     <View className="flex-row justify-between px-2">
@@ -80,14 +85,17 @@ export function CycleStrip({
           </>
         )
 
+        const selected = day.isSelected
+
         if (onDayPress) {
           return (
             <Pressable
-              key={day.date.toISOString()}
+              key={day.iso}
               onPress={() => onDayPress(day.date)}
-              className="relative flex-1 items-center gap-1 py-1 active:opacity-60"
+              className={`relative flex-1 items-center gap-1 py-1 active:opacity-60 ${selected ? "bg-[var(--accent-wash)] rounded-xl" : ""}`}
               accessibilityRole="button"
-              accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}`}
+              accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}${selected ? ", selected" : ""}`}
+              accessibilityState={{ selected: !!selected }}
             >
               {content}
             </Pressable>
@@ -96,8 +104,8 @@ export function CycleStrip({
 
         return (
           <View
-            key={day.date.toISOString()}
-            className="relative flex-1 items-center gap-1 py-1"
+            key={day.iso}
+            className={`relative flex-1 items-center gap-1 py-1 ${selected ? "bg-[var(--accent-wash)] rounded-xl" : ""}`}
           >
             {content}
           </View>
