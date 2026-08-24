@@ -14,6 +14,8 @@ export const palette = {
     textMuted: "#6f6b64",
     border: "#e8e4df",
     accent: "#0F766E",
+    onAccent: "#ffffff",
+    accentWash: "rgba(15, 118, 110, 0.2)",
     danger: "#DC2626",
   },
   dark: {
@@ -24,6 +26,8 @@ export const palette = {
     textMuted: "#a9a8a4",
     border: "#2f2f33",
     accent: "#5EEAD4",
+    onAccent: "#0F2E2A",
+    accentWash: "rgba(94, 234, 212, 0.2)",
     danger: "#F87171",
   },
 } as const

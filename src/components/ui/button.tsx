@@ -25,7 +25,7 @@ const variantClass: Record<ButtonVariant, string> = {
 }
 
 const variantTextClass: Record<ButtonVariant, string> = {
-  primary: "text-white",
+  primary: "text-[var(--on-accent)]",
   muted: "text-[var(--text-primary)]",
   ghost: "text-[var(--text-primary)]",
 }
