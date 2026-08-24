@@ -38,8 +38,15 @@ export default function TodayScreen() {
   const { logPeriodToday } = useLogPeriod()
   const dayStates = useCycleDayStates()
   const { periodLength } = usePrediction()
-  const { selectedDate, existingLog, open, close, handleSave, handleDelete, handleClearPeriod } =
-    useDayEditor()
+  const {
+    selectedDate,
+    existingLog,
+    open,
+    close,
+    handleSave,
+    handleDelete,
+    handleClearPeriod,
+  } = useDayEditor()
 
   useFocusEffect(
     useCallback(() => {

@@ -1,4 +1,10 @@
-import { symptomLabel, symptomLabels, moodLabel, mucusLabel, flowLabel } from "@/domain/day-entry-display"
+import {
+  symptomLabel,
+  symptomLabels,
+  moodLabel,
+  mucusLabel,
+  flowLabel,
+} from "@/domain/day-entry-display"
 
 describe("day-entry-display", () => {
   const t = (key: string) => {
@@ -23,11 +29,16 @@ describe("day-entry-display", () => {
   it("falls back to humanized key when t missing or key absent", () => {
     expect(symptomLabel("tender_breasts")).toBe("tender_breasts")
     // unknown key returns key's tail
-    expect(symptomLabel("tender_breasts" as never, () => "symptoms.tender_breasts")).toBe("tender_breasts")
+    expect(symptomLabel("tender_breasts" as never, () => "symptoms.tender_breasts")).toBe(
+      "tender_breasts",
+    )
   })
 
   it("maps symptom array", () => {
-    expect(symptomLabels(["cramps", "tender_breasts"], t)).toEqual(["Cramps", "Tender Breasts"])
+    expect(symptomLabels(["cramps", "tender_breasts"], t)).toEqual([
+      "Cramps",
+      "Tender Breasts",
+    ])
   })
 
   it("maps mood/mucus/flow", () => {

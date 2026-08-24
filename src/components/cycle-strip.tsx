@@ -22,7 +22,12 @@ export interface CycleStripProps {
   onDayPress?: (date: Date) => void
 }
 
-export function CycleStrip({ centerDate, span = 7, dayStates, onDayPress }: CycleStripProps) {
+export function CycleStrip({
+  centerDate,
+  span = 7,
+  dayStates,
+  onDayPress,
+}: CycleStripProps) {
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
 
@@ -58,7 +63,12 @@ export function CycleStrip({ centerDate, span = 7, dayStates, onDayPress }: Cycl
           <>
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
             {marked ? (
-              <DayCircle size={20} fill={fill} colors={style.colors} opacity={style.opacity} />
+              <DayCircle
+                size={20}
+                fill={fill}
+                colors={style.colors}
+                opacity={style.opacity}
+              />
             ) : (
               <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
             )}
@@ -83,7 +93,10 @@ export function CycleStrip({ centerDate, span = 7, dayStates, onDayPress }: Cycl
         }
 
         return (
-          <View key={day.date.toISOString()} className="relative flex-1 items-center gap-1 py-1">
+          <View
+            key={day.date.toISOString()}
+            className="relative flex-1 items-center gap-1 py-1"
+          >
             {content}
           </View>
         )
