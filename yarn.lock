@@ -1396,27 +1396,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/config-plugins@npm:57.0.7":
-  version: 57.0.7
-  resolution: "@expo/config-plugins@npm:57.0.7"
-  dependencies:
-    "@expo/config-types": "npm:^57.0.2"
-    "@expo/json-file": "npm:~11.0.1"
-    "@expo/plist": "npm:^0.8.1"
-    "@expo/require-utils": "npm:^57.0.4"
-    "@expo/sdk-runtime-versions": "npm:^1.0.0"
-    chalk: "npm:^4.1.2"
-    debug: "npm:^4.3.5"
-    getenv: "npm:^2.0.0"
-    glob: "npm:^13.0.0"
-    semver: "npm:^7.5.4"
-    slugify: "npm:^1.6.6"
-    xcode: "npm:^3.0.1"
-    xml2js: "npm:0.6.0"
-  checksum: 10/5f52a4443c70345e2faa4cb0338c43ee8f01739c8425b371beaa3eae068c0f00f9547d364a670548139396842ec802eb43913f16ea0b4a565358bee1fa7c540d
-  languageName: node
-  linkType: hard
-
 "@expo/config-plugins@npm:^57.0.9, @expo/config-plugins@npm:~57.0.8, @expo/config-plugins@npm:~57.0.9":
   version: 57.0.9
   resolution: "@expo/config-plugins@npm:57.0.9"
@@ -1743,22 +1722,6 @@ __metadata:
     resolve-from: "npm:^5.0.0"
     semver: "npm:^7.6.0"
   checksum: 10/98ce691e4fed765ee6fb08b0c9d5aabda710d3b2b39826bfc01b13c848d95abf5f58ca6c4e5c9090c2ec167f7b17c91be6a022bb49e246fdccea447f99ee22c4
-  languageName: node
-  linkType: hard
-
-"@expo/require-utils@npm:^57.0.4":
-  version: 57.0.4
-  resolution: "@expo/require-utils@npm:57.0.4"
-  dependencies:
-    "@babel/code-frame": "npm:^7.20.0"
-    "@babel/core": "npm:^7.25.2"
-    "@babel/plugin-transform-modules-commonjs": "npm:^7.24.8"
-  peerDependencies:
-    typescript: ^5.0.0 || ^5.0.0-0 || ^6.0.0 || ^7.0.0
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10/5a48176da9befe25b93ad09fd6aa9586b58a494387dc8a3c700b802c3e0b9025813c90ee9e14b0efc66ea6d7621a900dfbfa0390933154086f2e54598390a6c1
   languageName: node
   linkType: hard
 
@@ -5836,6 +5799,15 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 10/9d4c4891f0f8004fc40dfc3ce58e5ae137fabf841b15d534b565dfd25daa4e3586cb7395a60e0204c279843bb3abeaba3d414b827b8a25bf2e846d8de409cd80
+  languageName: node
+  linkType: hard
+
+"expo-doctor@npm:1.20.3":
+  version: 1.20.3
+  resolution: "expo-doctor@npm:1.20.3"
+  bin:
+    expo-doctor: bin/expo-doctor.js
+  checksum: 10/5f4df7fb727a16a1e42e7a9024ebdafbdd1eb79f9a41f08824531568df7e6bb06d6380aeae65dc7c45f345defc3f8b48558f9c385481b493eb06bad8a0f9ec71
   languageName: node
   linkType: hard
 
@@ -10858,7 +10830,6 @@ __metadata:
     "@changesets/cli": "npm:3.0.0"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:10.0.1"
-    "@expo/config-plugins": "npm:57.0.7"
     "@expo/ui": "npm:57.0.13"
     "@react-native/jest-preset": "npm:0.86.2"
     "@rn-primitives/portal": "npm:1.5.3"
@@ -10882,6 +10853,7 @@ __metadata:
     expo-build-properties: "npm:57.0.14"
     expo-clipboard: "npm:57.0.1"
     expo-constants: "npm:57.0.14"
+    expo-doctor: "npm:1.20.3"
     expo-file-system: "npm:57.0.5"
     expo-font: "npm:57.0.1"
     expo-glass-effect: "npm:57.0.1"
