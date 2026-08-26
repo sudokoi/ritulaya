@@ -1,5 +1,5 @@
 /* eslint-env node */
-const { withAndroidManifest } = require("@expo/config-plugins")
+const { withAndroidManifest } = require("expo/config-plugins")
 
 function withRitulayaWidget(config) {
   return withAndroidManifest(config, async (config) => {
