@@ -66,33 +66,43 @@ export function CycleStrip({
         const fill = state.uncertain && !state.predicted ? style.fill * 0.45 : style.fill
         const marked = fill > 0
 
+        const selected = day.isSelected
+
+        const circle = marked ? (
+          <View
+            className={`rounded-full p-0.5 ${selected ? "border-2 border-[var(--accent)]" : "border-2 border-transparent"}`}
+          >
+            <DayCircle
+              size={20}
+              fill={fill}
+              colors={style.colors}
+              opacity={style.opacity}
+            />
+          </View>
+        ) : (
+          <View
+            className={`h-6 w-6 items-center justify-center rounded-full ${selected ? "border-2 border-[var(--accent)]" : "border-2 border-transparent"}`}
+          >
+            <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
+          </View>
+        )
+
         const content = (
           <>
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
-            {marked ? (
-              <DayCircle
-                size={20}
-                fill={fill}
-                colors={style.colors}
-                opacity={style.opacity}
-              />
-            ) : (
-              <View className="h-5 w-5 rounded-full bg-[var(--bg-muted)]" />
-            )}
+            {circle}
             {day.isToday ? (
               <View className="absolute -bottom-1 h-0.5 w-3 rounded-full bg-[var(--text-primary)]" />
             ) : null}
           </>
         )
 
-        const selected = day.isSelected
-
         if (onDayPress) {
           return (
             <Pressable
               key={day.iso}
               onPress={() => onDayPress(day.date)}
-              className={`relative flex-1 items-center gap-1 py-1 active:opacity-60 border-2 rounded-2xl ${selected ? "border-[var(--accent)] bg-transparent" : "border-transparent"}`}
+              className="relative flex-1 items-center gap-1 py-1 active:opacity-60"
               accessibilityRole="button"
               accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}${selected ? ", selected" : ""}`}
               accessibilityState={{ selected: !!selected }}
@@ -103,10 +113,7 @@ export function CycleStrip({
         }
 
         return (
-          <View
-            key={day.iso}
-            className={`relative flex-1 items-center gap-1 py-1 border-2 rounded-2xl ${selected ? "border-[var(--accent)] bg-transparent" : "border-transparent"}`}
-          >
+          <View key={day.iso} className="relative flex-1 items-center gap-1 py-1">
             {content}
           </View>
         )
