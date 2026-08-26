@@ -25,6 +25,7 @@ import { usePrediction } from "@/hooks/use-predictions"
 import { useSync } from "@/hooks/use-sync"
 import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
+import Constants from "expo-constants"
 import { useEffect } from "react"
 
 const LANGUAGE_OPTIONS: LanguageSetting[] = ["system", ...SUPPORTED_LOCALES]
@@ -159,6 +160,8 @@ export default function SettingsScreen() {
     const next = PERIOD_AHEAD_OPTIONS[(idx + 1) % PERIOD_AHEAD_OPTIONS.length]
     update({ reminderPeriodAhead: next })
   }
+
+  const version = Constants.expoConfig?.version ?? Constants.nativeAppVersion
 
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
@@ -378,7 +381,9 @@ export default function SettingsScreen() {
               {discreetLabel(discreet, t("settings.version"), t("discreet.version"))}
             </Text>
           </View>
-          <Text className="text-sm text-[var(--text-muted)]">0.1.0</Text>
+          {version ? (
+            <Text className="text-sm text-[var(--text-muted)]">{version}</Text>
+          ) : null}
         </View>
       </View>
     </ScrollView>
