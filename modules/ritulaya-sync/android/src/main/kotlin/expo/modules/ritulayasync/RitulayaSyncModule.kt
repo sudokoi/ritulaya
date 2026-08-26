@@ -98,7 +98,6 @@ class RitulayaSyncModule : Module() {
                 orchestrator.statusSnapshot()
             }
 
-            Events("syncStatusChanged")
-            Events("syncConflictDetected")
+            Events("syncStatusChanged", "syncConflictDetected")
         }
 }
