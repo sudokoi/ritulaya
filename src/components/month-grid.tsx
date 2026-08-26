@@ -200,11 +200,11 @@ export function MonthGrid({
       </View>
 
       <View className="flex-row flex-wrap px-2">
-        {days.map((day, i) => {
+        {days.map((day) => {
           const iso = format(day.date, "yyyy-MM-dd")
           return (
             <DayCell
-              key={i}
+              key={iso}
               date={day.date}
               state={dayStates.get(iso) ?? EMPTY_STATE}
               today={isToday(day.date)}
