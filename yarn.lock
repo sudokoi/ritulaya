@@ -1836,7 +1836,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/ui@npm:^57.0.13, @expo/ui@npm:~57.0.13":
+"@expo/ui@npm:57.0.13, @expo/ui@npm:^57.0.13":
   version: 57.0.13
   resolution: "@expo/ui@npm:57.0.13"
   dependencies:
@@ -3313,12 +3313,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:~19.2.4":
+"@types/react@npm:*":
   version: 19.2.18
   resolution: "@types/react@npm:19.2.18"
   dependencies:
     csstype: "npm:^3.2.2"
   checksum: 10/c718ec5c5272ef5c1c77fcdd07f567c77197b593583539459b4bdaea89ca55ad7c814b7eb2151dccfa459b2c384b599a45e7e35550b789883d66b363d30c94d8
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:19.2.4":
+  version: 19.2.4
+  resolution: "@types/react@npm:19.2.4"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10/99905270fe1ac5726f3447db5b8f4d5444e2a268cfd239bd3a379f65dc01d7ac6f8984f501e4edd4240e8533eaad30dd812a8443af7e356abb712aded427988e
   languageName: node
   linkType: hard
 
@@ -4917,7 +4926,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.2.2":
+"csstype@npm:^3.0.2, csstype@npm:^3.2.2":
   version: 3.2.3
   resolution: "csstype@npm:3.2.3"
   checksum: 10/ad41baf7e2ffac65ab544d79107bf7cd1a4bb9bab9ac3302f59ab4ba655d5e30942a8ae46e10ba160c6f4ecea464cc95b975ca2fefbdeeacd6ac63f12f99fe1f
@@ -5794,7 +5803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-build-properties@npm:~57.0.14":
+"expo-build-properties@npm:57.0.14":
   version: 57.0.14
   resolution: "expo-build-properties@npm:57.0.14"
   dependencies:
@@ -5818,7 +5827,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-constants@npm:~57.0.13, expo-constants@npm:~57.0.14":
+"expo-constants@npm:57.0.14, expo-constants@npm:~57.0.13, expo-constants@npm:~57.0.14":
   version: 57.0.14
   resolution: "expo-constants@npm:57.0.14"
   dependencies:
@@ -5830,7 +5839,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-file-system@npm:~57.0.5":
+"expo-file-system@npm:57.0.5, expo-file-system@npm:~57.0.5":
   version: 57.0.5
   resolution: "expo-file-system@npm:57.0.5"
   peerDependencies:
@@ -5873,7 +5882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-image@npm:~57.0.3":
+"expo-image@npm:57.0.3":
   version: 57.0.3
   resolution: "expo-image@npm:57.0.3"
   dependencies:
@@ -5900,7 +5909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-linear-gradient@npm:~57.0.1":
+"expo-linear-gradient@npm:57.0.1":
   version: 57.0.1
   resolution: "expo-linear-gradient@npm:57.0.1"
   peerDependencies:
@@ -5911,7 +5920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-linking@npm:~57.0.7":
+"expo-linking@npm:57.0.7":
   version: 57.0.7
   resolution: "expo-linking@npm:57.0.7"
   dependencies:
@@ -5988,7 +5997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-notifications@npm:~57.0.14":
+"expo-notifications@npm:57.0.14":
   version: 57.0.14
   resolution: "expo-notifications@npm:57.0.14"
   dependencies:
@@ -6005,7 +6014,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-router@npm:~57.0.16":
+"expo-router@npm:57.0.16":
   version: 57.0.16
   resolution: "expo-router@npm:57.0.16"
   dependencies:
@@ -6076,7 +6085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-sharing@npm:~57.0.15":
+"expo-sharing@npm:57.0.15":
   version: 57.0.15
   resolution: "expo-sharing@npm:57.0.15"
   dependencies:
@@ -6091,7 +6100,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-splash-screen@npm:~57.0.8":
+"expo-splash-screen@npm:57.0.8":
   version: 57.0.8
   resolution: "expo-splash-screen@npm:57.0.8"
   dependencies:
@@ -6147,7 +6156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:~57.0.16":
+"expo@npm:57.0.16":
   version: 57.0.16
   resolution: "expo@npm:57.0.16"
   dependencies:
@@ -10420,7 +10429,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-web@npm:^0.21.2":
+"react-native-web@npm:0.21.2":
   version: 0.21.2
   resolution: "react-native-web@npm:0.21.2"
   dependencies:
@@ -10850,14 +10859,14 @@ __metadata:
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:10.0.1"
     "@expo/config-plugins": "npm:57.0.7"
-    "@expo/ui": "npm:~57.0.13"
+    "@expo/ui": "npm:57.0.13"
     "@react-native/jest-preset": "npm:0.86.2"
     "@rn-primitives/portal": "npm:1.5.3"
     "@swc/core": "npm:1.15.47"
     "@swc/jest": "npm:0.2.39"
     "@testing-library/react-native": "npm:14.0.1"
     "@types/jest": "npm:29.5.14"
-    "@types/react": "npm:~19.2.4"
+    "@types/react": "npm:19.2.4"
     "@xstate/store": "npm:4.2.3"
     "@xstate/store-react": "npm:2.0.0"
     babel-plugin-inline-import: "npm:3.0.0"
@@ -10869,23 +10878,23 @@ __metadata:
     eslint-plugin-react: "npm:7.37.5"
     eslint-plugin-react-hooks: "npm:7.1.1"
     eslint-plugin-react-native: "npm:5.0.0"
-    expo: "npm:~57.0.16"
-    expo-build-properties: "npm:~57.0.14"
+    expo: "npm:57.0.16"
+    expo-build-properties: "npm:57.0.14"
     expo-clipboard: "npm:57.0.1"
-    expo-constants: "npm:~57.0.14"
-    expo-file-system: "npm:~57.0.5"
+    expo-constants: "npm:57.0.14"
+    expo-file-system: "npm:57.0.5"
     expo-font: "npm:57.0.1"
     expo-glass-effect: "npm:57.0.1"
     expo-haptics: "npm:57.0.1"
-    expo-image: "npm:~57.0.3"
-    expo-linear-gradient: "npm:~57.0.1"
-    expo-linking: "npm:~57.0.7"
+    expo-image: "npm:57.0.3"
+    expo-linear-gradient: "npm:57.0.1"
+    expo-linking: "npm:57.0.7"
     expo-local-authentication: "npm:57.0.2"
     expo-localization: "npm:57.0.1"
-    expo-notifications: "npm:~57.0.14"
-    expo-router: "npm:~57.0.16"
-    expo-sharing: "npm:~57.0.15"
-    expo-splash-screen: "npm:~57.0.8"
+    expo-notifications: "npm:57.0.14"
+    expo-router: "npm:57.0.16"
+    expo-sharing: "npm:57.0.15"
+    expo-splash-screen: "npm:57.0.8"
     expo-status-bar: "npm:57.0.1"
     expo-symbols: "npm:57.0.2"
     expo-system-ui: "npm:57.0.2"
@@ -10908,7 +10917,7 @@ __metadata:
     react-native-safe-area-context: "npm:5.7.0"
     react-native-screens: "npm:4.26.0"
     react-native-svg: "npm:15.15.4"
-    react-native-web: "npm:^0.21.2"
+    react-native-web: "npm:0.21.2"
     react-native-worklets: "npm:0.10.1"
     tailwind-merge: "npm:3.6.0"
     tailwindcss: "npm:3.4.19"
