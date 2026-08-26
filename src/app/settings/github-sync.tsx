@@ -40,7 +40,7 @@ export default function GithubSyncScreen() {
   const [existingOwner, setExistingOwner] = useState("")
   const [existingRepo, setExistingRepo] = useState("")
   const [copiedCode, setCopiedCode] = useState(false)
-  const existingRepoInputRef = useRef<TextInput>(null)
+  const existingRepoInputRef = useRef<React.ElementRef<typeof TextInput>>(null)
 
   useEffect(() => {
     if (!copiedCode) return

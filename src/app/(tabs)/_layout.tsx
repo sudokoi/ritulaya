@@ -23,7 +23,7 @@ function TabBarButton({
       {...rest}
       onPress={onPress}
       onLongPress={onLongPress}
-      android_ripple={null}
+      android_ripple={undefined}
       style={({ pressed }) => [
         style,
         { flex: 1, alignItems: "center", justifyContent: "center" },
