@@ -92,7 +92,7 @@ export function CycleStrip({
             <Pressable
               key={day.iso}
               onPress={() => onDayPress(day.date)}
-              className={`relative flex-1 items-center gap-1 py-1 active:opacity-60 ${selected ? "bg-[var(--accent-wash)] rounded-xl" : ""}`}
+              className={`relative flex-1 items-center gap-1 py-1 active:opacity-60 border-2 rounded-2xl ${selected ? "border-[var(--accent)] bg-transparent" : "border-transparent"}`}
               accessibilityRole="button"
               accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}${selected ? ", selected" : ""}`}
               accessibilityState={{ selected: !!selected }}
@@ -105,7 +105,7 @@ export function CycleStrip({
         return (
           <View
             key={day.iso}
-            className={`relative flex-1 items-center gap-1 py-1 ${selected ? "bg-[var(--accent-wash)] rounded-xl" : ""}`}
+            className={`relative flex-1 items-center gap-1 py-1 border-2 rounded-2xl ${selected ? "border-[var(--accent)] bg-transparent" : "border-transparent"}`}
           >
             {content}
           </View>
