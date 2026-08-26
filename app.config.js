@@ -76,6 +76,8 @@ module.exports = {
     plugins: [
       "expo-router",
       "expo-local-authentication",
+      "expo-image",
+      "expo-sharing",
       "./plugins/withRitulayaWidget",
       [
         "expo-build-properties",
