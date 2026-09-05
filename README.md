@@ -28,7 +28,7 @@ Ritulaya is in closed testing on Google Play. Join the test to install the lates
 | Routing         | expo-router (file-based)                                               |
 | Styling         | NativeWind 4 (Tailwind CSS) + react-native-reusables                   |
 | State           | @xstate/store                                                          |
-| Database        | expo-sqlite + Drizzle ORM                                              |
+| Database        | Room + SQLCipher through the native database module                    |
 | Encryption      | SQLCipher at rest, Keystore-wrapped random key                         |
 | Sync            | Kotlin native module — GitHub REST API, OAuth device flow, WorkManager |
 | Testing         | Jest + react-native-testing-library                                    |
@@ -65,7 +65,8 @@ yarn build:android:local
 - **Day entries** — `src/domain/day-entry.ts` owns save/delete/clear-flow commands and their post-write refresh. `useDayEditor` connects screens to those commands; `useDayLogs` reads the cache rather than exposing another mutation path.
 - **Encryption** — the SQLite file is encrypted at rest with SQLCipher; the key is a random value wrapped by an AES-256-GCM key held in the Android Keystore.
 - **Sync** — a Kotlin module (`ritulaya-sync`) drives GitHub sync end-to-end (OAuth device flow, CSV merge, background WorkManager). The device copy is encrypted; the repo copy is plaintext in your private repository.
-- **Native modules** — database, crypto, predictions, sync, local logging, and home-screen widget under `modules/`.
+- **App lock** — `modules/ritulaya-auth/` owns Android authentication and short-lived grant freshness; `src/services/authentication.ts` is its fail-closed JS client. Backgrounding revokes grants without mistaking a system credential handoff for completed authentication.
+- **Native modules** — authentication, database, crypto, predictions, sync, local logging, and home-screen widget under `modules/`.
 
 See [docs/decisions/](./docs/decisions/) for architecture decision records.
 

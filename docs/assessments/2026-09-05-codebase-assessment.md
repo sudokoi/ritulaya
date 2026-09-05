@@ -13,6 +13,11 @@ It is not a replacement for:
 
 ## Assessment status
 
+Latest: the [final branch audit](./2026-09-05-final-audit.md) records the standards
+and requirements findings, subsequent fixes, release-mode build evidence, and
+remaining device/release limits. Pending release notes are now consolidated into
+`.changeset/ui-refresh-and-hardening.md`.
+
 ### Implementation follow-up — `fix/privacy-data-sync-hardening`
 
 The original findings below describe the assessed baseline, not the current
