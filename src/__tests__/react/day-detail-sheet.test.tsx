@@ -8,6 +8,7 @@ jest.mock("react-native-safe-area-context", () => ({
 jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
+    i18n: { resolvedLanguage: "en-US" },
     t: (key: string, options?: { label?: string }) =>
       options?.label ? `${key} ${options.label}` : key,
   }),

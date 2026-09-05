@@ -18,11 +18,13 @@ import { useTranslation } from "react-i18next"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 import { Button } from "@/components/ui/button"
 import { AppText } from "@/components/ui/text"
+import { useDateLocale } from "@/hooks/use-date-locale"
 
 const NO_MARKERS = new Map()
 
 export default function TodayScreen() {
   const { t } = useTranslation()
+  const locale = useDateLocale()
   const { currentCycle, isLoaded } = useCycles()
   const { discreetMode } = useSettings()
   const { prediction, phase } = usePrediction()
@@ -57,7 +59,7 @@ export default function TodayScreen() {
                 {t("tabs.today")}
               </AppText>
               <AppText variant="supporting" tone="muted">
-                {format(today, "EEEE, PPP")}
+                {format(today, "EEEE, PPP", { locale })}
               </AppText>
             </View>
             {discreetMode ? (
@@ -91,13 +93,17 @@ export default function TodayScreen() {
                       {t("today.nextPeriodEstimate")}
                     </AppText>
                     <AppText variant="date">
-                      {format(prediction.nextPeriodStart, "MMM d")} –{" "}
-                      {format(prediction.nextPeriodEnd, "MMM d")}
+                      {format(prediction.nextPeriodStart, "MMM d", { locale })} –{" "}
+                      {format(prediction.nextPeriodEnd, "MMM d", { locale })}
                     </AppText>
                     <AppText variant="supporting" tone="muted">
                       {t("today.couldStart", {
-                        start: format(prediction.uncertaintyWindow.start, "MMM d"),
-                        end: format(prediction.uncertaintyWindow.end, "MMM d"),
+                        start: format(prediction.uncertaintyWindow.start, "MMM d", {
+                          locale,
+                        }),
+                        end: format(prediction.uncertaintyWindow.end, "MMM d", {
+                          locale,
+                        }),
                       })}
                     </AppText>
                     {prediction.confidence < 0.5 ? (

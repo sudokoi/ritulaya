@@ -12,7 +12,10 @@ jest.mock("react-native-safe-area-context", () => ({
 }))
 jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { resolvedLanguage: "en-US" },
+  }),
 }))
 jest.mock("@/hooks/use-predictions", () => ({
   usePrediction: () => ({ periodLength: 3 }),

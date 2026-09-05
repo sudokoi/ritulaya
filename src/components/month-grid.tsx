@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native"
+import { View, Pressable } from "react-native"
 import {
   addMonths,
   subMonths,
@@ -17,6 +17,9 @@ import { useTranslation } from "react-i18next"
 import { DayCircle } from "@/components/day-circle"
 import { dayGradient, resolveDayStyle } from "@/lib/day-colors"
 import { Button } from "@/components/ui/button"
+import { IconButton } from "@/components/ui/icon-button"
+import { AppText } from "@/components/ui/text"
+import { useDateLocale } from "@/hooks/use-date-locale"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
 
 interface MonthGridProps {
@@ -24,6 +27,7 @@ interface MonthGridProps {
   onMonthChange: (month: Date) => void
   dayStates: Map<string, CycleDayState>
   onDayPress: (date: Date) => void
+  discreet?: boolean
 }
 
 interface DayCellProps {
@@ -35,9 +39,6 @@ interface DayCellProps {
   onPress: (date: Date) => void
 }
 
-const CELL_MARKED_STYLE = { width: 40, height: 40, borderRadius: 20 }
-const CELL_PLAIN_STYLE = { width: 34, height: 34, borderRadius: 17 }
-
 const DayCell = memo(function DayCell({
   date,
   state,
@@ -46,6 +47,7 @@ const DayCell = memo(function DayCell({
   dark,
   onPress,
 }: DayCellProps) {
+  const locale = useDateLocale()
   const { t } = useTranslation()
   const marked =
     state.period ||
@@ -64,12 +66,6 @@ const DayCell = memo(function DayCell({
     dark,
   })
   const fill = state.uncertain && !state.predicted ? style.fill * 0.45 : style.fill
-  const textClass = state.period
-    ? "text-white"
-    : state.predicted
-      ? "text-menstrual dark:text-menstrual-dark"
-      : "text-[var(--text-primary)]"
-
   const stateParts = [
     state.period ? t("calendar.statePeriod") : null,
     state.predicted ? t("calendar.statePredicted") : null,
@@ -79,51 +75,51 @@ const DayCell = memo(function DayCell({
     state.logged ? t("calendar.stateLogged") : null,
   ].filter(Boolean)
 
-  const accessibilityLabel = `${format(date, "MMMM d")}${stateParts.length > 0 ? `, ${stateParts.join(", ")}` : ""}`
+  const accessibilityLabel = [
+    format(date, "PPPP", { locale }),
+    today ? t("calendar.today") : null,
+    ...stateParts,
+  ]
+    .filter(Boolean)
+    .join(", ")
 
   return (
     <Pressable
       onPress={() => onPress(date)}
-      className="mb-1 h-11 flex-1 basis-[14.28%] items-center justify-center active:opacity-60"
+      className="min-h-16 flex-1 items-center justify-center gap-1 py-2 active:opacity-60"
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
     >
-      {marked ? (
-        <View
-          className={cn(
-            "items-center justify-center",
-            today && "border-2 border-[var(--text-primary)]",
-          )}
-          style={CELL_MARKED_STYLE}
+      <View
+        className={cn(
+          "min-w-8 items-center rounded-pill border px-1",
+          today ? "border-[var(--accent)]" : "border-transparent",
+        )}
+      >
+        <AppText
+          variant="label"
+          tone={inMonth ? "primary" : "muted"}
+          className="text-center"
         >
-          <DayCircle size={34} fill={fill} colors={style.colors} opacity={style.opacity}>
-            <Text
-              className={cn("text-sm font-medium", textClass, !inMonth && "opacity-30")}
-            >
-              {format(date, "d")}
-            </Text>
-          </DayCircle>
-        </View>
-      ) : (
-        <View
-          className={cn("items-center justify-center", today && "bg-[var(--bg-muted)]")}
-          style={CELL_PLAIN_STYLE}
-        >
-          <Text
-            className={cn(
-              "text-sm",
-              inMonth
-                ? "text-[var(--text-primary)]"
-                : "text-[var(--text-muted)] opacity-30",
-            )}
-          >
-            {format(date, "d")}
-          </Text>
-          {state.logged ? (
-            <View className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--text-muted)]" />
-          ) : null}
-        </View>
-      )}
+          {format(date, "d")}
+        </AppText>
+      </View>
+      <View
+        className="h-4 items-center justify-center"
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
+      >
+        {marked ? (
+          <DayCircle
+            size={14}
+            fill={fill}
+            colors={style.colors}
+            opacity={style.opacity}
+          />
+        ) : state.logged ? (
+          <View className="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)]" />
+        ) : null}
+      </View>
     </Pressable>
   )
 })
@@ -133,7 +129,9 @@ export function MonthGrid({
   onMonthChange,
   dayStates,
   onDayPress,
+  discreet = false,
 }: MonthGridProps) {
+  const locale = useDateLocale()
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
   const { muted } = useThemeColors()
@@ -141,110 +139,112 @@ export function MonthGrid({
   // Memoized on the month so DayCell props keep stable identities and the
   // cell memoization actually engages.
   const days = useMemo(() => getDaysInMonthGrid(currentMonth), [currentMonth])
+  const weeks = useMemo(
+    () =>
+      Array.from({ length: days.length / 7 }, (_, row) =>
+        days.slice(row * 7, row * 7 + 7),
+      ),
+    [days],
+  )
 
   const prevMonth = () => onMonthChange(subMonths(currentMonth, 1))
   const nextMonth = () => onMonthChange(addMonths(currentMonth, 1))
   const isOffCurrentMonth = !isSameMonth(currentMonth, new Date())
   const goToday = () => onMonthChange(startOfMonth(new Date()))
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  // The grid starts on Sunday irrespective of the locale's week-start preference.
+  const weekDays = Array.from({ length: 7 }, (_, day) =>
+    format(new Date(2026, 0, 4 + day), "EEEEE", { locale }),
+  )
 
   return (
     <View>
-      <View className="flex-row items-center justify-between px-4 py-4">
-        <Pressable
-          onPress={prevMonth}
-          className="active:opacity-60"
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t("calendar.prevMonth")}
-        >
+      <View className="flex-row items-center justify-between gap-2 pb-3">
+        <IconButton onPress={prevMonth} accessibilityLabel={t("calendar.prevMonth")}>
           <ChevronLeft size={20} color={muted} />
-        </Pressable>
-        <View className="flex-1 items-center justify-center gap-1 min-h-[68px]">
-          <Text className="text-lg font-semibold text-[var(--text-primary)]">
-            {format(currentMonth, "MMMM yyyy")}
-          </Text>
-          <View className="min-h-[36px] justify-center">
-            {isOffCurrentMonth ? (
-              <Button
-                variant="muted"
-                size="sm"
-                onPress={goToday}
-                accessibilityLabel={t("calendar.today")}
-                className="px-4 py-1.5"
-                textClassName="text-xs"
-              >
-                {t("calendar.today")}
-              </Button>
-            ) : null}
-          </View>
+        </IconButton>
+        <View className="flex-1 items-center justify-center gap-2">
+          <AppText variant="section" accessibilityRole="header" className="text-center">
+            {format(currentMonth, "MMMM yyyy", { locale })}
+          </AppText>
+          {isOffCurrentMonth ? (
+            <Button
+              variant="muted"
+              size="sm"
+              onPress={goToday}
+              accessibilityLabel={t("calendar.today")}
+            >
+              {t("calendar.today")}
+            </Button>
+          ) : null}
         </View>
-        <Pressable
-          onPress={nextMonth}
-          className="active:opacity-60"
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t("calendar.nextMonth")}
-        >
+        <IconButton onPress={nextMonth} accessibilityLabel={t("calendar.nextMonth")}>
           <ChevronRight size={20} color={muted} />
-        </Pressable>
+        </IconButton>
       </View>
 
-      <View className="flex-row px-2">
-        {weekDays.map((day) => (
-          <View key={day} className="flex-1 items-center py-2">
-            <Text className="text-xs font-medium text-[var(--text-muted)]">{day}</Text>
+      <View className="-mx-screen">
+        <View className="flex-row">
+          {weekDays.map((day, index) => (
+            <View key={index} className="flex-1 items-center py-2">
+              <AppText variant="supporting" tone="muted">
+                {day}
+              </AppText>
+            </View>
+          ))}
+        </View>
+
+        {weeks.map((week) => (
+          <View key={format(week[0].date, "yyyy-MM-dd")} className="flex-row">
+            {week.map((day) => {
+              const iso = format(day.date, "yyyy-MM-dd")
+              return (
+                <DayCell
+                  key={iso}
+                  date={day.date}
+                  state={discreet ? EMPTY_STATE : (dayStates.get(iso) ?? EMPTY_STATE)}
+                  today={isToday(day.date)}
+                  inMonth={isSameMonth(day.date, currentMonth)}
+                  dark={dark}
+                  onPress={onDayPress}
+                />
+              )
+            })}
           </View>
         ))}
       </View>
 
-      <View className="flex-row flex-wrap px-2">
-        {days.map((day) => {
-          const iso = format(day.date, "yyyy-MM-dd")
-          return (
-            <DayCell
-              key={iso}
-              date={day.date}
-              state={dayStates.get(iso) ?? EMPTY_STATE}
-              today={isToday(day.date)}
-              inMonth={isSameMonth(day.date, currentMonth)}
-              dark={dark}
-              onPress={onDayPress}
-            />
-          )
-        })}
-      </View>
-
-      <View className="flex-row justify-center gap-3 px-4 py-3">
-        <Legend
-          colors={dayGradient("menstrual", dark)}
-          fill={1}
-          label={t("calendar.legendPeriod")}
-        />
-        <Legend
-          colors={dayGradient("menstrual", dark)}
-          fill={1}
-          opacity={0.45}
-          label={t("calendar.legendPredicted")}
-        />
-        <Legend
-          colors={dayGradient("menstrual", dark)}
-          fill={0.45}
-          opacity={0.45}
-          label={t("calendar.legendMaybe")}
-        />
-        <Legend
-          colors={dayGradient("ovulation", dark)}
-          fill={0.6}
-          label={t("calendar.legendFertile")}
-        />
-        <Legend
-          colors={dayGradient("ovulation", dark)}
-          fill={1}
-          label={t("calendar.legendOvulation")}
-        />
-      </View>
+      {!discreet ? (
+        <View className="flex-row flex-wrap gap-4 py-4">
+          <Legend
+            colors={dayGradient("menstrual", dark)}
+            fill={1}
+            label={t("calendar.legendPeriod")}
+          />
+          <Legend
+            colors={dayGradient("menstrual", dark)}
+            fill={1}
+            opacity={0.45}
+            label={t("calendar.legendPredicted")}
+          />
+          <Legend
+            colors={dayGradient("menstrual", dark)}
+            fill={0.45}
+            opacity={0.45}
+            label={t("calendar.legendMaybe")}
+          />
+          <Legend
+            colors={dayGradient("ovulation", dark)}
+            fill={0.6}
+            label={t("calendar.legendFertile")}
+          />
+          <Legend
+            colors={dayGradient("ovulation", dark)}
+            fill={1}
+            label={t("calendar.legendOvulation")}
+          />
+        </View>
+      ) : null}
     </View>
   )
 }
@@ -261,9 +261,11 @@ function Legend({
   label: string
 }) {
   return (
-    <View className="flex-row items-center gap-1.5">
+    <View className="max-w-full flex-row items-center gap-2">
       <DayCircle size={14} fill={fill} colors={colors} opacity={opacity} />
-      <Text className="text-xs text-[var(--text-muted)]">{label}</Text>
+      <AppText variant="supporting" tone="muted" className="shrink">
+        {label}
+      </AppText>
     </View>
   )
 }

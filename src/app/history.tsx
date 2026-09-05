@@ -4,8 +4,6 @@ import {
   Keyboard,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
   type ListRenderItem,
 } from "react-native"
@@ -15,15 +13,19 @@ import { useTranslation } from "react-i18next"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ChevronLeft } from "lucide-react-native"
 import { Button } from "@/components/ui/button"
+import { AppText } from "@/components/ui/text"
+import { Field } from "@/components/ui/field"
+import { ChoiceChip } from "@/components/ui/choice-chip"
+import { IconButton } from "@/components/ui/icon-button"
 import { DayDetailSheet } from "@/components/day-detail-sheet"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { useDayEditor } from "@/hooks/use-day-editor"
 import { useSettings } from "@/hooks/use-settings"
 import { useThemeColors } from "@/hooks/use-theme-colors"
+import { useDateLocale } from "@/hooks/use-date-locale"
 import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
 import { EMPTY_HISTORY_FILTERS, searchDayEntries } from "@/domain/day-entry-history"
-import { cn } from "@/lib/utils"
 import type { DayLog } from "@/types/day-log"
 
 const entryKey = (entry: DayLog) => entry.id
@@ -38,7 +40,8 @@ const HistoryRow = memo(function HistoryRow({
   onOpen: (date: Date) => void
 }) {
   const { t } = useTranslation()
-  const dateLabel = format(parseISO(entry.date), "PP")
+  const locale = useDateLocale()
+  const dateLabel = format(parseISO(entry.date), "PP", { locale })
   const details = [
     entry.flowIntensity ? t(`flow.${entry.flowIntensity}`) : null,
     entry.mood ? t(`moods.${entry.mood}`) : null,
@@ -52,67 +55,33 @@ const HistoryRow = memo(function HistoryRow({
       onPress={() => onOpen(parseISO(entry.date))}
       accessibilityRole="button"
       accessibilityLabel={t("history.editDate", { date: dateLabel })}
-      className="mx-4 mb-3 min-h-11 rounded-card bg-[var(--bg-surface)] px-5 py-4 active:opacity-60"
+      className="mx-screen mb-3 min-h-touch gap-2 rounded-card bg-[var(--bg-surface)] p-screen active:opacity-60"
     >
-      <Text className="text-base font-semibold text-[var(--text-primary)]">
-        {dateLabel}
-      </Text>
+      <AppText variant="section">{dateLabel}</AppText>
       {discreet ? (
-        <Text className="mt-2 text-sm text-[var(--text-muted)]">
+        <AppText variant="supporting" tone="muted">
           {t("history.privatePreview")}
-        </Text>
+        </AppText>
       ) : (
         <>
           {details ? (
-            <Text numberOfLines={2} className="mt-2 text-sm text-[var(--text-primary)]">
+            <AppText numberOfLines={2} variant="supporting">
               {details}
-            </Text>
+            </AppText>
           ) : null}
           {entry.notes ? (
-            <Text numberOfLines={2} className="mt-2 text-sm text-[var(--text-muted)]">
+            <AppText numberOfLines={2} variant="supporting" tone="muted">
               {entry.notes}
-            </Text>
+            </AppText>
           ) : null}
-          <Text className="mt-2 text-sm text-[var(--accent)]">
+          <AppText variant="supporting" tone="accent">
             {t("today.editEntry")}
-          </Text>
+          </AppText>
         </>
       )}
     </Pressable>
   )
 })
-
-function FilterChip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string
-  selected: boolean
-  onPress: () => void
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected }}
-      className={cn(
-        "mr-2 min-h-11 justify-center rounded-pill px-4 py-2 active:opacity-60",
-        selected ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
-      )}
-    >
-      <Text
-        className={cn(
-          "text-sm",
-          selected ? "text-[var(--on-accent)]" : "text-[var(--text-primary)]",
-        )}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  )
-}
 
 function DateFilter({
   label,
@@ -123,20 +92,17 @@ function DateFilter({
   value: string
   onChangeText: (value: string) => void
 }) {
-  const { muted } = useThemeColors()
   return (
-    <View className="flex-1">
-      <Text className="mb-2 text-sm text-[var(--text-muted)]">{label}</Text>
-      <TextInput
+    <View className="min-w-[180px] flex-1">
+      <Field
+        label={label}
         value={value}
         onChangeText={onChangeText}
         accessibilityLabel={label}
         placeholder="YYYY-MM-DD"
-        placeholderTextColor={muted}
         autoCorrect={false}
         autoCapitalize="none"
         maxLength={10}
-        className="min-h-11 rounded-button bg-[var(--bg-surface)] px-3 py-3 text-base text-[var(--text-primary)]"
       />
     </View>
   )
@@ -178,26 +144,21 @@ export default function HistoryScreen() {
   return (
     <View className="flex-1 bg-[var(--bg-primary)]">
       <View
-        className="flex-row items-center gap-2 px-4 pb-2"
-        style={{ paddingTop: insets.top + 8 }}
+        className="flex-row items-center gap-3 px-screen pb-3"
+        style={{ paddingTop: insets.top + 20 }}
       >
-        <Pressable
+        <IconButton
           onPress={() => {
             if (router.canGoBack()) router.back()
             else router.replace("/(tabs)/calendar")
           }}
-          accessibilityRole="button"
           accessibilityLabel={t("common.back")}
-          className="min-h-11 min-w-11 items-center justify-center active:opacity-60"
         >
           <ChevronLeft size={24} color={muted} />
-        </Pressable>
-        <Text
-          accessibilityRole="header"
-          className="text-2xl font-bold text-[var(--text-primary)]"
-        >
+        </IconButton>
+        <AppText variant="screen" accessibilityRole="header" className="flex-1">
           {t("history.title")}
-        </Text>
+        </AppText>
       </View>
       <FlatList
         data={entries}
@@ -206,46 +167,44 @@ export default function HistoryScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         ListHeaderComponent={
-          <View className="px-4 pt-3 pb-4">
-            <Text className="mb-3 text-sm text-[var(--text-muted)]">
+          <View className="gap-3 px-screen pt-3 pb-5">
+            <AppText variant="supporting" tone="muted">
               {t("history.localSearch")}
-            </Text>
-            <TextInput
+            </AppText>
+            <Field
+              label={t("history.searchNotes")}
               value={filters.notesQuery}
               onChangeText={(notesQuery) =>
                 setFilters((prev) => ({ ...prev, notesQuery }))
               }
               accessibilityLabel={t("history.searchNotes")}
               placeholder={t("history.searchNotes")}
-              placeholderTextColor={muted}
               autoCorrect={false}
               autoCapitalize="none"
               returnKeyType="search"
-              className="min-h-11 rounded-button bg-[var(--bg-surface)] px-4 py-3 text-base text-[var(--text-primary)]"
             />
-            <View className="mt-2 flex-row flex-wrap items-center justify-between">
-              <Pressable
+            <View className="gap-2">
+              <Button
+                variant="secondary"
+                textClassName="grow"
                 onPress={() => setFiltersExpanded((prev) => !prev)}
-                accessibilityRole="button"
                 accessibilityState={{ expanded: filtersExpanded }}
                 accessibilityLabel={t("history.filters")}
-                className="min-h-11 justify-center px-2 active:opacity-60"
               >
-                <Text className="text-sm font-medium text-[var(--accent)]">
-                  {t("history.filters")}
-                </Text>
-              </Pressable>
+                {t("history.filters")}
+              </Button>
               <Button
                 variant="ghost"
                 size="md"
+                textClassName="grow"
                 onPress={() => setFilters(EMPTY_HISTORY_FILTERS)}
               >
                 {t("history.clearFilters")}
               </Button>
             </View>
             {filtersExpanded ? (
-              <View className="mt-2 gap-3">
-                <View className="flex-row gap-3">
+              <View className="gap-4 border-y border-[var(--border)] py-4">
+                <View className="flex-row flex-wrap gap-3">
                   <DateFilter
                     label={t("history.fromDate")}
                     value={filters.fromDate}
@@ -259,80 +218,82 @@ export default function HistoryScreen() {
                     onChangeText={(toDate) => setFilters((prev) => ({ ...prev, toDate }))}
                   />
                 </View>
-                <Text className="text-sm text-[var(--text-muted)]">
+                <AppText variant="supporting" tone="muted">
                   {t("history.dateHint")}
-                </Text>
-                <Text className="text-sm font-medium text-[var(--text-primary)]">
-                  {t("sheet.symptoms")}
-                </Text>
+                </AppText>
+                <AppText variant="label">{t("sheet.symptoms")}</AppText>
                 <ScrollView horizontal keyboardShouldPersistTaps="handled">
-                  <FilterChip
-                    label={t("history.anySymptom")}
-                    selected={filters.symptom === null}
-                    onPress={() => setFilters((prev) => ({ ...prev, symptom: null }))}
-                  />
-                  {SYMPTOM_CATALOG.map(({ key }) => (
-                    <FilterChip
-                      key={key}
-                      label={t(`symptoms.${key}`)}
-                      selected={filters.symptom === key}
-                      onPress={() =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          symptom: prev.symptom === key ? null : key,
-                        }))
-                      }
+                  <View className="flex-row gap-2 pb-2">
+                    <ChoiceChip
+                      label={t("history.anySymptom")}
+                      selected={filters.symptom === null}
+                      onPress={() => setFilters((prev) => ({ ...prev, symptom: null }))}
                     />
-                  ))}
+                    {SYMPTOM_CATALOG.map(({ key }) => (
+                      <ChoiceChip
+                        key={key}
+                        label={t(`symptoms.${key}`)}
+                        selected={filters.symptom === key}
+                        onPress={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            symptom: prev.symptom === key ? null : key,
+                          }))
+                        }
+                      />
+                    ))}
+                  </View>
                 </ScrollView>
-                <Text className="text-sm font-medium text-[var(--text-primary)]">
-                  {t("sheet.mood")}
-                </Text>
+                <AppText variant="label">{t("sheet.mood")}</AppText>
                 <ScrollView horizontal keyboardShouldPersistTaps="handled">
-                  <FilterChip
-                    label={t("history.anyMood")}
-                    selected={filters.mood === null}
-                    onPress={() => setFilters((prev) => ({ ...prev, mood: null }))}
-                  />
-                  {MOOD_CATALOG.map(({ key }) => (
-                    <FilterChip
-                      key={key}
-                      label={t(`moods.${key}`)}
-                      selected={filters.mood === key}
-                      onPress={() =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          mood: prev.mood === key ? null : key,
-                        }))
-                      }
+                  <View className="flex-row gap-2 pb-2">
+                    <ChoiceChip
+                      label={t("history.anyMood")}
+                      selected={filters.mood === null}
+                      onPress={() => setFilters((prev) => ({ ...prev, mood: null }))}
                     />
-                  ))}
+                    {MOOD_CATALOG.map(({ key }) => (
+                      <ChoiceChip
+                        key={key}
+                        label={t(`moods.${key}`)}
+                        selected={filters.mood === key}
+                        onPress={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            mood: prev.mood === key ? null : key,
+                          }))
+                        }
+                      />
+                    ))}
+                  </View>
                 </ScrollView>
               </View>
             ) : null}
             {error ? (
-              <Text
+              <AppText
+                variant="supporting"
+                tone="danger"
                 accessibilityRole="alert"
-                className="mt-3 text-sm text-[var(--text-primary)]"
+                accessibilityLiveRegion="polite"
               >
                 {t(`history.${error}`)}
-              </Text>
+              </AppText>
             ) : (
-              <Text className="mt-3 text-sm text-[var(--text-muted)]">
+              <AppText variant="supporting" tone="muted">
                 {t("history.results", { count: entries.length })}
-              </Text>
+              </AppText>
             )}
           </View>
         }
         ListEmptyComponent={
           error ? null : (
-            <View className="mx-4 rounded-card bg-[var(--bg-surface)] p-5">
-              <Text className="text-base font-semibold text-[var(--text-primary)]">
+            <View className="mx-screen gap-3 rounded-card bg-[var(--bg-surface)] p-screen">
+              <AppText variant="section">
                 {t(logs.length === 0 ? "history.emptyTitle" : "history.noResults")}
-              </Text>
-              <Text className="mt-2 text-sm text-[var(--text-muted)]">
+              </AppText>
+              <AppText variant="supporting" tone="muted">
                 {t(logs.length === 0 ? "history.emptyBody" : "history.noResultsBody")}
-              </Text>
+              </AppText>
               {logs.length === 0 ? (
                 <Button size="md" className="mt-4" onPress={() => openEntry(new Date())}>
                   {t("today.logToday")}

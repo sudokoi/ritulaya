@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { AppText } from "@/components/ui/text"
 import { ChoiceChip } from "@/components/ui/choice-chip"
 import { Field } from "@/components/ui/field"
+import { useDateLocale } from "@/hooks/use-date-locale"
 
 const FLOW_LEVELS: FlowIntensity[] = ["none", "spotting", "light", "medium", "heavy"]
 
@@ -72,6 +73,7 @@ export function DayDetailSheet({
   const [moreTracking, setMoreTracking] = useState(hasMeasurements(existing))
   const [error, setError] = useState<"save" | "delete" | "update" | null>(null)
   const { t } = useTranslation()
+  const locale = useDateLocale()
   const insets = useSafeAreaInsets()
   const prevVisibleRef = useRef(visible)
   const pendingRef = useRef(false)
@@ -186,7 +188,7 @@ export function DayDetailSheet({
         <View className="max-h-[90%] rounded-t-sheet bg-[var(--bg-primary)]">
           <View className="flex-row flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-screen py-4">
             <AppText variant="section" accessibilityRole="header">
-              {format(date, "EEE, MMM d")}
+              {format(date, "EEE, MMM d", { locale })}
             </AppText>
             <View className="flex-row flex-wrap gap-2">
               <Button
