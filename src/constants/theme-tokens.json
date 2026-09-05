@@ -1,0 +1,52 @@
+{
+  "color": {
+    "light": {
+      "bgPrimary": "#faf8f5",
+      "bgSurface": "#ffffff",
+      "bgMuted": "#ece7e1",
+      "textPrimary": "#2d2d2f",
+      "textMuted": "#6f6b64",
+      "border": "#e8e4df",
+      "controlBorder": "#8e877f",
+      "accent": "#0F766E",
+      "onAccent": "#ffffff",
+      "accentWash": "rgba(15, 118, 110, 0.2)",
+      "danger": "#DC2626"
+    },
+    "dark": {
+      "bgPrimary": "#141416",
+      "bgSurface": "#1e1e21",
+      "bgMuted": "#2c2c30",
+      "textPrimary": "#f2f1ee",
+      "textMuted": "#a9a8a4",
+      "border": "#2f2f33",
+      "controlBorder": "#77777e",
+      "accent": "#5EEAD4",
+      "onAccent": "#0F2E2A",
+      "accentWash": "rgba(94, 234, 212, 0.2)",
+      "danger": "#F87171"
+    }
+  },
+  "phase": {
+    "menstrual": { "hex": "#A15878", "darkHex": "#DFA9C0", "name": "Deep Mauve" },
+    "follicular": { "hex": "#42725A", "darkHex": "#A2CCB4", "name": "Sage Green" },
+    "ovulation": { "hex": "#8C6A24", "darkHex": "#E4C585", "name": "Warm Amber" },
+    "luteal": { "hex": "#67589C", "darkHex": "#BDA9E2", "name": "Dusty Lavender" }
+  },
+  "gradient": {
+    "menstrual": { "light": ["#C27B9A", "#A15878"], "dark": ["#E9C6D6", "#DFA9C0"] },
+    "ovulation": { "light": ["#EBDDB4", "#D9C285"], "dark": ["#C9B078", "#B0945E"] }
+  },
+  "radius": { "card": 20, "button": 14, "pill": 999, "sheet": 24 },
+  "spacing": { "screen": 20, "section": 24, "control": 12 },
+  "control": { "minHeight": 48, "iconSize": 20 },
+  "typography": {
+    "screen-title": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+    "cycle-number": ["52px", { "lineHeight": "60px", "fontWeight": "600" }],
+    "prominent-date": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+    "section-title": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+    "body": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+    "label": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+    "supporting": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+  }
+}
