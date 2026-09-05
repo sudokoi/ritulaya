@@ -92,7 +92,7 @@ export function recomputePrediction(): Promise<void> {
           dataVersion: await latestDataVersion(),
         })
 
-        if (!bundle) continue
+        if (!bundle) throw new Error("Prediction computation did not complete")
         if (pending) continue
 
         predictionStore.send({

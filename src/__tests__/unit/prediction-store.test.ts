@@ -13,6 +13,14 @@ import { settingsStore } from "@/stores/settings-store"
 import { computePrediction } from "@/services/predictions"
 import { recomputePrediction } from "@/stores/prediction-store"
 
+const bundle = {
+  prediction: null,
+  periodLength: 3,
+  avgCycleLength: 28,
+  phase: "follicular" as const,
+  stats: null,
+}
+
 test("does not compute from unhydrated inputs", async () => {
   await recomputePrediction()
   expect(computePrediction).not.toHaveBeenCalled()
@@ -24,10 +32,10 @@ test("concurrent callers await the pending recomputation, not just the first res
     .mocked(computePrediction)
     .mockReturnValueOnce(
       new Promise((resolve) => {
-        finish = () => resolve(null)
+        finish = () => resolve(bundle)
       }),
     )
-    .mockResolvedValue(null)
+    .mockResolvedValue(bundle)
   cycleStore.send({ type: "setCycles", cycles: [], currentCycle: null })
   dayLogStore.send({ type: "setLogs", logs: [] })
   settingsStore.send({ type: "patch", settings: { loaded: true } })
@@ -39,4 +47,13 @@ test("concurrent callers await the pending recomputation, not just the first res
   finish()
   await second
   expect(computePrediction).toHaveBeenCalledTimes(2)
+})
+
+test("a missing prediction bundle rejects completion and a later call can retry", async () => {
+  jest
+    .mocked(computePrediction)
+    .mockResolvedValueOnce(null as never)
+    .mockResolvedValue(bundle)
+  await expect(recomputePrediction()).rejects.toThrow("did not complete")
+  await expect(recomputePrediction()).resolves.toBeUndefined()
 })
