@@ -20,7 +20,13 @@ class DayEntryStoreTest {
 
     @Before
     fun setUp() {
-        db = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), RitulayaDatabase::class.java).build()
+        db =
+            Room
+                .inMemoryDatabaseBuilder(
+                    RuntimeEnvironment.getApplication(),
+                    RitulayaDatabase::class.java,
+                ).addCallback(SyncSchema.callback)
+                .build()
         store = RitulayaDataStore(db)
     }
 

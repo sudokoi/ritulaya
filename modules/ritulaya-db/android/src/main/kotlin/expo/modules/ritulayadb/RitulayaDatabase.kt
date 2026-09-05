@@ -14,8 +14,11 @@ import net.sqlcipher.database.SupportFactory
         DayLogEntity::class,
         SettingsEntity::class,
         SyncTombstoneEntity::class,
+        SyncRevisionEntity::class,
+        SyncCheckpointEntity::class,
+        DevicePolicyEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class RitulayaDatabase : RoomDatabase() {
@@ -39,6 +42,8 @@ abstract class RitulayaDatabase : RoomDatabase() {
             return Room
                 .databaseBuilder(context, RitulayaDatabase::class.java, DATABASE_NAME)
                 .openHelperFactory(factory)
+                .addMigrations(SyncSchema.migration)
+                .addCallback(SyncSchema.callback)
                 .build()
         }
     }

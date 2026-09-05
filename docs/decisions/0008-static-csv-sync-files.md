@@ -2,7 +2,10 @@
 
 Date: 2026-08-12
 
-Status: Accepted
+Status: Superseded by [ADR-0012](./0012-revision-based-sync.md)
+
+The root files below remain import-only compatibility inputs. New publication
+uses versioned plaintext JSON; no encryption or legacy-file rewriting is added.
 
 ## Context
 

@@ -71,7 +71,15 @@ export function getConfig() {
 }
 
 export function syncNow(): Promise<SyncStatus | null> {
-  return nativeCall(native.sync, (sync) => sync.syncNow(), null as SyncStatus | null)
+  return nativeRequire(native.sync, (sync) => sync.syncNow())
+}
+
+export function getSyncReview() {
+  return nativeRequire(native.sync, (sync) => sync.getSyncReview())
+}
+
+export function resolveSyncReview(id: string, choices: Record<string, string>) {
+  return nativeRequire(native.sync, (sync) => sync.resolveSyncReview(id, choices))
 }
 
 export function scheduleBackgroundSync(intervalMinutes: number): Promise<void> {

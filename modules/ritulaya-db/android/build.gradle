@@ -23,6 +23,7 @@ android {
   kotlinOptions {
     jvmTarget = "17"
   }
+  sourceSets.test.resources.srcDir "$projectDir/schemas"
   testOptions {
     unitTests {
       returnDefaultValues = true

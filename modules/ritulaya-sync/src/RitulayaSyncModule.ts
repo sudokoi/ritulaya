@@ -1,5 +1,5 @@
 import { requireOptionalNativeModule } from "expo"
-import type { SyncStatus } from "@/types/sync"
+import type { SyncStatus, SyncReview } from "@/types/sync"
 
 export interface DeviceFlowResult {
   userCode: string
@@ -29,6 +29,8 @@ interface RitulayaSyncNativeModule {
   syncNow(): Promise<SyncStatus>
   scheduleBackgroundSync(intervalMinutes: number): Promise<void>
   getSyncStatus(): Promise<SyncStatus>
+  getSyncReview(): Promise<SyncReview | null>
+  resolveSyncReview(id: string, choices: Record<string, string>): Promise<void>
   addListener(
     event: "syncStatusChanged",
     listener: (event: SyncStatus) => void,
