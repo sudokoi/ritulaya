@@ -3,6 +3,7 @@ package expo.modules.ritulayasync
 import com.google.common.truth.Truth.assertThat
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class CsvHandlerTest {
@@ -54,9 +55,31 @@ class CsvHandlerTest {
     }
 
     @Test
-    fun `bad header returns empty`() {
-        assertThat(CsvHandler.parseCycles("not,a,header\n1,2,3")).isEmpty()
-        assertThat(CsvHandler.parseDayLogs("not,a,header\n1,2,3")).isEmpty()
+    fun `bad header aborts instead of treating remote data as empty`() {
+        assertThrows(IllegalArgumentException::class.java) { CsvHandler.parseCycles("not,a,header\n1,2,3") }
+        assertThrows(IllegalArgumentException::class.java) { CsvHandler.parseDayLogs("not,a,header\n1,2,3") }
+    }
+
+    @Test
+    fun `header-only files are valid empty datasets`() {
+        assertThat(CsvHandler.parseCycles(CsvHandler.writeCycles(emptyList()))).isEmpty()
+        assertThat(CsvHandler.parseDayLogs(CsvHandler.writeDayLogs(emptyList()))).isEmpty()
+    }
+
+    @Test
+    fun `malformed and duplicate live rows are rejected`() {
+        listOf(dayLog(""), dayLog("a").copy(flowIntensity = "unknown"), dayLog("a").copy(sexualActivity = 7)).forEach {
+            assertThrows(IllegalArgumentException::class.java) { CsvHandler.parseDayLogs(CsvHandler.writeDayLogs(listOf(it))) }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            CsvHandler.parseDayLogs(CsvHandler.writeDayLogs(listOf(dayLog("a"), dayLog("b"))))
+        }
+    }
+
+    @Test
+    fun `tombstones with intentionally empty health fields remain readable`() {
+        val row = CycleRow("a", "", null, "", "2026-06-01T00:00:00.000Z", "2026-06-01T00:00:00.000Z")
+        assertThat(CsvHandler.parseCycles(CsvHandler.writeCycles(listOf(row)))).containsExactly(row)
     }
 
     private fun dayLog(

@@ -3,8 +3,15 @@ package expo.modules.ritulayasync
 import java.io.BufferedReader
 import java.io.StringReader
 import java.io.StringWriter
+import java.time.Instant
+import java.time.LocalDate
 
 object CsvHandler {
+    private const val CYCLE_HEADER = "id,start_date,end_date,created_at,updated_at,deleted_at"
+    private const val LOG_HEADER =
+        "id,date,cycle_id,flow_intensity,symptoms,mood,notes,cervical_mucus,bbt," +
+            "sexual_activity,created_at,updated_at,deleted_at"
+
     data class CycleRow(
         val id: String,
         val startDate: String,
@@ -32,31 +39,35 @@ object CsvHandler {
 
     fun parseCycles(csv: String): List<CycleRow> {
         val reader = BufferedReader(StringReader(csv))
-        val headers = reader.readLine()?.split(",") ?: return emptyList()
-        if (headers.isEmpty() || headers[0] != "id") return emptyList()
+        require(reader.readLine() == CYCLE_HEADER) { "Unsupported cycle CSV header" }
 
         return reader
             .lineSequence()
             .filter { it.isNotBlank() }
             .map { parseCycleRow(it) }
             .toList()
+            .also { rows -> require(rows.map { it.id }.distinct().size == rows.size) { "Duplicate cycle IDs" } }
     }
 
     fun parseDayLogs(csv: String): List<DayLogRow> {
         val reader = BufferedReader(StringReader(csv))
-        val headers = reader.readLine()?.split(",") ?: return emptyList()
-        if (headers.isEmpty() || headers[0] != "id") return emptyList()
+        require(reader.readLine() == LOG_HEADER) { "Unsupported day-log CSV header" }
 
         return reader
             .lineSequence()
             .filter { it.isNotBlank() }
             .map { parseDayLogRow(it) }
             .toList()
+            .also { rows ->
+                require(rows.map { it.id }.distinct().size == rows.size) { "Duplicate day-log IDs" }
+                val live = rows.filter { it.deletedAt == null }
+                require(live.map { it.date }.distinct().size == live.size) { "Duplicate day-log dates" }
+            }
     }
 
     fun writeCycles(rows: List<CycleRow>): String {
         val writer = StringWriter()
-        writer.write("id,start_date,end_date,created_at,updated_at,deleted_at\n")
+        writer.write("$CYCLE_HEADER\n")
         rows.forEach { row ->
             writer.write(
                 writeCsvLine(
@@ -78,7 +89,7 @@ object CsvHandler {
     fun writeDayLogs(rows: List<DayLogRow>): String {
         val writer = StringWriter()
         writer.write(
-            "id,date,cycle_id,flow_intensity,symptoms,mood,notes,cervical_mucus,bbt,sexual_activity,created_at,updated_at,deleted_at\n",
+            "$LOG_HEADER\n",
         )
         rows.forEach { row ->
             val notes = (row.notes ?: "").replace(Regex("[\\r\\n]+"), " ")
@@ -117,6 +128,14 @@ object CsvHandler {
 
     private fun parseCycleRow(line: String): CycleRow {
         val parts = parseCsvLine(line)
+        require(parts.size == 6) { "Invalid cycle column count" }
+        validateIdentity(parts[0], parts[3], parts[4], parts[5])
+        if (parts[5].isEmpty()) {
+            LocalDate.parse(parts[1])
+            if (parts[2].isNotEmpty()) {
+                require(!LocalDate.parse(parts[2]).isBefore(LocalDate.parse(parts[1]))) { "Invalid cycle range" }
+            }
+        }
         return CycleRow(
             id = parts.getOrNull(0) ?: "",
             startDate = parts.getOrNull(1) ?: "",
@@ -129,6 +148,14 @@ object CsvHandler {
 
     private fun parseDayLogRow(line: String): DayLogRow {
         val parts = parseCsvLine(line)
+        require(parts.size == 13) { "Invalid day-log column count" }
+        validateIdentity(parts[0], parts[10], parts[11], parts[12])
+        if (parts[12].isEmpty()) {
+            LocalDate.parse(parts[1])
+            require(parts[3] in setOf("", "none", "spotting", "light", "medium", "heavy")) { "Invalid flow" }
+            require(parts[9] in setOf("0", "1")) { "Invalid sexual activity" }
+            require(parts[8].isEmpty() || parts[8].toDoubleOrNull()?.isFinite() == true) { "Invalid BBT" }
+        }
         return DayLogRow(
             id = parts.getOrNull(0) ?: "",
             date = parts.getOrNull(1) ?: "",
@@ -184,7 +211,19 @@ object CsvHandler {
             i++
         }
 
+        require(!inQuotes) { "Unterminated CSV quote" }
         fields.add(current.toString())
         return fields
+    }
+
+    private fun validateIdentity(
+        id: String,
+        createdAt: String,
+        updatedAt: String,
+        deletedAt: String,
+    ) {
+        require(id.isNotBlank()) { "Missing row ID" }
+        Instant.parse(updatedAt)
+        if (deletedAt.isNotEmpty()) Instant.parse(deletedAt) else Instant.parse(createdAt)
     }
 }

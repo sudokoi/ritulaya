@@ -41,7 +41,7 @@ class GithubApiClient(
         val json = org.json.JSONObject(response)
         val content = json.optString("content", "")
         val sha = json.optString("sha", "")
-        if (content.isEmpty()) return null
+        require(sha.isNotBlank() && json.optString("encoding") == "base64") { "Unsupported GitHub file response" }
         val decoded = String(Base64.decode(content, Base64.DEFAULT), StandardCharsets.UTF_8)
         return RepoFile(path, decoded, sha)
     }
@@ -108,11 +108,17 @@ class GithubApiClient(
         val conn =
             (URL(urlStr).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
+                connectTimeout = 15_000
+                readTimeout = 30_000
                 setRequestProperty("Authorization", authHeader())
                 setRequestProperty("Accept", "application/vnd.github+json")
                 setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
             }
-        return readResponse(conn)
+        return try {
+            readResponse(conn)
+        } finally {
+            conn.disconnect()
+        }
     }
 
     private fun put(
@@ -122,13 +128,19 @@ class GithubApiClient(
         val conn =
             (URL(urlStr).openConnection() as HttpURLConnection).apply {
                 requestMethod = "PUT"
+                connectTimeout = 15_000
+                readTimeout = 30_000
                 setRequestProperty("Authorization", authHeader())
                 setRequestProperty("Content-Type", "application/json")
                 setRequestProperty("Accept", "application/vnd.github+json")
                 doOutput = true
             }
-        OutputStreamWriter(conn.outputStream).use { it.write(body) }
-        readResponse(conn)
+        try {
+            OutputStreamWriter(conn.outputStream, StandardCharsets.UTF_8).use { it.write(body) }
+            readResponse(conn)
+        } finally {
+            conn.disconnect()
+        }
     }
 
     private fun post(
@@ -138,13 +150,19 @@ class GithubApiClient(
         val conn =
             (URL(urlStr).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
+                connectTimeout = 15_000
+                readTimeout = 30_000
                 setRequestProperty("Authorization", authHeader())
                 setRequestProperty("Content-Type", "application/json")
                 setRequestProperty("Accept", "application/vnd.github+json")
                 doOutput = true
             }
-        OutputStreamWriter(conn.outputStream).use { it.write(body) }
-        readResponse(conn)
+        try {
+            OutputStreamWriter(conn.outputStream, StandardCharsets.UTF_8).use { it.write(body) }
+            readResponse(conn)
+        } finally {
+            conn.disconnect()
+        }
     }
 
     private fun readResponse(conn: HttpURLConnection): String {
@@ -152,8 +170,8 @@ class GithubApiClient(
         val stream = if (code in 200..299) conn.inputStream else conn.errorStream
         val body = stream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
         if (code !in 200..299) {
-            if (code == 404) throw HttpNotFoundException("GitHub API 404: ${body.take(300)}")
-            throw IOException("GitHub API error $code: ${body.take(300)}")
+            if (code == 404) throw HttpNotFoundException("GitHub API 404")
+            throw GithubHttpException(code)
         }
         return body
     }
