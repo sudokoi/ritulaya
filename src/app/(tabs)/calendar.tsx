@@ -55,15 +55,19 @@ export default function CalendarScreen() {
             </AppText>
           ) : (
             <View className="flex-row flex-wrap gap-5 rounded-card bg-[var(--bg-surface)] p-screen">
-              <View className="grow gap-1">
-                <AppText variant="date">{avgCycleLength}</AppText>
-                <AppText variant="supporting" tone="muted">
+              <View className="flex-1 items-center gap-1">
+                <AppText variant="date" className="text-center">
+                  {avgCycleLength}
+                </AppText>
+                <AppText variant="supporting" tone="muted" className="text-center">
                   {t("calendar.avgCycle")}
                 </AppText>
               </View>
-              <View className="grow gap-1">
-                <AppText variant="date">{periodLength}</AppText>
-                <AppText variant="supporting" tone="muted">
+              <View className="flex-1 items-center gap-1">
+                <AppText variant="date" className="text-center">
+                  {periodLength}
+                </AppText>
+                <AppText variant="supporting" tone="muted" className="text-center">
                   {t("calendar.periodDays")}
                 </AppText>
               </View>
