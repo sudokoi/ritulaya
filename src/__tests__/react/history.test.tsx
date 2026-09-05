@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import HistoryScreen from "@/app/history"
 import { dayLogStore, loadDayLogs } from "@/stores/day-log-store"
 import { refreshAll } from "@/data/refresh"
@@ -57,6 +57,7 @@ const base: DayLog = {
 let persisted: DayLog[]
 
 beforeEach(async () => {
+  jest.useFakeTimers()
   jest.clearAllMocks()
   persisted = [
     base,
@@ -87,13 +88,21 @@ beforeEach(async () => {
   await loadDayLogs()
 })
 
+afterEach(async () => {
+  await act(async () => jest.runOnlyPendingTimers())
+  jest.useRealTimers()
+})
+
 test("search and combined filters select the correct entries, and Clear restores them", async () => {
   await render(<HistoryScreen />)
   expect(
     screen
       .getAllByRole("button", { name: /^history.editDate/ })
       .map((row) => row.props.accessibilityLabel),
-  ).toEqual(["history.editDate Jun 5, 2026", "history.editDate Jun 1, 2026"])
+  ).toEqual([
+    "history.editDate Jun 5, 2026. flow.medium · moods.sad · symptoms.headache. Long walk",
+    "history.editDate Jun 1, 2026. flow.medium · moods.calm · symptoms.cramps. Coffee after lunch",
+  ])
   await fireEvent.changeText(screen.getByLabelText("history.searchNotes"), "COFFEE")
   expect(screen.getByText("Coffee after lunch")).toBeTruthy()
   expect(screen.queryByText("Long walk")).toBeNull()
@@ -126,7 +135,7 @@ test("a result opens its existing draft and a saved edit refreshes the active se
   await render(<HistoryScreen />)
   await fireEvent.changeText(screen.getByLabelText("history.searchNotes"), "coffee")
   await fireEvent.press(
-    screen.getByRole("button", { name: "history.editDate Jun 1, 2026" }),
+    screen.getByRole("button", { name: /^history.editDate Jun 1, 2026/ }),
   )
   expect(screen.getByDisplayValue("Coffee after lunch")).toBeTruthy()
   await fireEvent.changeText(screen.getByLabelText("sheet.notes"), "Tea after lunch")
@@ -146,7 +155,7 @@ test("failed edits keep the draft open and do not publish an updated search resu
   jest.mocked(db.saveDayEntry).mockRejectedValueOnce(new Error("disk full"))
   await render(<HistoryScreen />)
   await fireEvent.press(
-    screen.getByRole("button", { name: "history.editDate Jun 1, 2026" }),
+    screen.getByRole("button", { name: /^history.editDate Jun 1, 2026/ }),
   )
   await fireEvent.changeText(screen.getByLabelText("sheet.notes"), "Keep this draft")
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
@@ -159,12 +168,12 @@ test("failed edits keep the draft open and do not publish an updated search resu
 test("deleting a result uses the shared command and removes it from history", async () => {
   await render(<HistoryScreen />)
   await fireEvent.press(
-    screen.getByRole("button", { name: "history.editDate Jun 1, 2026" }),
+    screen.getByRole("button", { name: /^history.editDate Jun 1, 2026/ }),
   )
   await fireEvent.press(screen.getByLabelText("sheet.deleteEntry"))
   expect(db.deleteDayLog).toHaveBeenCalledWith("first")
   expect(
-    screen.queryByRole("button", { name: "history.editDate Jun 1, 2026" }),
+    screen.queryByRole("button", { name: /^history.editDate Jun 1, 2026/ }),
   ).toBeNull()
   expect(screen.getByText("Long walk")).toBeTruthy()
 })
@@ -186,4 +195,7 @@ test("discreet mode leaves entry details out of history previews", async () => {
   expect(screen.queryByText("Long walk")).toBeNull()
   expect(screen.getAllByText("history.privatePreview")).toHaveLength(2)
   expect(screen.getAllByRole("button", { name: /^history.editDate/ })).toHaveLength(2)
+  expect(
+    screen.queryByRole("button", { name: /Coffee|Long walk|flow.medium/ }),
+  ).toBeNull()
 })

@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react"
-import { ActivityIndicator, Pressable, Text, View } from "react-native"
+import { ActivityIndicator, View } from "react-native"
 import { useTranslation } from "react-i18next"
 import { refreshAll } from "@/data/refresh"
 import { logger } from "@/services/logger"
+import { Button } from "@/components/ui/button"
+import { AppText } from "@/components/ui/text"
+import { useThemeColors } from "@/hooks/use-theme-colors"
 
 /** Never mount a protected route (including widget links) from default caches. */
 export function AppBootstrap({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
+  const { accent } = useThemeColors()
   const [status, setStatus] = useState<"loading" | "ready" | "failed">("loading")
   const [attempt, setAttempt] = useState(0)
 
@@ -30,22 +34,21 @@ export function AppBootstrap({ children }: { children: React.ReactNode }) {
   return (
     <View className="flex-1 items-center justify-center bg-[var(--bg-primary)] px-6">
       {status === "loading" ? (
-        <ActivityIndicator />
+        <ActivityIndicator color={accent} />
       ) : (
         <>
-          <Text className="text-center text-[var(--text-primary)]">
+          <AppText className="text-center" accessibilityRole="alert">
             {t("bootstrap.failed")}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            className="mt-4 rounded-button bg-[var(--accent)] px-6 py-4"
+          </AppText>
+          <Button
+            className="mt-4"
             onPress={() => {
               setStatus("loading")
               setAttempt((value) => value + 1)
             }}
           >
-            <Text className="text-[var(--on-accent)]">{t("gate.tryAgain")}</Text>
-          </Pressable>
+            {t("gate.tryAgain")}
+          </Button>
         </>
       )}
     </View>

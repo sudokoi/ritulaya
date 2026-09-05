@@ -54,7 +54,14 @@ const HistoryRow = memo(function HistoryRow({
     <Pressable
       onPress={() => onOpen(parseISO(entry.date))}
       accessibilityRole="button"
-      accessibilityLabel={t("history.editDate", { date: dateLabel })}
+      accessibilityLabel={[
+        t("history.editDate", { date: dateLabel }),
+        discreet
+          ? t("history.privatePreview")
+          : [details, entry.notes].filter(Boolean).join(". "),
+      ]
+        .filter(Boolean)
+        .join(". ")}
       className="mx-screen mb-3 min-h-touch gap-2 rounded-card bg-[var(--bg-surface)] p-screen active:opacity-60"
     >
       <AppText variant="section">{dateLabel}</AppText>
