@@ -267,6 +267,7 @@
     "failed": "認証に失敗しました。もう一度お試しください。",
     "tryAgain": "再試行",
     "unlock": "ロック解除",
+    "useDeviceCredential": "PIN・パターン・パスワードを使用",
     "turnOffLock": "ロックをオフにする"
   },
   "notifications": {
