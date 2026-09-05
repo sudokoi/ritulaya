@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import TodayScreen from "@/app/(tabs)/index"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { saveDayEntry, deleteDayEntry, clearDayEntryFlow } from "@/domain/day-entry"
-import { router } from "expo-router"
+import { router, useFocusEffect } from "expo-router"
 import type { DayLog } from "@/types/day-log"
 import { useCycles } from "@/hooks/use-cycles"
 import { usePrediction } from "@/hooks/use-predictions"
@@ -82,6 +82,22 @@ beforeEach(() => {
   jest.mocked(useSettings).mockReturnValue({ ...useSettings(), discreetMode: false })
 })
 afterEach(() => jest.useRealTimers())
+
+test("refocusing after midnight does not show yesterday's cached entry as today's", async () => {
+  setLogs([{ ...prior, date: "2026-06-05", notes: "Yesterday's entry" }])
+  await render(<TodayScreen />)
+  expect(screen.getByText("Yesterday's entry")).toBeTruthy()
+  jest.setSystemTime(new Date(2026, 5, 6, 0, 5))
+  await act(async () => {
+    const onFocus = jest.mocked(useFocusEffect).mock.calls.at(-1)?.[0]
+    if (!onFocus) throw new Error("Today did not register its focus callback")
+    onFocus()
+  })
+  expect(screen.queryByText("Yesterday's entry")).toBeNull()
+  expect(screen.getByRole("button", { name: "today.logToday" })).toBeTruthy()
+  await fireEvent.press(screen.getByRole("button", { name: "today.logToday" }))
+  expect(screen.getByLabelText("sheet.notes")).toHaveDisplayValue("")
+})
 
 test("Today explains missing cycle history instead of displaying a dash and inferred phase", async () => {
   jest.mocked(usePrediction).mockReturnValueOnce({

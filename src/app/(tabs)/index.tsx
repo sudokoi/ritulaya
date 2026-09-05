@@ -31,7 +31,8 @@ export default function TodayScreen() {
   const { colorScheme } = useColorScheme()
   const insets = useSafeAreaInsets()
   const [today, setToday] = useState(() => new Date())
-  const { todayLog } = useDayLogs()
+  const { getLogForDate } = useDayLogs()
+  const todayLog = getLogForDate(format(today, "yyyy-MM-dd"))
   const dayStates = useCycleDayStates()
   const editor = useDayEditor()
 
