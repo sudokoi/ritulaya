@@ -62,6 +62,9 @@
     "privatePreview": "저장된 기록이 있어요. 눌러서 확인하거나 수정하세요."
   },
   "today": {
+    "cycleDay": "주기 일수",
+    "noCycleTitle": "아직 현재 주기가 없어요",
+    "noCycleBody": "생리 시작일이나 지난 생리를 기록하면 주기 일수와 예상이 표시돼요. 오늘의 상태는 지금도 기록할 수 있어요.",
     "logToday": "오늘 기록하기",
     "editToday": "오늘 기록 수정하기",
     "logEntry": "이 날짜 기록하기",

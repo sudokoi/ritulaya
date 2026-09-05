@@ -4,6 +4,8 @@ import { useDayLogs } from "@/hooks/use-day-logs"
 import { saveDayEntry, deleteDayEntry, clearDayEntryFlow } from "@/domain/day-entry"
 import { router } from "expo-router"
 import type { DayLog } from "@/types/day-log"
+import { useCycles } from "@/hooks/use-cycles"
+import { usePrediction } from "@/hooks/use-predictions"
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
@@ -20,11 +22,15 @@ jest.mock("lucide-react-native", () => ({ X: () => null, Trash2: () => null }))
 jest.mock("@/components/day-circle", () => ({ DayCircle: () => null }))
 jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("@/hooks/use-cycles", () => ({
-  useCycles: () => ({ currentCycle: null, isLoaded: true }),
+  useCycles: jest.fn(() => ({ currentCycle: null, isLoaded: true })),
 }))
 jest.mock("@/hooks/use-settings", () => ({ useSettings: () => ({ avgCycleLength: 28 }) }))
 jest.mock("@/hooks/use-predictions", () => ({
-  usePrediction: () => ({ prediction: null, phase: "follicular", periodLength: 3 }),
+  usePrediction: jest.fn(() => ({
+    prediction: null,
+    phase: "follicular",
+    periodLength: 3,
+  })),
 }))
 jest.mock("@/hooks/use-cycle-day-states", () => ({ useCycleDayStates: () => new Map() }))
 jest.mock("@/hooks/use-day-logs", () => ({ useDayLogs: jest.fn() }))
@@ -63,9 +69,86 @@ function setLogs(logs: DayLog[]) {
 beforeEach(() => {
   jest.clearAllMocks()
   jest.useFakeTimers().setSystemTime(new Date(2026, 5, 5, 12))
+  jest
+    .mocked(useCycles)
+    .mockReturnValue({ cycles: [], currentCycle: null, isLoaded: true, load: jest.fn() })
   setLogs([prior])
 })
 afterEach(() => jest.useRealTimers())
+
+test("Today explains missing cycle history instead of displaying a dash and inferred phase", async () => {
+  jest.mocked(usePrediction).mockReturnValueOnce({
+    phase: "menstrual",
+    periodLength: 3,
+    avgCycleLength: 28,
+    stats: null,
+    prediction: {
+      nextPeriodStart: new Date(2026, 6, 1),
+      nextPeriodEnd: new Date(2026, 6, 3),
+      ovulationDay: new Date(2026, 5, 17),
+      fertileWindow: { start: new Date(2026, 5, 12), end: new Date(2026, 5, 18) },
+      uncertaintyWindow: { start: new Date(2026, 5, 28), end: new Date(2026, 6, 4) },
+      confidence: 0.2,
+      cyclesUsed: 0,
+      engine: "wma",
+    },
+  })
+  await render(<TodayScreen />)
+  expect(screen.queryByText("-")).toBeNull()
+  expect(screen.getByText("today.noCycleTitle")).toBeTruthy()
+  expect(screen.getByText("today.noCycleBody")).toBeTruthy()
+  expect(screen.queryByText("today.roughlyDaysUntil")).toBeNull()
+  expect(screen.queryByText("phase.menstrual.name")).toBeNull()
+  expect(screen.queryByText("phase.menstrual.tip")).toBeNull()
+  expect(screen.queryByText("today.couldStart")).toBeNull()
+  expect(screen.getByRole("button", { name: "today.logToday" })).toBeTruthy()
+  expect(screen.getByRole("button", { name: "today.setupTitle" })).toBeTruthy()
+})
+
+test.each([0, 23])(
+  "a recorded cycle shows its real calendar-day number at hour %i",
+  async (hour) => {
+    jest.setSystemTime(new Date(2026, 5, 5, hour, 30))
+    const cycle = {
+      id: "cycle",
+      startDate: "2026-06-03",
+      endDate: null,
+      createdAt: "",
+      updatedAt: "",
+    }
+    jest.mocked(useCycles).mockReturnValue({
+      cycles: [cycle],
+      currentCycle: cycle,
+      isLoaded: true,
+      load: jest.fn(),
+    })
+    await render(<TodayScreen />)
+    expect(screen.getByText("3")).toBeTruthy()
+    expect(screen.getByText("today.cycleDay")).toBeTruthy()
+    expect(screen.queryByText("today.noCycleTitle")).toBeNull()
+    // A missing prediction must not produce the old hardcoded 14-day countdown.
+    expect(screen.queryByText("today.roughlyDaysUntil")).toBeNull()
+  },
+)
+
+test("a future period start is not presented as cycle day one today", async () => {
+  const cycle = {
+    id: "cycle",
+    startDate: "2026-06-06",
+    endDate: null,
+    createdAt: "",
+    updatedAt: "",
+  }
+  jest.mocked(useCycles).mockReturnValue({
+    cycles: [cycle],
+    currentCycle: cycle,
+    isLoaded: true,
+    load: jest.fn(),
+  })
+  await render(<TodayScreen />)
+  expect(screen.getByText("today.noCycleTitle")).toBeTruthy()
+  expect(screen.queryByText("today.cycleDay")).toBeNull()
+})
 
 test("Log today opens and saves today's editor without visiting Calendar", async () => {
   await render(<TodayScreen />)
@@ -107,6 +190,12 @@ test("deleting from Today uses the shared day-entry command", async () => {
   expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
 })
 
+test("Today provides a discoverable history entry point", async () => {
+  await render(<TodayScreen />)
+  await fireEvent.press(screen.getByRole("button", { name: "history.open" }))
+  expect(router.push).toHaveBeenCalledWith("/history")
+})
+
 test("clearing flow from Today uses the shared day-entry command", async () => {
   setLogs([{ ...prior, flowIntensity: "medium" }])
   await render(<TodayScreen />)
@@ -114,10 +203,4 @@ test("clearing flow from Today uses the shared day-entry command", async () => {
   await fireEvent.press(screen.getByLabelText("sheet.removePeriod"))
   expect(clearDayEntryFlow).toHaveBeenCalledWith("2026-06-03")
   expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
-})
-
-test("Today provides a discoverable history entry point", async () => {
-  await render(<TodayScreen />)
-  await fireEvent.press(screen.getByRole("button", { name: "history.open" }))
-  expect(router.push).toHaveBeenCalledWith("/history")
 })
