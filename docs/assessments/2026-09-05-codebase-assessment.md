@@ -194,8 +194,9 @@ Emulator verification is **not complete**: installation over the existing app wa
 rejected due to a signing mismatch; the original app/data were not removed. A
 separate `com.sudokoi.ritulaya.qa` package was installed, but its Metro connection
 failed before functional UI testing. The maintainer then reserved the emulator
-for another agent. **Do not use ADB/emulator tools until the maintainer says it is
-free.** The QA package and the temporary reverse mapping for port 8082 were left
+for another agent. That reservation was subsequently lifted; see “Device QA
+resumed and Today fallback corrected” below for current evidence. The QA package
+and the temporary reverse mapping for port 8082 were left
 in place to avoid further emulator access. Only this session's host Metro server
 on port 8082 was stopped; the other project's server on 8081 was left alone.
 
@@ -215,6 +216,128 @@ Pending device checks when access is granted:
 The keyboard change is an implementation awaiting device confirmation, not a
 verified fix of the tester's report. Nothing in this slice establishes a cause or
 fix for the intermittent crash. Release notes: `.changeset/today-logging-ux.md`.
+
+### Day-entry workflow and searchable history follow-up
+
+The maintainer explicitly deferred device QA while another agent uses ADB. This
+slice used **no ADB/emulator access** and does not change the earlier device-QA or
+crash-investigation status.
+
+Implemented:
+
+- `src/domain/day-entry.ts` now owns save, delete, and clear-flow commands. Each
+  awaits persistence and `refreshAll()` and propagates either failure to the
+  editor. Clearing flow submits only the date and `flowIntensity: "none"`, so
+  other fields are retained from persistence rather than copied from a UI cache.
+- Removed the alternate mutation exports from `useDayLogs` and `day-log-store`,
+  together with the now-unused per-record cache update events. The store remains
+  the loaded-record cache; this is not a state-library or folder migration.
+- `useDayEditor` handles selection and delegates commands. The widget route now
+  uses it too, while retaining its existing navigation and action availability.
+- An ESLint import restriction keeps the DB bridge and native persistence imports
+  out of screens, components, and hooks. The existing local/CI `yarn lint` command
+  runs it. A deliberately invalid import supplied through stdin failed with the
+  intended rule, and the equivalent day-entry command import passed; no fixture
+  file or pre-commit hook was installed.
+- `/history`, linked from Today and Calendar, shows recorded entries newest first
+  in a virtualized list. Note search is a case-insensitive Unicode-normalized
+  substring match. Date bounds are inclusive and optional; a selected symptom and
+  mood combine with the other filters using AND. Invalid or reversed dates show
+  validation errors rather than silently ignoring a filter.
+- Results open the shared editor. Save/delete refresh results while preserving
+  filters; failed saves retain the draft. Empty history and no matches have
+  distinct states. The first version uses explicit `YYYY-MM-DD` date inputs and
+  single-select symptom/mood filters, not a new native date picker dependency.
+- Discreet-mode result previews omit flow, mood, symptoms, and notes. Queries and
+  filters live only in screen state, not URLs, logs, persistent storage, or a
+  search service. This does not complete the app-wide discreet-mode policy.
+- History reads the existing cache without creating another record store or
+  search index. All records, including previously auto-filled days, remain as
+  stored; this slice adds neither recording provenance nor prediction entries.
+  There is no DB migration, native bridge addition, or GitHub format change.
+
+Validation:
+
+- 97 JS/React tests in 19 suites passed; all native Kotlin test tasks passed.
+- Typecheck, ESLint/ktlint, formatting, and `git diff --check` passed.
+- Production Android Hermes export passed. No new APK/AAB or device tests.
+- React tests now transform the ESM `@xstate/store` and `@xstate/store-react`
+  packages alongside the Expo preset. History interaction tests use the real
+  cache subscription and command layer with a mocked persistence boundary.
+- Tests cover application filtering, command sequencing/failures, and visible
+  editor/result behavior; they do not re-test Room, SQLCipher, or native list and
+  keyboard guarantees.
+
+Pending device checks include history text-input focus, keyboard interaction,
+large-font layouts, filter scrolling, long-history scrolling, and TalkBack.
+Cycle reconciliation, historical orphan repair, nullable-field migration, sync
+concurrency, and atomic cross-store refresh remain outside this slice. The earlier
+native `saveDayEntry` change still requires a rebuilt Android app.
+
+Release notes: `.changeset/day-entry-workflow.md` and
+`.changeset/searchable-history.md`. The workflow changes were committed as
+`64bb7c8`, searchable history as `c3cfaf4`, and the Today fallback below as
+`9149297`. Nothing was pushed.
+
+### Device QA resumed and Today fallback corrected
+
+The maintainer subsequently released ADB for this session. QA resumed on the
+Android 16 arm64 emulator (1080×2400, initial font scale 1.0), using debug builds
+with isolated application IDs `com.sudokoi.ritulaya.qa` and
+`com.sudokoi.ritulaya.qa.empty`. The latter provides a fresh-data check without
+clearing either the first QA package or the original app. Neither production app
+data nor another project's app was replaced or cleared.
+
+Observed and corrected at the maintainer's request:
+
+- A fresh install displayed a large `-` above “Menstrual Phase” with estimated
+  dates despite having no current cycle. This was a literal UI placeholder, not
+  a font rendering issue. A React regression test reproduced the dash before
+  the fix.
+- Today now shows “No current cycle yet” with guidance while keeping setup and
+  daily logging available. It hides the unanchored phase, progress, countdown,
+  uncertainty text, and phase advice in this state.
+- When a current cycle exists, Today shows the actual number and a “Cycle day”
+  label. Its calculation now uses local calendar dates. Missing predictions do
+  not generate the old hardcoded 14-day countdown; a future start is not clamped
+  to day one today.
+- All six locales include the new copy. React regressions cover absent/current/
+  future cycles and early/late local times; the focused suite passed with
+  `TZ=America/Los_Angeles` as well.
+
+After the Today correction, all 101 JS/React tests in 19 suites passed, together
+with typecheck, ESLint/ktlint, formatting, diff checks, and the production Android
+Hermes export. No native source was changed for this correction.
+
+Device observations so far:
+
+- Verified the new empty header on the fresh QA package and **3 / Cycle day**
+  on the QA package seeded with a period starting two days earlier.
+- Verified setup completion displays both next steps; Log today opens the shared
+  editor. A Notes-only entry can be saved from Today without creating a cycle,
+  and the selected-day summary updates with the saved note.
+- Notes received focus and text with both Gboard's stylus toolbar and full docked
+  keyboard. Save stayed visible. The docked-keyboard screenshot shows the Notes
+  field's lower portion clipped, so full multiline/cursor visibility is **not**
+  signed off. Hardware Enter/text injection during the multiline attempt led to
+  a development reload; this is not evidence of a production crash.
+- The temporary keyboard settings were restored: `show_ime_with_hard_keyboard`
+  to `0`, and `stylus_handwriting_enabled` to its original unset state.
+
+QA screenshots and the temporary ADB helper are outside the repository under the
+approved OpenCode temporary directory. Key artifacts are
+`ritulaya-qa-empty-fallback.png`, `ritulaya-qa-recorded-cycle.png`,
+`ritulaya-qa-setup-complete.png`, and `ritulaya-qa-keyboard-typed.png`.
+
+History device interaction checks, full multiline/BBT keyboard checks, large-font
+and TalkBack checks, and the Pixel 8 Pro / Android 17 crash investigation remain
+open. The latest Today correction is recorded in
+`.changeset/today-cycle-fallback.md`; it does not alter native predictions or
+stored history.
+
+The host Metro server on port 8082 remains available for inspecting the QA app;
+the debug-only QA preferences point to `localhost:8082` through the existing ADB
+reverse mapping. The separate project's port 8081 was not changed.
 
 ### Baseline assessment
 
