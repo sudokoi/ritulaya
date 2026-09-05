@@ -40,6 +40,11 @@
     }
   },
   "today": {
+    "logToday": "今日を記録",
+    "editToday": "今日の記録を編集",
+    "logEntry": "この日を記録",
+    "editEntry": "この記録を編集",
+    "tapDayToLog": "日付をタップして、記録や編集ができます。",
     "daysUntil": "次の生理まであと{{count}}日",
     "roughlyDaysUntil": "次の生理までおよそ{{count}}日",
     "couldStart": "{{start}} – {{end}} に始まる可能性あり",
@@ -205,6 +210,9 @@
     "ownerError": "オーナーを入力してください。"
   },
   "seed": {
+    "completeTitle": "準備ができました",
+    "completeBody": "今日の体調を記録してみましょう。記録が増えるにつれて、予測が調整されます。",
+    "exploreApp": "アプリを見る",
     "title": "サイクルを設定",
     "lastPeriodStarted": "前回の生理開始",
     "daysAgo_one": "日前",

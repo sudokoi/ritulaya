@@ -9,6 +9,7 @@ import { useSettings } from "@/hooks/use-settings"
 import { logPeriodOnDate } from "@/domain/day-entry"
 import { discreetLabel } from "@/lib/discreet"
 import { useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
 
 function Stepper({
   label,
@@ -82,6 +83,7 @@ export default function SeedCycleScreen() {
   const [cycleLength, setCycleLength] = useState(avgCycleLength)
   const [periodLength, setPeriodLength] = useState(avgPeriodLength)
   const [saving, setSaving] = useState(false)
+  const [complete, setComplete] = useState(false)
   // The Stepper renders the numeric value itself, so the suffix is unit-only.
   const daysAgoLabel = daysAgo === 1 ? t("seed.daysAgo_one") : t("seed.daysAgo_other")
 
@@ -98,12 +100,48 @@ export default function SeedCycleScreen() {
           "medium",
           periodLength,
         )
-      router.back()
+      if (settingsOnly) router.back()
+      else setComplete(true)
     } catch {
       Alert.alert(t("seed.saveFailedTitle"), t("seed.saveFailedBody"))
     } finally {
       setSaving(false)
     }
+  }
+
+  if (complete) {
+    return (
+      <ScrollView
+        className="flex-1 bg-[var(--bg-primary)]"
+        contentContainerStyle={{
+          paddingTop: insets.top + 48,
+          paddingBottom: insets.bottom + 24,
+        }}
+      >
+        <View className="px-6">
+          <Text
+            accessibilityRole="header"
+            className="text-2xl font-bold text-[var(--text-primary)]"
+          >
+            {t("seed.completeTitle")}
+          </Text>
+          <Text className="mt-4 text-base leading-6 text-[var(--text-muted)]">
+            {t("seed.completeBody")}
+          </Text>
+          <Button size="md" className="mt-8" onPress={() => router.replace("/log-today")}>
+            {t("today.logToday")}
+          </Button>
+          <Button
+            size="md"
+            variant="ghost"
+            className="mt-3"
+            onPress={() => router.replace("/(tabs)")}
+          >
+            {t("seed.exploreApp")}
+          </Button>
+        </View>
+      </ScrollView>
+    )
   }
 
   return (

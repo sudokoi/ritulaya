@@ -5,14 +5,16 @@ import { symptomLabel, moodLabel } from "@/domain/day-entry-display"
 import { DayCircle } from "@/components/day-circle"
 import { flowLevelStyle } from "@/lib/day-colors"
 import type { DayLog, FlowIntensity } from "@/types/day-log"
+import { Button } from "@/components/ui/button"
 
 const FLOW_LEVELS: FlowIntensity[] = ["none", "spotting", "light", "medium", "heavy"]
 
 interface TodayCardProps {
   log: DayLog | null
+  onEdit: () => void
 }
 
-export function TodayCard({ log }: TodayCardProps) {
+export function TodayCard({ log, onEdit }: TodayCardProps) {
   const { t } = useTranslation()
   const translate = t as unknown as (k: string) => string
   const { colorScheme } = useColorScheme()
@@ -84,6 +86,14 @@ export function TodayCard({ log }: TodayCardProps) {
           {t("today.nothingLogged")}
         </Text>
       )}
+      <Button
+        onPress={onEdit}
+        size="md"
+        className="mt-4"
+        accessibilityLabel={t(log ? "today.editToday" : "today.logToday")}
+      >
+        {t(log ? "today.editToday" : "today.logToday")}
+      </Button>
     </View>
   )
 }
