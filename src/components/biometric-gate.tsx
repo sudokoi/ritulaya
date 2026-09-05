@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { AppState, Text, Pressable, View } from "react-native"
-import * as LocalAuthentication from "expo-local-authentication"
+import { AppState, Text, View } from "react-native"
+import {
+  authenticate as authenticateDevice,
+  isAuthenticationCurrent,
+  cancelAuthentication,
+} from "@/services/authentication"
 import { Fingerprint } from "lucide-react-native"
 import { useTranslation } from "react-i18next"
 import { useSettings } from "@/hooks/use-settings"
 import { useThemeColors } from "@/hooks/use-theme-colors"
+import { Button } from "@/components/ui/button"
 
 export function BiometricGate({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
@@ -15,6 +20,12 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [unavailable, setUnavailable] = useState(false)
   const promptingRef = useRef(false)
+  const appStateRef = useRef(AppState.currentState ?? "active")
+  const generationRef = useRef(0)
+  const tokenRef = useRef<string | null>(null)
+  const resumeAuthenticationRef = useRef(false)
+  const automaticRequestRef = useRef(false)
+  const [attempt, setAttempt] = useState(0)
 
   if (prevBiometricLock !== biometricLock) {
     setPrevBiometricLock(biometricLock)
@@ -23,28 +34,32 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
   }
 
   const authenticate = useCallback(async () => {
-    if (promptingRef.current) return
+    if (promptingRef.current || appStateRef.current !== "active") return
     promptingRef.current = true
+    tokenRef.current = null
+    automaticRequestRef.current = false
+    resumeAuthenticationRef.current = false
+    const generation = generationRef.current
     setError(null)
     setUnavailable(false)
     try {
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: t("gate.unlock"),
-        cancelLabel: t("common.cancel"),
-      })
+      const result = await authenticateDevice(
+        t("gate.unlock"),
+        t("gate.useDeviceCredential"),
+      )
+      if (generation !== generationRef.current) return
       if (result.success) {
-        setUnlocked(true)
-      } else if (result.error === "not_available" || result.error === "not_enrolled") {
+        tokenRef.current = result.token
+        setUnlocked(
+          appStateRef.current === "active" && isAuthenticationCurrent(result.token),
+        )
+      } else if (result.error === "unavailable") {
         setUnavailable(true)
-      } else if (
-        result.error !== "user_cancel" &&
-        result.error !== "system_cancel" &&
-        result.error !== "app_cancel"
-      ) {
+      } else if (result.error !== "cancelled") {
         setError(t("gate.failed"))
       }
     } catch {
-      setUnavailable(true)
+      if (generation === generationRef.current) setUnavailable(true)
     } finally {
       promptingRef.current = false
     }
@@ -52,24 +67,42 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!biometricLock || unlocked) return
-    const timer = setTimeout(() => void authenticate(), 250)
+    automaticRequestRef.current = true
+    const timer = setTimeout(() => {
+      if (automaticRequestRef.current) void authenticate()
+    }, 250)
     return () => clearTimeout(timer)
-  }, [biometricLock, unlocked, authenticate])
+  }, [biometricLock, unlocked, attempt, authenticate])
 
   useEffect(() => {
     if (!biometricLock) return
-    let wasBackground = false
+    appStateRef.current = AppState.currentState ?? "active"
     const subscription = AppState.addEventListener("change", (state) => {
-      if (promptingRef.current) return
-      if (state === "background" || state === "inactive") {
-        wasBackground = true
+      appStateRef.current = state
+      if (state !== "active") {
+        if (!promptingRef.current && tokenRef.current !== null) {
+          resumeAuthenticationRef.current = true
+        }
         setUnlocked(false)
-      } else if (state === "active" && wasBackground) {
-        wasBackground = false
-        setUnlocked(false)
+      } else {
+        // Android owns the distinction between a credential handoff and an
+        // expired grant. Never trust a success queued before native backgrounding.
+        const current =
+          tokenRef.current !== null && isAuthenticationCurrent(tokenRef.current)
+        setUnlocked(current)
+        if (!current && resumeAuthenticationRef.current) {
+          resumeAuthenticationRef.current = false
+          setAttempt((value) => value + 1)
+        }
       }
     })
-    return () => subscription.remove()
+    return () => {
+      generationRef.current += 1
+      appStateRef.current = "unknown"
+      tokenRef.current = null
+      void cancelAuthentication().catch(() => undefined)
+      subscription.remove()
+    }
   }, [biometricLock])
 
   if (!biometricLock || unlocked) return <>{children}</>
@@ -92,16 +125,13 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
           {error}
         </Text>
       ) : null}
-      <Pressable
+      <Button
         onPress={authenticate}
-        className="mt-6 rounded-button bg-[var(--accent)] px-6 py-4 active:opacity-60"
-        accessibilityRole="button"
+        className="mt-6"
         accessibilityLabel={t("gate.unlock")}
       >
-        <Text className="font-semibold text-[var(--on-accent)]">
-          {unavailable ? t("gate.tryAgain") : t("gate.unlock")}
-        </Text>
-      </Pressable>
+        {unavailable ? t("gate.tryAgain") : t("gate.unlock")}
+      </Button>
     </View>
   )
 }
