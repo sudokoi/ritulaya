@@ -6,8 +6,19 @@ import tokens from "@/constants/theme-tokens.json"
 import { palette } from "@/constants/palette"
 import { PHASE_COLORS } from "@/constants/phase-colors"
 import { navigationColors } from "@/lib/navigation-theme"
+import { cn } from "@/lib/utils"
 
 const config = require("../../../tailwind.config.js")
+
+test("semantic typography survives color merging and can be overridden deliberately", () => {
+  expect(cn("min-h-touch", "min-h-32")).toBe("min-h-32")
+  expect(cn("text-label", "text-[var(--on-accent)]")).toBe(
+    "text-label text-[var(--on-accent)]",
+  )
+  expect(cn("text-body", "text-supporting", "text-[var(--text-muted)]")).toBe(
+    "text-supporting text-[var(--text-muted)]",
+  )
+})
 
 test("the app's Tailwind adapter publishes every semantic token for both themes", async () => {
   const css = readFileSync(resolve(__dirname, "../../global.css"), "utf8")

@@ -1,4 +1,3 @@
-import { Alert } from "react-native"
 import { fireEvent, render, screen } from "@testing-library/react-native"
 import HistoryScreen from "@/app/history"
 import { dayLogStore, loadDayLogs } from "@/stores/day-log-store"
@@ -20,6 +19,7 @@ jest.mock("react-i18next", () => ({
   }),
 }))
 jest.mock("lucide-react-native", () => ({
+  Check: () => null,
   X: () => null,
   Trash2: () => null,
   ChevronLeft: () => null,
@@ -142,7 +142,6 @@ test("a result opens its existing draft and a saved edit refreshes the active se
 })
 
 test("failed edits keep the draft open and do not publish an updated search result", async () => {
-  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined)
   jest.mocked(db.saveDayEntry).mockRejectedValueOnce(new Error("disk full"))
   await render(<HistoryScreen />)
   await fireEvent.press(
@@ -152,11 +151,8 @@ test("failed edits keep the draft open and do not publish an updated search resu
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
   expect(screen.getByDisplayValue("Keep this draft")).toBeTruthy()
   expect(refreshAll).not.toHaveBeenCalled()
-  expect(alert).toHaveBeenCalledWith(
-    "calendar.saveFailedTitle",
-    "calendar.saveFailedBody",
-  )
-  alert.mockRestore()
+  expect(screen.getByRole("alert")).toHaveTextContent(/calendar.saveFailedTitle/)
+  expect(screen.getByRole("alert")).toHaveTextContent(/calendar.saveFailedBody/)
 })
 
 test("deleting a result uses the shared command and removes it from history", async () => {

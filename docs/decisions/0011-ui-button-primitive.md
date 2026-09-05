@@ -27,7 +27,22 @@ Introduce `src/components/ui/button.tsx` as a deep module:
 - Patch `day-detail-sheet.tsx:132` with `items-center justify-center` inline — shallow, drift recurs.
 - Forward `className` passthrough without primitive — still leaks styling responsibility.
 
+## Implementation follow-up — 2026-09-05
+
+The approved Today/editor refresh keeps this ownership boundary. The Button now
+adds `secondary` and `danger` variants plus optional `pending`/`pendingLabel`.
+Both sizes have a 48dp minimum target; size controls padding rather than shrinking
+the target. Labels use the authored 16/24 text role, centered native text with
+`includeFontPadding: false`, and wrapping instead of `leading-none`. Pending
+actions disable submission and expose their busy state to accessibility.
+
+Selection-specific visuals belong to `ChoiceChip`, not boolean Button flags.
+Equal checkmark/spacer slots center the label itself in both selected and
+unselected states. Native screenshots confirmed alignment at normal and 150%
+system text on the Android 16 QA emulator; this is not all-device sign-off.
+
 ## Related
 
 - Plan: `docs/plans/today-calendar-deepening.md` S2
 - Components: `DayDetailSheet`, `MonthGrid` Today pill
+- Pilot: `docs/design/ui-refresh.md`

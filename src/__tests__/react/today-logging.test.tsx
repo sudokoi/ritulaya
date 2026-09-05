@@ -6,6 +6,7 @@ import { router } from "expo-router"
 import type { DayLog } from "@/types/day-log"
 import { useCycles } from "@/hooks/use-cycles"
 import { usePrediction } from "@/hooks/use-predictions"
+import { useSettings } from "@/hooks/use-settings"
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
@@ -18,13 +19,15 @@ jest.mock("react-native-safe-area-context", () => ({
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
-jest.mock("lucide-react-native", () => ({ X: () => null, Trash2: () => null }))
+jest.mock("lucide-react-native", () => ({ Check: () => null }))
 jest.mock("@/components/day-circle", () => ({ DayCircle: () => null }))
 jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("@/hooks/use-cycles", () => ({
   useCycles: jest.fn(() => ({ currentCycle: null, isLoaded: true })),
 }))
-jest.mock("@/hooks/use-settings", () => ({ useSettings: () => ({ avgCycleLength: 28 }) }))
+jest.mock("@/hooks/use-settings", () => ({
+  useSettings: jest.fn(() => ({ avgCycleLength: 28, discreetMode: false })),
+}))
 jest.mock("@/hooks/use-predictions", () => ({
   usePrediction: jest.fn(() => ({
     prediction: null,
@@ -73,6 +76,7 @@ beforeEach(() => {
     .mocked(useCycles)
     .mockReturnValue({ cycles: [], currentCycle: null, isLoaded: true, load: jest.fn() })
   setLogs([prior])
+  jest.mocked(useSettings).mockReturnValue({ ...useSettings(), discreetMode: false })
 })
 afterEach(() => jest.useRealTimers())
 
@@ -123,7 +127,7 @@ test.each([0, 23])(
       load: jest.fn(),
     })
     await render(<TodayScreen />)
-    expect(screen.getByText("3")).toBeTruthy()
+    expect(screen.getByLabelText("today.cycleDay 3")).toHaveTextContent("3")
     expect(screen.getByText("today.cycleDay")).toBeTruthy()
     expect(screen.queryByText("today.noCycleTitle")).toBeNull()
     // A missing prediction must not produce the old hardcoded 14-day countdown.
@@ -203,4 +207,17 @@ test("clearing flow from Today uses the shared day-entry command", async () => {
   await fireEvent.press(screen.getByLabelText("sheet.removePeriod"))
   expect(clearDayEntryFlow).toHaveBeenCalledWith("2026-06-03")
   expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
+})
+
+test("Today shows one note summary and discreet mode hides it until the editor is opened", async () => {
+  setLogs([{ ...prior, date: "2026-06-05" }])
+  const view = await render(<TodayScreen />)
+  expect(screen.getAllByText("earlier note")).toHaveLength(1)
+  jest.mocked(useSettings).mockReturnValue({ ...useSettings(), discreetMode: true })
+  await view.rerender(<TodayScreen />)
+  expect(screen.queryByText("earlier note")).toBeNull()
+  expect(screen.queryByText("today.noCycleTitle")).toBeNull()
+  expect(screen.getByText("today.privateTitle")).toBeTruthy()
+  await fireEvent.press(screen.getByRole("button", { name: "today.openEntry" }))
+  expect(screen.getByDisplayValue("earlier note")).toBeTruthy()
 })

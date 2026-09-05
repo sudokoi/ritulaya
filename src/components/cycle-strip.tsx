@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native"
+import { View, Text, Pressable, ScrollView } from "react-native"
 import { useMemo } from "react"
 import { addDays, format, isToday as isTodayFns } from "date-fns"
 import { useColorScheme } from "nativewind"
@@ -53,7 +53,11 @@ export function CycleStrip({
   }, [centerDate, span, dayStates, selectedIso])
 
   return (
-    <View className="flex-row justify-between px-2">
+    <ScrollView
+      horizontal
+      contentContainerStyle={{ flexGrow: 1 }}
+      showsHorizontalScrollIndicator={false}
+    >
       {days.map((day) => {
         const state = day.state
         const style = resolveDayStyle({
@@ -90,6 +94,9 @@ export function CycleStrip({
         const content = (
           <>
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
+            <Text className="text-label text-[var(--text-primary)]">
+              {format(day.date, "d")}
+            </Text>
             {circle}
             {day.isToday ? (
               <View className="absolute -bottom-1 h-0.5 w-3 rounded-full bg-[var(--text-primary)]" />
@@ -102,7 +109,7 @@ export function CycleStrip({
             <Pressable
               key={day.iso}
               onPress={() => onDayPress(day.date)}
-              className="relative min-h-11 flex-1 items-center gap-1 py-2 active:opacity-60"
+              className="relative min-h-touch min-w-touch flex-1 items-center gap-1 px-1 py-2 active:opacity-60"
               accessibilityRole="button"
               accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}`}
               accessibilityState={{ selected: !!selected }}
@@ -113,11 +120,14 @@ export function CycleStrip({
         }
 
         return (
-          <View key={day.iso} className="relative flex-1 items-center gap-1 py-1">
+          <View
+            key={day.iso}
+            className="relative min-w-touch flex-1 items-center gap-1 py-1"
+          >
             {content}
           </View>
         )
       })}
-    </View>
+    </ScrollView>
   )
 }

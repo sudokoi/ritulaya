@@ -3,6 +3,7 @@
     "failed": "Your data could not be loaded. Nothing has been changed. Please try again."
   },
   "common": {
+    "saving": "Saving…",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -63,6 +64,13 @@
     "privatePreview": "Entry recorded. Tap to view or edit."
   },
   "today": {
+    "entryTitle": "Your entry today",
+    "weekTitle": "This week",
+    "nextPeriodEstimate": "Next period · estimate",
+    "privateTitle": "Your private overview",
+    "privateBody": "Details are hidden in discreet mode. Open an entry when you want to view or edit it.",
+    "detailsHidden": "Entry details hidden",
+    "openEntry": "Open today's entry",
     "cycleDay": "Cycle day",
     "noCycleTitle": "No current cycle yet",
     "noCycleBody": "Record a period start or add your last period to see your cycle day and estimates. You can still log how you feel today.",
@@ -110,6 +118,8 @@
     "stateLogged": "logged"
   },
   "sheet": {
+    "moreTracking": "More tracking",
+    "lessTracking": "Hide additional tracking",
     "flow": "Flow",
     "removePeriod": "Remove Period",
     "mood": "Mood",
