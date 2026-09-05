@@ -283,6 +283,7 @@
     "increase": "{{label}}を増やす"
   },
   "gate": {
+    "captureFailed": "画面のプライバシー保護を適用できませんでした。再試行するまで記録は表示されません。",
     "lockedTitle": "Ritulayaはロックされています",
     "lockedBody": "データを表示するには認証してください。",
     "unavailable": "この端末では生体認証を利用できません。",

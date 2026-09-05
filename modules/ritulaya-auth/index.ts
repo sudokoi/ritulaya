@@ -8,6 +8,7 @@ interface RitulayaAuthModule {
   authenticate(title: string, credentialLabel: string): Promise<AuthenticationResult>
   isAuthenticationCurrent(token: string): boolean
   cancel(): Promise<void>
+  setCaptureProtected(enabled: boolean): Promise<void>
 }
 
 export default requireOptionalNativeModule<RitulayaAuthModule>("RitulayaAuth")

@@ -57,3 +57,15 @@ and unrelated port 8081 must remain untouched.
   no production install, live GitHub test or publication was performed.
 - The maintainer disallowed live GitHub testing and publication. Complete codewise
   and commit each validated logical change; do not create a remote QA repository.
+- Capture protection now uses Android's secure-window flag for biometric lock OR
+  discreet mode. A policy-change gate waits for native acknowledgement before
+  exposing routes/dialogs; failed application stays closed and offers Retry.
+  Transitions preserve the mounted navigator/editor draft while hiding both
+  visual and accessibility content and closing the native dialog window.
+  This does not complete the remaining app-wide discreet visual/accessibility audit.
+  Validation: 146 JS/React tests and 75 native tests passed. Isolated Android 16
+  QA confirmed SECURE on both activity/editor windows in discreet mode, removed
+  with privacy off, with the selected Settings route retained. The initial native
+  lifecycle callback ran off-main; UI-thread dispatch fixed the reproduced startup
+  failure. Settings were restored. These checks are not OEM recording/recents or
+  Android 17 crash evidence, and do not change the earlier authentication QA limits.
