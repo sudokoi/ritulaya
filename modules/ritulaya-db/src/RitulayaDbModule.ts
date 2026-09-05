@@ -36,6 +36,7 @@ interface RitulayaDbNativeModule {
   logPeriodOn(date: string, flow: string, periodDays: number): Promise<void>
   listDayLogs(): Promise<DayLog[]>
   upsertDayLog(input: DayLogCreate): Promise<DayLog>
+  saveDayEntry(input: DayLogCreate, periodDays: number): Promise<DayLog>
   deleteDayLog(id: string): Promise<void>
   getSettings(): Promise<SettingsRow | null>
   updateSettings(patch: SettingsPatch): Promise<void>

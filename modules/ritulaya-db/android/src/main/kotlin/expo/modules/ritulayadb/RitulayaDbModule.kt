@@ -41,6 +41,10 @@ class RitulayaDbModule : Module() {
                 store.upsertDayLog(input).toMap()
             }
 
+            AsyncFunction("saveDayEntry") Coroutine { input: DayLogInput, periodDays: Int ->
+                store.saveDayEntry(input, periodDays).toMap()
+            }
+
             AsyncFunction("deleteDayLog") Coroutine { id: String ->
                 store.deleteDayLog(id)
             }

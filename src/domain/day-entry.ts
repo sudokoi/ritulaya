@@ -1,6 +1,5 @@
-import { logPeriod, logPeriodOn, upsertDayLog } from "@/services/db"
+import { logPeriod, logPeriodOn, saveDayEntry as saveDayEntryInDb } from "@/services/db"
 import { refreshAll } from "@/data/refresh"
-import { dayLogStore } from "@/stores/day-log-store"
 import type { FlowIntensity } from "@/types/day-log"
 import type { SymptomKey } from "@/constants/symptoms"
 import type { MoodKey } from "@/constants/moods"
@@ -36,31 +35,23 @@ export async function logPeriodOnDate(
 }
 
 export async function saveDayEntry(input: DayEntryInput, periodDays: number) {
-  const existing = dayLogStore
-    .getSnapshot()
-    .context.logs.find((log) => log.date === input.date)
-  const flow = input.flowIntensity
-  const isPeriod = !!flow && flow !== "none"
-  const wasPeriod = !!existing?.flowIntensity && existing.flowIntensity !== "none"
-
-  if (isPeriod && !wasPeriod) {
-    await logPeriodOn(input.date, flow, periodDays)
-  }
-
   // The sheet always submits the full form, so null here means the user
   // cleared the field. The native decoder resolveDayLogFields
   // (modules/ritulaya-db/.../DayLogPatch.kt) treats "" and 0 as explicit
   // clears; an omitted field keeps its existing value.
-  await upsertDayLog({
-    date: input.date,
-    flowIntensity: input.flowIntensity,
-    symptoms: input.symptoms,
-    mood: input.mood ?? "",
-    notes: input.notes ?? "",
-    cervicalMucus: input.cervicalMucus ?? "",
-    bbt: input.bbt ?? 0,
-    sexualActivity: input.sexualActivity ?? undefined,
-  })
+  await saveDayEntryInDb(
+    {
+      date: input.date,
+      flowIntensity: input.flowIntensity,
+      symptoms: input.symptoms,
+      mood: input.mood ?? "",
+      notes: input.notes ?? "",
+      cervicalMucus: input.cervicalMucus ?? "",
+      bbt: input.bbt ?? 0,
+      sexualActivity: input.sexualActivity ?? undefined,
+    },
+    periodDays,
+  )
 
   await refreshAll()
 }

@@ -6,6 +6,7 @@ package expo.modules.ritulayadb
  * explicitly clears BBT (an impossible body temperature). The only JS
  * producer of these sentinels is saveDayEntry in src/domain/day-entry.ts;
  * resolveDayLogFields below is the only decoder.
+ * Symptoms follow the same keep/set rule: null keeps, an empty list clears.
  */
 internal const val CLEAR_TEXT = ""
 
@@ -34,7 +35,7 @@ internal fun resolveDayLogFields(
     ResolvedDayLogFields(
         cycleId = input.cycleId ?: existing?.cycleId,
         flowIntensity = input.flowIntensity ?: existing?.flowIntensity,
-        symptomsJson = symptomsToJson(input.symptoms),
+        symptomsJson = input.symptoms?.let(::symptomsToJson) ?: existing?.symptoms ?: "[]",
         mood = resolveText(input.mood, existing?.mood),
         notes = resolveText(input.notes, existing?.notes),
         cervicalMucus = resolveText(input.cervicalMucus, existing?.cervicalMucus),
