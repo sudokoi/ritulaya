@@ -4,8 +4,9 @@ Status: approved for native implementation. Preserve tab icons and text without
 touch animation, and center editor button labels horizontally and vertically.
 The HTML preview is retained unchanged as the reviewed design artifact.
 
-The theme foundation and Today/editor pilot are now implemented; see the native
-implementation and validation record below. The inventory and proposal describe
+The theme foundation, Today/editor pilot, Calendar, History, and main Settings
+refresh are now implemented; see the native implementation and validation records
+below. The inventory and proposal describe
 the starting point, not the current source in every detail.
 
 ## Design brief
@@ -311,3 +312,78 @@ remain open. This design preview is not evidence that either is resolved.
   emulator font scale to 1.0, hardware-keyboard IME display to 0, and handwriting
   preference to its original unset state. The original app/data and port 8081
   were untouched; the owned QA Metro remains available on port 8082.
+
+## Remaining-screen implementation — 2026-09-05
+
+Implemented after the maintainer requested continuing the remaining work:
+
+- Calendar uses shared typography and statistics surfaces, a full-width History
+  action, and a safe top inset outside its scroll content. Date text is separate
+  from existing phase/flow markers, with wrapping legends. Discreet Calendar hides
+  statistics, markers, and health-state accessibility labels; opening an entry
+  still deliberately reveals its fields. This is not an app-wide privacy policy.
+- The grid uses explicit seven-cell week rows, avoiding percentage rounding that
+  pushed the seventh date onto another line during narrow-device QA. It extends
+  through the screen gutter so all dates remain visible without sideways scrolling.
+  At 320dp, each day is about 45.7dp wide (below the preferred 48dp), with a 64dp
+  minimum height. Month arrows use the now-needed labeled 48dp `IconButton`, also
+  used by History. Sunday-first ordering is unchanged; weekday labels are localized.
+- History retains its virtualized list, local filters, and shared commands, using
+  `Field`, `ChoiceChip`, `AppText`, and separate filter/clear actions. Date fields
+  wrap vertically when necessary, and range errors use the danger tone. Full-width
+  action labels fill their buttons' available width: tightly fitted Hindi labels
+  otherwise painted a clipped second line at 320dp/150%. No global Button sizing
+  or editor-action changes were needed.
+- Main Settings centers its cycle statistics in equal-width columns, as requested
+  in native review, and groups labeled rows with values underneath. Theme, language, and
+  reminder lead time disclose explicit selected choices instead of cycling values.
+  Each switch is one labeled pressable row; its native switch is a non-interactive,
+  accessibility-hidden visual child. Pending writes block duplicate changes and
+  failed writes retain values and allow retry. Biometric availability failures are
+  caught; reminder enablement still requires permission. Cycle editing and Insights
+  are separate controls, not nested pressables. Discreet statistics omit values.
+- Date locale is now an explicit input to date formatting in Today, week strip,
+  Calendar, History rows, and editor. Changing date-fns global defaults after
+  notifying language subscribers was insufficient for mounted/compiled views.
+  Defaults now change before notification, and `useDateLocale` supplies a reactive
+  render dependency. This preserves viewed month, filters, and drafts.
+
+### Evidence and limitations
+
+- 118 JS/React tests in 22 suites pass. New coverage exercises application month
+  navigation/direct editing, discreet Calendar labels, live locale rendering, and
+  settings selection, pending/failure/retry, permission, and navigation behavior.
+  Existing History command/filter tests still pass. No tests reimplement external
+  keyboard, list, date-fns formatting, Room, or SQLCipher guarantees.
+- Typecheck, ESLint/ktlint, full formatting, diff checks, and Android production
+  Hermes export pass. One concurrent full run emitted a non-failing VirtualizedList
+  timer/`act` warning. No Kotlin runtime tests rerun for this JS/UI-only slice.
+- Android 16 emulator observations use only `com.sudokoi.ritulaya.qa`, synthetic
+  data, and owned Metro 8082. Native History checks observed note search, inclusive
+  date filtering, reversed-range errors, combined symptom/mood no-match state,
+  and Clear. A new September 2 notes-only entry was saved from Calendar, searched,
+  edited so it no longer matched the retained query, and deleted from History.
+  The three pre-existing September 3–5 entries were retained. No live GitHub setup
+  or sync occurred; deletion leaves the normal local synthetic tombstone.
+- Native light/dark screens were inspected; all six locale choices, Calendar and
+  History were sampled at effective 320dp width and 150% system text. This sweep
+  found and drove the seven-column, date-locale, and action-label fixes. Post-fix
+  Hindi → English → Hindi, Japanese, Korean, and English month labels were verified
+  through live Settings switches without restart. Hindi Calendar and History
+  screenshots show complete labels and translated dates. This is sampled native
+  evidence, not a complete all-screen/all-locale accessibility sign-off.
+- Restored theme and language to System, discreet mode Off, font scale 1.0,
+  physical density 420 (removed the temporary 540 override), hardware-keyboard IME
+  display 0, and handwriting preference unset. Normal-size Calendar/editor were
+  inspected after restoration; centered compact Save/Close remained intact.
+- Temporary screenshots/XML use `ritulaya-rest-*` in the approved OpenCode temp
+  directory. Final Hindi layout evidence: `ritulaya-rest-hi-calendar-grow.png` and
+  `ritulaya-rest-hi-history-grow.png`; restored views:
+  `ritulaya-rest-calendar-restored.png` and `ritulaya-rest-editor-restored.png`.
+  The production export is `ritulaya-remaining-screens-export` beside its `.log`.
+- Full TalkBack/focus traversal, other keyboards/OEMs, long History performance,
+  native failure injection, widget/lifecycle/notification/sync behavior, and an
+  installed release on a physical device remain open. No release APK/AAB was
+  installed and no Pixel 8 Pro / Android 17 crash conclusion is supported.
+  Settings subpages are not redesigned in this slice. No dependency, native module,
+  schema, or plaintext GitHub format changes. The reviewed HTML stays unchanged.
