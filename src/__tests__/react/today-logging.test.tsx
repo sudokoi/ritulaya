@@ -17,7 +17,10 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0 }),
 }))
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { resolvedLanguage: "en-US" },
+  }),
 }))
 jest.mock("lucide-react-native", () => ({ Check: () => null }))
 jest.mock("@/components/day-circle", () => ({ DayCircle: () => null }))

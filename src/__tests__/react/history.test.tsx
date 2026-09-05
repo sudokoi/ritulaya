@@ -14,6 +14,7 @@ jest.mock("react-native-safe-area-context", () => ({
 }))
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
+    i18n: { resolvedLanguage: "en-US" },
     t: (key: string, options?: { date?: string }) =>
       options?.date ? `${key} ${options.date}` : key,
   }),

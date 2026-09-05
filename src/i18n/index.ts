@@ -4,15 +4,7 @@ import "intl-pluralrules"
 import i18next, { type i18n as I18n } from "i18next"
 import { initReactI18next } from "react-i18next"
 import { setDefaultOptions } from "date-fns"
-import {
-  enUS,
-  enGB,
-  enIN,
-  hi,
-  ja,
-  ko,
-  type Locale as DateFnsLocale,
-} from "date-fns/locale"
+import { DATE_LOCALES } from "@/constants/date-locales"
 import * as Localization from "expo-localization"
 
 import enUSJson from "../../locales/en-US/translation.json"
@@ -33,15 +25,6 @@ const RESOURCES: Record<SupportedLocale, object> = {
   hi: hiJson,
   ja: jaJson,
   ko: koJson,
-}
-
-const DATE_LOCALES: Record<SupportedLocale, DateFnsLocale> = {
-  "en-US": enUS,
-  "en-GB": enGB,
-  "en-IN": enIN,
-  hi,
-  ja,
-  ko,
 }
 
 /** Type-safe translation keys, derived from the source locale. */
@@ -87,10 +70,11 @@ export function resolveLocale(setting: string): SupportedLocale {
  */
 export async function changeLanguage(setting: string): Promise<void> {
   const locale = resolveLocale(setting)
+  // Subscribers render on languageChanged; date formatting must already agree.
+  setDefaultOptions({ locale: DATE_LOCALES[locale] })
   if (i18next.language !== locale) {
     await i18next.changeLanguage(locale)
   }
-  setDefaultOptions({ locale: DATE_LOCALES[locale] })
 }
 
 i18next.use(initReactI18next).init({

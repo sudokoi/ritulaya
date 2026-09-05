@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next"
 import { DayCircle } from "@/components/day-circle"
 import { resolveDayStyle } from "@/lib/day-colors"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
+import { useDateLocale } from "@/hooks/use-date-locale"
 
 const EMPTY_STATE: CycleDayState = {
   period: false,
@@ -33,6 +34,7 @@ export function CycleStrip({
 }: CycleStripProps) {
   const { colorScheme } = useColorScheme()
   const { t } = useTranslation()
+  const locale = useDateLocale()
   const dark = colorScheme === "dark"
   const selectedIso = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
 
@@ -44,13 +46,13 @@ export function CycleStrip({
       return {
         date,
         iso,
-        label: format(date, "EEEEE"),
+        label: format(date, "EEEEE", { locale }),
         isToday: isTodayFns(date),
         isSelected: iso === selectedIso,
         state: dayStates.get(iso) ?? EMPTY_STATE,
       }
     })
-  }, [centerDate, span, dayStates, selectedIso])
+  }, [centerDate, span, dayStates, selectedIso, locale])
 
   return (
     <ScrollView
@@ -111,7 +113,7 @@ export function CycleStrip({
               onPress={() => onDayPress(day.date)}
               className="relative min-h-touch min-w-touch flex-1 items-center gap-1 px-1 py-2 active:opacity-60"
               accessibilityRole="button"
-              accessibilityLabel={`${format(day.date, "EEE, MMM d")}${day.isToday ? `, ${t("calendar.today")}` : ""}`}
+              accessibilityLabel={`${format(day.date, "EEE, MMM d", { locale })}${day.isToday ? `, ${t("calendar.today")}` : ""}`}
               accessibilityState={{ selected: !!selected }}
             >
               {content}
