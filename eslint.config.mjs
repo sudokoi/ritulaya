@@ -38,6 +38,34 @@ export default tseslint.config(
     },
   },
   {
+    files: [
+      "src/app/**/*.{ts,tsx}",
+      "src/components/**/*.{ts,tsx}",
+      "src/hooks/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@/services/db",
+                "**/services/db",
+                "@/lib/native",
+                "**/lib/native",
+                "**/modules/ritulaya-db",
+                "**/modules/ritulaya-db/**",
+              ],
+              message:
+                "Use the day-entry commands in @/domain/day-entry for mutations and data hooks for reads; keep native persistence out of UI code.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ignores: [
       "node_modules/",
       ".expo/",
