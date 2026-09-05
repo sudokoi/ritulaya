@@ -100,6 +100,27 @@ describe("phaseCorrelations", () => {
 
     expect(Object.values(result).every((p) => p.symptoms.length === 0)).toBe(true)
   })
+
+  it("preserves accumulated counts after the third and later entries", () => {
+    const result = phaseCorrelations(
+      [cycle("c1", "2026-06-01", null)],
+      [
+        log("2026-06-01", ["cramps"], "calm"),
+        log("2026-06-02", ["cramps"], "calm"),
+        log("2026-06-03", ["cramps"], "calm"),
+        log("2026-06-04", ["bloating"], "happy"),
+      ],
+      config,
+    )
+    expect(result.menstrual.symptoms).toEqual([
+      ["cramps", 3],
+      ["bloating", 1],
+    ])
+    expect(result.menstrual.moods).toEqual([
+      ["calm", 3],
+      ["happy", 1],
+    ])
+  })
 })
 
 /**

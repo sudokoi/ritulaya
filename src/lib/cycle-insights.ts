@@ -59,8 +59,11 @@ export interface PhaseTally {
   moods: [MoodKey, number][]
 }
 
-function tally<K extends string>(values: (K | null)[]): [K, number][] {
-  const counts = new Map<K, number>()
+function tally<K extends string>(
+  previous: [K, number][],
+  values: (K | null)[],
+): [K, number][] {
+  const counts = new Map<K, number>(previous)
   for (const value of values) {
     if (!value) continue
     counts.set(value, (counts.get(value) ?? 0) + 1)
@@ -98,11 +101,8 @@ export function phaseCorrelations(
     if (dayInCycle < 1) continue
 
     const phase = phaseOfDayInCycle(dayInCycle, config)
-    result[phase].symptoms = tally([
-      ...result[phase].symptoms.map(([k]) => k),
-      ...log.symptoms,
-    ])
-    result[phase].moods = tally([...result[phase].moods.map(([k]) => k), log.mood])
+    result[phase].symptoms = tally(result[phase].symptoms, log.symptoms)
+    result[phase].moods = tally(result[phase].moods, [log.mood])
   }
 
   return result
