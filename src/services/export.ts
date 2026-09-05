@@ -13,17 +13,31 @@ export function csvCell(value: string): string {
 }
 
 export function toCyclesCsv(cycles: Cycle[]): string {
-  const header = "start_date,end_date,created_at"
+  const header = "start_date,end_date,created_at,id,updated_at"
   const rows = cycles.map((c) =>
-    [c.startDate, c.endDate ?? "", c.createdAt].map(csvCell).join(","),
+    [c.startDate, c.endDate ?? "", c.createdAt, c.id, c.updatedAt].map(csvCell).join(","),
   )
   return [header, ...rows].join("\n")
 }
 
 export function toLogsCsv(logs: DayLog[]): string {
-  const header = "date,flow_intensity,symptoms,mood,notes"
+  const header =
+    "date,flow_intensity,symptoms,mood,notes,id,cycle_id,cervical_mucus,bbt,sexual_activity,created_at,updated_at"
   const rows = logs.map((l) =>
-    [l.date, l.flowIntensity ?? "", l.symptoms.join(";"), l.mood ?? "", l.notes ?? ""]
+    [
+      l.date,
+      l.flowIntensity ?? "",
+      l.symptoms.join(";"),
+      l.mood ?? "",
+      l.notes ?? "",
+      l.id,
+      l.cycleId ?? "",
+      l.cervicalMucus ?? "",
+      l.bbt?.toString() ?? "",
+      l.sexualActivity?.toString() ?? "",
+      l.createdAt,
+      l.updatedAt,
+    ]
       .map(csvCell)
       .join(","),
   )
