@@ -74,7 +74,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                 val dayNumber =
                     snapshot.cycleStartDate
                         ?.let { (ChronoUnit.DAYS.between(LocalDate.parse(it), today) + 1).toInt() }
-                        ?: 1
+                        ?: 0
                 val daysUntilNext = ChronoUnit.DAYS.between(today, snapshot.nextPeriodStart).toInt()
                 val phase =
                     PredictionEngine.phase(
@@ -105,7 +105,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val dayNumber =
                 currentCycle
                     ?.let { (ChronoUnit.DAYS.between(LocalDate.parse(it.startDate), today) + 1).toInt() }
-                    ?: 1
+                    ?: 0
             val daysUntilNext = ChronoUnit.DAYS.between(today, output.nextPeriodStart).toInt()
             val phase = PredictionEngine.phase(daysUntilNext, config)
 
@@ -176,6 +176,8 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             // stored next period passes in the meantime, show 0 rather than
             // a negative countdown.
             val daysUntilNext = maxOf(0, rawDaysUntilNext)
+            // Missing or future cycle starts cannot anchor a day or countdown.
+            val hasCurrentCycle = dayNumber > 0
             val layoutId =
                 if (discreetMode) {
                     context.resources.getIdentifier(
@@ -194,15 +196,19 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, layoutId)
             views.setTextViewText(
                 context.resources.getIdentifier("day_number", "id", context.packageName),
-                dayNumber.toString(),
+                if (hasCurrentCycle) dayNumber.toString() else "",
             )
             views.setTextViewText(
                 context.resources.getIdentifier("phase_name", "id", context.packageName),
-                if (discreetMode) copy.today else copy.phase(phase),
+                if (discreetMode || !hasCurrentCycle) copy.today else copy.phase(phase),
             )
             views.setTextViewText(
                 context.resources.getIdentifier("days_until", "id", context.packageName),
-                if (discreetMode) "$daysUntilNext" else copy.daysUntil(daysUntilNext),
+                when {
+                    !hasCurrentCycle -> ""
+                    discreetMode -> "$daysUntilNext"
+                    else -> copy.daysUntil(daysUntilNext)
+                },
             )
 
             // Deep-link straight into the log-today flow via the app's
