@@ -346,11 +346,40 @@ identity. The design brief and current token/component inventory live in
 [`docs/design/ui-refresh.md`](../design/ui-refresh.md), with an offline
 Today/editor proposal in
 [`docs/design/ui-refresh-preview.html`](../design/ui-refresh-preview.html).
-These are review artifacts, not implemented native screens. Layout changes,
-the additional-tracking disclosure, and the proposed discreet overview await
-approval. Production theme tokens, components, navigation, and data behavior
-are unchanged by this design slice. Existing native keyboard and crash QA gaps
-remain open.
+These were initially review-only artifacts. The maintainer subsequently approved
+native implementation, retaining tab icons/text without touch animation and
+requiring centered editor button labels. The HTML preview remains unchanged.
+
+### Native Today/editor refresh
+
+Implemented on `feat/ui-refresh-and-hardening` after approval:
+
+- Authored theme tokens feed native palette adapters and Tailwind/CSS variables;
+  navigation and status-bar text follow the theme. Tabs have no press effect.
+- Today now has compact cycle context, separate estimates, one entry summary,
+  and direct week-date editing. Its discreet overview hides health details and
+  markers without introducing authentication or changing app-wide privacy policy.
+- Shared text, button, chip, and field primitives support centered labels,
+  wrapping choices and a 48dp control minimum. The editor has fixed Save/Close,
+  inline failures, earlier Notes, and an additional-tracking disclosure that
+  preserves hidden values and expands for saved measurements.
+- Android QA reproduced Notes clipping and corrected the sheet's own viewport
+  calculation and height avoidance. On the isolated Android 16 QA app, observed
+  docked-keyboard multiline input through ten lines, internal scroll/cursor,
+  BBT entry, collapse-and-save retaining measurements, and reopened saved data.
+  Sampled light/dark and 150% system text; this is not release or TalkBack QA.
+
+All 107 JS/React tests in 19 suites, typecheck, ESLint/ktlint, formatting, diff
+checks, and Android Hermes production export pass. No dependency, native module,
+schema, or plaintext GitHub format changes. No live sync, release install, push,
+or merge. Further keyboard/OEM, narrow/all-locale, TalkBack, native failure, and
+Pixel/Android 17 checks remain open. The detailed source/evidence record is in
+[`docs/design/ui-refresh.md`](../design/ui-refresh.md#native-implementation--2026-09-05).
+
+The reviewed direction is committed as `f9c8a7b`, the theme foundation as
+`47f99a3`, and the native pilot as `376f650`. Temporary emulator keyboard/font
+settings and the QA app's theme/discreet preferences were restored. The original
+app/data and the unrelated port 8081 remain untouched; QA Metro stays on 8082.
 
 ### Baseline assessment
 

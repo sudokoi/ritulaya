@@ -4,6 +4,10 @@ Status: approved for native implementation. Preserve tab icons and text without
 touch animation, and center editor button labels horizontally and vertically.
 The HTML preview is retained unchanged as the reviewed design artifact.
 
+The theme foundation and Today/editor pilot are now implemented; see the native
+implementation and validation record below. The inventory and proposal describe
+the starting point, not the current source in every detail.
+
 ## Design brief
 
 **Recognizably Ritulaya, with clearer hierarchy and dependable controls.**
@@ -238,3 +242,72 @@ remain open. This design preview is not evidence that either is resolved.
 - Repository formatting and `git diff --check` passed. Production source and
   dependencies are unchanged; JS/Kotlin app suites were not rerun for this
   documentation-only slice.
+
+## Native implementation — 2026-09-05
+
+- `src/constants/theme-tokens.json` is the dependency-free authored source for
+  the light/dark semantic palette, domain phase colors/gradients, typography,
+  spacing, radii, and control minima. Tailwind derives the CSS variables and
+  classes; the existing palette/phase imports remain compatibility adapters.
+  Domain flow fill and fertile/period mapping are unchanged.
+- Navigation uses the app palette and status-bar text follows the resolved
+  theme. Tabs retain icons and labels, without ripple, scaling, or pressed opacity.
+- `AppText`, `Field`, and `ChoiceChip` sit beside the strengthened `Button` in
+  `src/components/ui/`. Only primitives actually used by the pilot were added;
+  no speculative IconButton or ScreenHeader wrapper was introduced.
+- The Button contract now includes secondary/danger variants and optional
+  pending state/label. Both sizes retain a 48dp minimum target, differing in
+  padding. Text has a readable line height, centered alignment, and no extra
+  Android font padding. Choice chips reserve equal side slots, keeping the
+  label itself centered when a selection checkmark appears.
+- Today has compact cycle context, separate estimates/uncertainty, one entry
+  summary, and a week strip with date numbers and direct editor access. The
+  duplicate selected-day summary and progress/countdown ornament are removed.
+  Discreet Today hides cycle/estimate/entry details and week markers; opening
+  an entry deliberately reveals its fields. This is not an app-wide privacy policy.
+- The editor retains the shared commands and pending/draft guards. Save/Close
+  stay in a wrapping non-scrolling header; all choices wrap; Notes precedes
+  the additional-tracking disclosure. Saved mucus/BBT/sexual-activity Yes expands
+  the disclosure initially. Collapsing never clears fields. Sexual activity
+  uses explicit Yes/No choices without a new persisted unknown state.
+- Mutation failures are inline alerts and retain the draft. Keyboard avoidance
+  uses native height styling (so NativeWind does not override the height-mode
+  flex adjustment), then measures the focused input against the actual scroll
+  viewport below the header instead of assuming a full-screen ScrollView.
+- No schema, sync-format, dependency, or native-module changes were made. The
+  HTML preview was not revised. Calendar, History, and Settings have not received
+  their own layout refresh; shared Button/editor/theme changes apply there too.
+
+### Evidence and limits
+
+- 107 JS/React tests across 19 suites pass, including command reuse, inline
+  failure/draft retention, selection semantics, collapsed measurement retention,
+  discreet Today, and authored token/class adapters. No tests were added for
+  external-library keyboard, list, or persistence guarantees.
+- Typecheck, ESLint/ktlint, formatting, and diff checks pass. Android Hermes
+  production export passes; this is not an installed release build. Kotlin
+  runtime tests were not rerun for this JS/theme-only pilot.
+- Android 16 arm64 emulator, isolated `com.sudokoi.ritulaya.qa`, synthetic data:
+  inspected light/dark Today and editor, centered selected/unselected chips and
+  header actions, status-bar contrast, and 150% system text. This is a sampled
+  visual check, not all-locale or TalkBack sign-off.
+- Discreet Today hid cycle/estimate/entry text and week markers in both the
+  screenshot and UIAutomator tree; opening the editor still revealed saved
+  details. This scoped check does not establish app-wide discreet protection.
+- The separate `com.sudokoi.ritulaya.qa.empty` package retained its earlier
+  synthetic notes-only entry. After reloading the current bundle, Today showed
+  the no-cycle explanation, setup/edit actions, and one note summary without
+  unsupported phase or prediction details. Its data was not cleared or edited.
+- Reproduced Notes clipping during the pilot and corrected the viewport
+  calculation. Observed three-line and ten-line input with the docked Gboard,
+  internal scrolling and visible cursor/field bottom, keyboard dismissal, BBT
+  focus/input, Save while keyboard is open, and retained measurements after
+  collapsing the disclosure. Reopening loaded the saved multiline note and
+  expanded the saved additional fields. Large-text dark Notes stayed above IME.
+- Remaining: narrow-screen/all-locale sweeps, TalkBack, other keyboards/OEMs,
+  native failure injection, and release-build validation. No conclusion about
+  the reported Pixel 8 Pro / Android 17 crash follows from this emulator check.
+- Restored the QA app's theme to System and discreet mode to Off. Restored
+  emulator font scale to 1.0, hardware-keyboard IME display to 0, and handwriting
+  preference to its original unset state. The original app/data and port 8081
+  were untouched; the owned QA Metro remains available on port 8082.
