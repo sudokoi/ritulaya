@@ -1,11 +1,6 @@
 import { useSelector } from "@xstate/store-react"
-import {
-  dayLogStore,
-  loadDayLogs,
-  upsertDayLog,
-  deleteDayLog,
-} from "@/stores/day-log-store"
-import type { DayLogCreate, DayLog } from "@/types/day-log"
+import { dayLogStore, loadDayLogs } from "@/stores/day-log-store"
+import type { DayLog } from "@/types/day-log"
 
 export function useDayLogs() {
   const logs = useSelector(dayLogStore, (s) => s.context.logs)
@@ -17,12 +12,6 @@ export function useDayLogs() {
     todayLog,
     loaded,
     loadDayLogs,
-    upsertDayLog: async (create: DayLogCreate) => {
-      return await upsertDayLog(create)
-    },
-    deleteDayLog: async (id: string) => {
-      return await deleteDayLog(id)
-    },
     getLogForDate: (date: string): DayLog | null => {
       return logs.find((l) => l.date === date) ?? null
     },

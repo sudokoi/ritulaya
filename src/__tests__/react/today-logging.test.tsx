@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react-native"
 import TodayScreen from "@/app/(tabs)/index"
 import { useDayLogs } from "@/hooks/use-day-logs"
-import { saveDayEntry } from "@/domain/day-entry"
+import { saveDayEntry, deleteDayEntry, clearDayEntryFlow } from "@/domain/day-entry"
 import { router } from "expo-router"
 import type { DayLog } from "@/types/day-log"
 
@@ -30,6 +30,8 @@ jest.mock("@/hooks/use-cycle-day-states", () => ({ useCycleDayStates: () => new 
 jest.mock("@/hooks/use-day-logs", () => ({ useDayLogs: jest.fn() }))
 jest.mock("@/domain/day-entry", () => ({
   saveDayEntry: jest.fn().mockResolvedValue(undefined),
+  deleteDayEntry: jest.fn().mockResolvedValue(undefined),
+  clearDayEntryFlow: jest.fn().mockResolvedValue(undefined),
 }))
 jest.mock("@/data/refresh", () => ({ refreshAll: jest.fn() }))
 
@@ -54,8 +56,6 @@ function setLogs(logs: DayLog[]) {
     todayLog: logs.find((log) => log.date === "2026-06-05") ?? null,
     loaded: true,
     loadDayLogs: jest.fn(),
-    upsertDayLog: jest.fn(),
-    deleteDayLog: jest.fn(),
     getLogForDate: (date) => logs.find((log) => log.date === date) ?? null,
   })
 }
@@ -97,4 +97,21 @@ test("an existing entry gets an explicit Edit today action", async () => {
   await render(<TodayScreen />)
   await fireEvent.press(screen.getByRole("button", { name: "today.editToday" }))
   expect(screen.getByDisplayValue("earlier note")).toBeTruthy()
+})
+
+test("deleting from Today uses the shared day-entry command", async () => {
+  await render(<TodayScreen />)
+  await fireEvent.press(screen.getByRole("button", { name: "Wed, Jun 3" }))
+  await fireEvent.press(screen.getByLabelText("sheet.deleteEntry"))
+  expect(deleteDayEntry).toHaveBeenCalledWith("entry")
+  expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
+})
+
+test("clearing flow from Today uses the shared day-entry command", async () => {
+  setLogs([{ ...prior, flowIntensity: "medium" }])
+  await render(<TodayScreen />)
+  await fireEvent.press(screen.getByRole("button", { name: "Wed, Jun 3" }))
+  await fireEvent.press(screen.getByLabelText("sheet.removePeriod"))
+  expect(clearDayEntryFlow).toHaveBeenCalledWith("2026-06-03")
+  expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
 })

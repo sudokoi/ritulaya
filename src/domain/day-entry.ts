@@ -1,4 +1,10 @@
-import { logPeriod, logPeriodOn, saveDayEntry as saveDayEntryInDb } from "@/services/db"
+import {
+  logPeriod,
+  logPeriodOn,
+  saveDayEntry as saveDayEntryInDb,
+  deleteDayLog,
+  upsertDayLog,
+} from "@/services/db"
 import { refreshAll } from "@/data/refresh"
 import type { FlowIntensity } from "@/types/day-log"
 import type { SymptomKey } from "@/constants/symptoms"
@@ -53,5 +59,17 @@ export async function saveDayEntry(input: DayEntryInput, periodDays: number) {
     periodDays,
   )
 
+  await refreshAll()
+}
+
+export async function deleteDayEntry(id: string): Promise<void> {
+  await deleteDayLog(id)
+  await refreshAll()
+}
+
+/** Clear only this day's flow, not its other fields or the surrounding cycle. */
+export async function clearDayEntryFlow(date: string): Promise<void> {
+  // Omitted fields keep persisted values; do not send a potentially stale UI copy.
+  await upsertDayLog({ date, flowIntensity: "none" })
   await refreshAll()
 }

@@ -2,13 +2,17 @@ import { useState, useMemo, useCallback } from "react"
 import { format } from "date-fns"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
-import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
-import { refreshAll } from "@/data/refresh"
+import {
+  saveDayEntry,
+  deleteDayEntry,
+  clearDayEntryFlow,
+  type DayEntryInput,
+} from "@/domain/day-entry"
 
-export function useDayEditor() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+export function useDayEditor(initialDate: Date | null = null) {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate)
   const { periodLength } = usePrediction()
-  const { deleteDayLog, upsertDayLog, getLogForDate } = useDayLogs()
+  const { getLogForDate } = useDayLogs()
 
   const existingLog = useMemo(() => {
     if (!selectedDate) return null
@@ -27,21 +31,13 @@ export function useDayEditor() {
 
   const handleDelete = useCallback(async () => {
     if (!existingLog) return
-    await deleteDayLog(existingLog.id)
-    await refreshAll()
-  }, [existingLog, deleteDayLog])
+    await deleteDayEntry(existingLog.id)
+  }, [existingLog])
 
   const handleClearPeriod = useCallback(async () => {
     if (!existingLog) return
-    await upsertDayLog({
-      date: existingLog.date,
-      flowIntensity: "none",
-      symptoms: existingLog.symptoms,
-      mood: existingLog.mood,
-      notes: existingLog.notes,
-    })
-    await refreshAll()
-  }, [existingLog, upsertDayLog])
+    await clearDayEntryFlow(existingLog.date)
+  }, [existingLog])
 
   return {
     selectedDate,
