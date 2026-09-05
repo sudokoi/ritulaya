@@ -115,3 +115,9 @@ test("clearing flow from Today uses the shared day-entry command", async () => {
   expect(clearDayEntryFlow).toHaveBeenCalledWith("2026-06-03")
   expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
 })
+
+test("Today provides a discoverable history entry point", async () => {
+  await render(<TodayScreen />)
+  await fireEvent.press(screen.getByRole("button", { name: "history.open" }))
+  expect(router.push).toHaveBeenCalledWith("/history")
+})

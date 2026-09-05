@@ -39,6 +39,28 @@
       "tip": "마무리하기 좋은 시기입니다. 휴식과 편안함을 우선하세요."
     }
   },
+  "history": {
+    "title": "기록 내역",
+    "open": "기록 검색",
+    "localSearch": "이 기기에 저장된 기록을 최신순으로 검색하세요.",
+    "searchNotes": "메모 검색",
+    "filters": "날짜, 증상 및 기분 필터",
+    "clearFilters": "필터 초기화",
+    "fromDate": "시작일",
+    "toDate": "종료일",
+    "dateHint": "YYYY-MM-DD 형식으로 입력하세요. 비워두면 날짜 제한이 없어요.",
+    "anySymptom": "모든 증상",
+    "anyMood": "모든 기분",
+    "invalidDate": "올바른 날짜를 YYYY-MM-DD 형식으로 입력하거나 비워두세요.",
+    "reversedRange": "시작일은 종료일보다 이전이거나 같은 날이어야 해요.",
+    "results_other": "기록 {{count}}개",
+    "emptyTitle": "아직 기록이 없어요",
+    "emptyBody": "오늘의 상태를 기록해 보세요. 기록이 여기에 표시돼요.",
+    "noResults": "일치하는 기록이 없어요",
+    "noResultsBody": "다른 단어로 검색하거나 필터를 초기화하세요.",
+    "editDate": "{{date}} 기록 수정",
+    "privatePreview": "저장된 기록이 있어요. 눌러서 확인하거나 수정하세요."
+  },
   "today": {
     "logToday": "오늘 기록하기",
     "editToday": "오늘 기록 수정하기",

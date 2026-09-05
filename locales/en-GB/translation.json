@@ -39,6 +39,29 @@
       "tip": "A good time to wrap things up. Prioritize rest and comfort."
     }
   },
+  "history": {
+    "title": "History",
+    "open": "Search history",
+    "localSearch": "Search your recorded entries on this device, newest first.",
+    "searchNotes": "Search notes",
+    "filters": "Date, symptom and mood filters",
+    "clearFilters": "Clear filters",
+    "fromDate": "From date",
+    "toDate": "To date",
+    "dateHint": "Use YYYY-MM-DD. Leave either date blank for no limit.",
+    "anySymptom": "Any symptom",
+    "anyMood": "Any mood",
+    "invalidDate": "Enter valid dates in YYYY-MM-DD format, or leave them blank.",
+    "reversedRange": "The from date must be on or before the to date.",
+    "results_one": "{{count}} entry",
+    "results_other": "{{count}} entries",
+    "emptyTitle": "No entries yet",
+    "emptyBody": "Record how you feel today. Your entries will appear here.",
+    "noResults": "No matching entries",
+    "noResultsBody": "Try different words or clear your filters.",
+    "editDate": "Edit entry for {{date}}",
+    "privatePreview": "Entry recorded. Tap to view or edit."
+  },
   "today": {
     "logToday": "Log today",
     "editToday": "Edit today's entry",
