@@ -25,8 +25,9 @@ import { usePrediction } from "@/hooks/use-predictions"
 import { useSync } from "@/hooks/use-sync"
 import { exportData } from "@/services/export"
 import { reportBug } from "@/services/bug-report"
+import { requestNotificationPermissions } from "@/services/notifications"
+import type { SettingsUpdate } from "@/stores/settings-store"
 import Constants from "expo-constants"
-import { useEffect } from "react"
 
 const LANGUAGE_OPTIONS: LanguageSetting[] = ["system", ...SUPPORTED_LOCALES]
 
@@ -97,17 +98,27 @@ export default function SettingsScreen() {
     reminderPeriodAhead,
     reminderDailyLog,
     language,
-    update,
-    load,
+    update: persistSettings,
   } = useSettings()
   const { periodLength, avgCycleLength } = usePrediction()
   const sync = useSync()
   const colors = useThemeColors()
   const insets = useSafeAreaInsets()
 
-  useEffect(() => {
-    load()
-  }, [load])
+  const update = async (patch: SettingsUpdate) => {
+    try {
+      if (
+        (patch.reminderDailyLog || (patch.reminderPeriodAhead ?? 0) > 0) &&
+        !(await requestNotificationPermissions())
+      ) {
+        Alert.alert(t("settings.permissionTitle"), t("settings.permissionBody"))
+        return
+      }
+      await persistSettings(patch)
+    } catch {
+      Alert.alert(t("settings.saveFailedTitle"), t("settings.saveFailedBody"))
+    }
+  }
 
   const cycleTheme = () => {
     const values = THEME_OPTIONS.map((option) => option.value)
@@ -173,7 +184,7 @@ export default function SettingsScreen() {
 
       <Pressable
         className="mx-4 mb-4 rounded-card bg-[var(--bg-surface)] px-5 py-4 active:opacity-60"
-        onPress={() => router.push("/seed")}
+        onPress={() => router.push({ pathname: "/seed", params: { mode: "settings" } })}
         accessibilityRole="button"
         accessibilityLabel={t("settings.adjustCycle")}
       >

@@ -8,7 +8,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors"
 
 export function BiometricGate({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
-  const { biometricLock, update } = useSettings()
+  const { biometricLock } = useSettings()
   const { accent, danger } = useThemeColors()
   const [unlocked, setUnlocked] = useState(!biometricLock)
   const [prevBiometricLock, setPrevBiometricLock] = useState(biometricLock)
@@ -60,8 +60,10 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
     if (!biometricLock) return
     let wasBackground = false
     const subscription = AppState.addEventListener("change", (state) => {
+      if (promptingRef.current) return
       if (state === "background" || state === "inactive") {
         wasBackground = true
+        setUnlocked(false)
       } else if (state === "active" && wasBackground) {
         wasBackground = false
         setUnlocked(false)
@@ -100,16 +102,6 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
           {unavailable ? t("gate.tryAgain") : t("gate.unlock")}
         </Text>
       </Pressable>
-      {unavailable ? (
-        <Pressable
-          onPress={() => update({ biometricLock: false })}
-          className="mt-3 rounded-button px-6 py-4 active:opacity-60"
-        >
-          <Text className="font-semibold text-[var(--text-muted)]">
-            {t("gate.turnOffLock")}
-          </Text>
-        </Pressable>
-      ) : null}
     </View>
   )
 }

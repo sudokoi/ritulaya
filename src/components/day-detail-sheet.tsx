@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Modal, ScrollView, Pressable } from "react-native"
+import { View, Text, TextInput, Modal, ScrollView, Pressable, Alert } from "react-native"
 import { useState, useCallback, useEffect, useRef } from "react"
 import { format } from "date-fns"
 import { X, Trash2 } from "lucide-react-native"
@@ -36,9 +36,9 @@ interface DayDetailSheetProps {
     bbt: number | null
     sexualActivity: number
   } | null
-  onSave: (entry: DayEntryInput) => void
-  onClearPeriod?: () => void
-  onDelete?: () => void
+  onSave: (entry: DayEntryInput) => Promise<void>
+  onClearPeriod?: () => Promise<void>
+  onDelete?: () => Promise<void>
   onClose: () => void
 }
 
@@ -75,6 +75,8 @@ export function DayDetailSheet({
   const { muted, danger } = useThemeColors()
   const { t } = useTranslation()
   const prevVisibleRef = useRef(visible)
+  const pendingRef = useRef(false)
+  const [pending, setPending] = useState(false)
 
   useEffect(() => {
     const wasVisible = prevVisibleRef.current
@@ -98,37 +100,58 @@ export function DayDetailSheet({
     )
   }, [])
 
+  const close = () => {
+    if (!pendingRef.current) onClose()
+  }
+
+  const mutate = async (
+    action: () => Promise<void>,
+    kind: "save" | "delete" | "update",
+  ) => {
+    if (pendingRef.current) return
+    pendingRef.current = true
+    setPending(true)
+    try {
+      await action()
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      onClose()
+    } catch {
+      Alert.alert(t(`calendar.${kind}FailedTitle`), t(`calendar.${kind}FailedBody`))
+    } finally {
+      pendingRef.current = false
+      setPending(false)
+    }
+  }
+
   const handleSave = () => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     const bbtValue = bbt.trim() === "" ? null : Number.parseFloat(bbt)
-    onSave({
-      date: format(date, "yyyy-MM-dd"),
-      flowIntensity: flow,
-      symptoms,
-      mood,
-      notes: notes.trim() || null,
-      cervicalMucus,
-      bbt: bbtValue != null && !Number.isNaN(bbtValue) ? bbtValue : null,
-      sexualActivity,
-    })
-    onClose()
+    void mutate(
+      () =>
+        onSave({
+          date: format(date, "yyyy-MM-dd"),
+          flowIntensity: flow,
+          symptoms,
+          mood,
+          notes: notes.trim() || null,
+          cervicalMucus,
+          bbt: bbtValue != null && !Number.isNaN(bbtValue) ? bbtValue : null,
+          sexualActivity,
+        }),
+      "save",
+    )
   }
 
   const handleDelete = () => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    onDelete?.()
-    onClose()
+    if (onDelete) void mutate(onDelete, "delete")
   }
 
   const handleClearPeriod = () => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    onClearPeriod?.()
-    onClose()
+    if (onClearPeriod) void mutate(onClearPeriod, "update")
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <Pressable className="flex-1 bg-black/30" onPress={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
+      <Pressable className="flex-1 bg-black/30" onPress={close}>
         <View className="mt-auto">
           <Pressable className="rounded-t-3xl bg-[var(--bg-primary)] pb-8">
             <View className="flex-row items-center justify-between border-b border-[var(--border)] px-6 py-4">
@@ -139,6 +162,7 @@ export function DayDetailSheet({
                 {onDelete ? (
                   <Pressable
                     onPress={handleDelete}
+                    disabled={pending}
                     className="p-3 active:opacity-60"
                     accessibilityRole="button"
                     accessibilityLabel={t("sheet.deleteEntry")}
@@ -150,12 +174,14 @@ export function DayDetailSheet({
                   variant="primary"
                   size="sm"
                   onPress={handleSave}
+                  disabled={pending}
                   accessibilityLabel={t("sheet.saveEntry")}
                 >
                   {t("common.save")}
                 </Button>
                 <Pressable
-                  onPress={onClose}
+                  onPress={close}
+                  disabled={pending}
                   className="p-3 active:opacity-60"
                   accessibilityRole="button"
                   accessibilityLabel={t("common.close")}
@@ -172,6 +198,7 @@ export function DayDetailSheet({
                   {FLOW_LEVELS.map((level) => (
                     <Pressable
                       key={level.key}
+                      disabled={pending}
                       onPress={() => {
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                         setFlow(flow === level.key ? null : level.key)
@@ -206,6 +233,7 @@ export function DayDetailSheet({
                 existing.flowIntensity !== "none" ? (
                   <Pressable
                     onPress={handleClearPeriod}
+                    disabled={pending}
                     className="mt-3 self-start active:opacity-60"
                     accessibilityRole="button"
                     accessibilityLabel={t("sheet.removePeriod")}
@@ -223,6 +251,7 @@ export function DayDetailSheet({
                   {MOOD_CATALOG.map((m) => (
                     <Pressable
                       key={m.key}
+                      disabled={pending}
                       onPress={() => {
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                         setMood(mood === m.key ? null : m.key)
@@ -252,6 +281,7 @@ export function DayDetailSheet({
                   {SYMPTOM_CATALOG.map((symptom) => (
                     <Pressable
                       key={symptom.key}
+                      disabled={pending}
                       onPress={() => toggleSymptom(symptom.key)}
                       className={cn(
                         "rounded-pill px-4 py-2.5 active:opacity-60",
@@ -284,6 +314,7 @@ export function DayDetailSheet({
                   {CERVICAL_MUCUS_CATALOG.map((mucus) => (
                     <Pressable
                       key={mucus.key}
+                      disabled={pending}
                       onPress={() => {
                         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                         setCervicalMucus(cervicalMucus === mucus.key ? null : mucus.key)
@@ -323,6 +354,7 @@ export function DayDetailSheet({
                   </Text>
                   <TextInput
                     value={bbt}
+                    editable={!pending}
                     onChangeText={setBbt}
                     placeholder="36.6"
                     placeholderTextColor={muted}
@@ -341,6 +373,7 @@ export function DayDetailSheet({
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                       setSexualActivity(!(sexualActivity ?? false))
                     }}
+                    disabled={pending}
                     className={cn(
                       "rounded-pill px-5 py-2 active:opacity-60",
                       sexualActivity ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
@@ -371,6 +404,7 @@ export function DayDetailSheet({
                 <SectionLabel>{t("sheet.notes")}</SectionLabel>
                 <TextInput
                   value={notes}
+                  editable={!pending}
                   onChangeText={setNotes}
                   placeholder={t("sheet.notesPlaceholder")}
                   placeholderTextColor={muted}

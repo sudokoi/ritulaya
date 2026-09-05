@@ -64,6 +64,7 @@ module.exports = {
     userInterfaceStyle: "automatic",
     platforms: ["android"],
     android: {
+      allowBackup: false,
       package: "com.sudokoi.ritulaya",
       versionCode,
       adaptiveIcon: {

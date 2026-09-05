@@ -1,4 +1,7 @@
 {
+  "bootstrap": {
+    "failed": "データを読み込めませんでした。変更は行われていません。もう一度お試しください。"
+  },
   "common": {
     "save": "保存",
     "cancel": "キャンセル",
@@ -109,6 +112,10 @@
     "egg-white": "卵白様"
   },
   "settings": {
+    "saveFailedTitle": "設定を保存できませんでした",
+    "saveFailedBody": "変更を保存できませんでした。もう一度お試しください。",
+    "permissionTitle": "通知が無効です",
+    "permissionBody": "リマインダーを有効にするには、Androidの設定で通知を許可してください。",
     "title": "設定",
     "viewInsights": "詳細を見る",
     "adjustCycle": "周期の長さを調整",

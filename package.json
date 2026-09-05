@@ -72,6 +72,7 @@
     "jest-expo": "57.0.4",
     "jest-watch-typeahead": "3.0.1",
     "prettier": "3.9.6",
+    "test-renderer": "1.2.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.67.0"
   },
@@ -86,7 +87,7 @@
     "format": "prettier --write . && yarn format:kotlin",
     "format:check": "prettier --check .",
     "format:kotlin": "bash scripts/lint-kotlin.sh --format",
-    "test": "jest --passWithNoTests && yarn test:kotlin",
+    "test": "jest && yarn test:kotlin",
     "test:watch": "jest --watch",
     "test:kotlin": "bash scripts/test-kotlin.sh",
     "typecheck": "tsc --noEmit",

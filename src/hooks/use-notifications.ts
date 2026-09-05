@@ -1,10 +1,7 @@
 import { useEffect } from "react"
 import { differenceInDays } from "date-fns"
 import { useTranslation } from "react-i18next"
-import {
-  requestNotificationPermissions,
-  updateAllReminders,
-} from "@/services/notifications"
+import { updateAllReminders } from "@/services/notifications"
 import { logger } from "@/services/logger"
 import { useSettings } from "./use-settings"
 import { usePrediction } from "./use-predictions"
@@ -24,12 +21,6 @@ export function useNotifications() {
   const overdue =
     currentCycle != null &&
     differenceInDays(new Date(), new Date(currentCycle.startDate)) + 1 > avgCycleLength
-
-  useEffect(() => {
-    requestNotificationPermissions().catch((e) =>
-      logger.warn("notifications", "Permission request failed", e),
-    )
-  }, [])
 
   useEffect(() => {
     updateAllReminders(

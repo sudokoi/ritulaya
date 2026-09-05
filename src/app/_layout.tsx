@@ -7,14 +7,14 @@ import { useWidget } from "@/hooks/use-widget"
 import { useAppRefresh } from "@/hooks/use-app-refresh"
 import { useSettings } from "@/hooks/use-settings"
 import { BiometricGate } from "@/components/biometric-gate"
+import { AppBootstrap } from "@/components/app-bootstrap"
+import { useNotifications } from "@/hooks/use-notifications"
 import { changeLanguage } from "@/i18n"
 import "@/global.css"
 
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme()
-  const { theme, language, load } = useSettings()
-
-  useAppRefresh()
+  const { theme, language } = useSettings()
 
   useEffect(() => {
     setColorScheme(theme)
@@ -24,25 +24,29 @@ export default function RootLayout() {
     void changeLanguage(language)
   }, [language])
 
-  useEffect(() => {
-    load()
-  }, [load])
-
-  useWidget()
-
   return (
     <GestureHandlerRootView className="flex-1">
-      <BiometricGate>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="settings/github-sync" />
-            <Stack.Screen name="settings/privacy" />
-            <Stack.Screen name="settings/insights" />
-          </Stack>
-          <PortalHost />
-        </ThemeProvider>
-      </BiometricGate>
+      <AppBootstrap>
+        <AppEffects />
+        <BiometricGate>
+          <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="settings/github-sync" />
+              <Stack.Screen name="settings/privacy" />
+              <Stack.Screen name="settings/insights" />
+            </Stack>
+            <PortalHost />
+          </ThemeProvider>
+        </BiometricGate>
+      </AppBootstrap>
     </GestureHandlerRootView>
   )
+}
+
+function AppEffects() {
+  useAppRefresh()
+  useWidget()
+  useNotifications()
+  return null
 }

@@ -1,14 +1,11 @@
 import { useState, useMemo, useCallback } from "react"
-import { Alert } from "react-native"
 import { format } from "date-fns"
-import { useTranslation } from "react-i18next"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { saveDayEntry, type DayEntryInput } from "@/domain/day-entry"
 import { refreshAll } from "@/data/refresh"
 
 export function useDayEditor() {
-  const { t } = useTranslation()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const { periodLength } = usePrediction()
   const { deleteDayLog, upsertDayLog, getLogForDate } = useDayLogs()
@@ -23,41 +20,28 @@ export function useDayEditor() {
 
   const handleSave = useCallback(
     async (entry: DayEntryInput) => {
-      try {
-        await saveDayEntry(entry, periodLength)
-      } catch {
-        Alert.alert(t("calendar.saveFailedTitle"), t("calendar.saveFailedBody"))
-      }
-      setSelectedDate(null)
+      await saveDayEntry(entry, periodLength)
     },
-    [periodLength, t],
+    [periodLength],
   )
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!existingLog) return
-    deleteDayLog(existingLog.id)
-      .then(() => refreshAll())
-      .catch(() =>
-        Alert.alert(t("calendar.deleteFailedTitle"), t("calendar.deleteFailedBody")),
-      )
-    setSelectedDate(null)
-  }, [existingLog, deleteDayLog, t])
+    await deleteDayLog(existingLog.id)
+    await refreshAll()
+  }, [existingLog, deleteDayLog])
 
-  const handleClearPeriod = useCallback(() => {
+  const handleClearPeriod = useCallback(async () => {
     if (!existingLog) return
-    upsertDayLog({
+    await upsertDayLog({
       date: existingLog.date,
       flowIntensity: "none",
       symptoms: existingLog.symptoms,
       mood: existingLog.mood,
       notes: existingLog.notes,
     })
-      .then(() => refreshAll())
-      .catch(() =>
-        Alert.alert(t("calendar.updateFailedTitle"), t("calendar.updateFailedBody")),
-      )
-    setSelectedDate(null)
-  }, [existingLog, upsertDayLog, t])
+    await refreshAll()
+  }, [existingLog, upsertDayLog])
 
   return {
     selectedDate,

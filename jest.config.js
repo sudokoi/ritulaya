@@ -7,7 +7,7 @@ module.exports = {
         "^.+\\.tsx?$": ["@swc/jest"],
         "^.+\\.jsx?$": ["@swc/jest"],
       },
-      transformIgnorePatterns: ["node_modules/(?!date-fns)"],
+      transformIgnorePatterns: ["node_modules/(?!(date-fns|@xstate/store)/)"],
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
       },
@@ -16,13 +16,6 @@ module.exports = {
     {
       displayName: "react",
       preset: "jest-expo",
-      transformIgnorePatterns: [
-        "node_modules/(?!(" +
-          "expo-router|@react-native|react-native|" +
-          "expo-font|expo-constants|expo-linking|expo-status-bar|" +
-          "@expo/vector-icons" +
-          ")/)",
-      ],
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
       },

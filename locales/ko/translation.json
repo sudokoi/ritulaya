@@ -1,4 +1,7 @@
 {
+  "bootstrap": {
+    "failed": "데이터를 불러오지 못했습니다. 변경된 내용은 없습니다. 다시 시도해 주세요."
+  },
   "common": {
     "save": "저장",
     "cancel": "취소",
@@ -109,6 +112,10 @@
     "egg-white": "계란 흰자형"
   },
   "settings": {
+    "saveFailedTitle": "설정이 저장되지 않았습니다",
+    "saveFailedBody": "변경 사항을 저장하지 못했습니다. 다시 시도해 주세요.",
+    "permissionTitle": "알림이 꺼져 있습니다",
+    "permissionBody": "리마인더를 켜려면 Android 설정에서 알림을 허용해 주세요.",
     "title": "설정",
     "viewInsights": "전체 인사이트 보기",
     "adjustCycle": "주기 길이 조정",

@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, Alert } from "react-native"
 import { useState } from "react"
-import { router } from "expo-router"
+import { router, useLocalSearchParams } from "expo-router"
 import { format, subDays } from "date-fns"
 import { ChevronLeft, Minus, Plus } from "lucide-react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -65,6 +65,8 @@ function Stepper({
  */
 export default function SeedCycleScreen() {
   const { t } = useTranslation()
+  const { mode } = useLocalSearchParams<{ mode?: string }>()
+  const settingsOnly = mode === "settings"
   const {
     discreetMode: discreet,
     avgCycleLength,
@@ -90,11 +92,12 @@ export default function SeedCycleScreen() {
         avgCycleLength: cycleLength,
         avgPeriodLength: periodLength,
       })
-      await logPeriodOnDate(
-        format(subDays(new Date(), daysAgo), "yyyy-MM-dd"),
-        "medium",
-        periodLength,
-      )
+      if (!settingsOnly)
+        await logPeriodOnDate(
+          format(subDays(new Date(), daysAgo), "yyyy-MM-dd"),
+          "medium",
+          periodLength,
+        )
       router.back()
     } catch {
       Alert.alert(t("seed.saveFailedTitle"), t("seed.saveFailedBody"))
@@ -119,19 +122,25 @@ export default function SeedCycleScreen() {
           <ChevronLeft size={24} color={muted} />
         </Pressable>
         <Text className="text-2xl font-bold text-[var(--text-primary)]">
-          {discreetLabel(discreet, t("seed.title"), t("discreet.seedTitle"))}
+          {discreetLabel(
+            discreet,
+            t(settingsOnly ? "settings.adjustCycle" : "seed.title"),
+            t("discreet.seedTitle"),
+          )}
         </Text>
       </View>
 
       <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
-        <Stepper
-          label={t("seed.lastPeriodStarted")}
-          value={daysAgo}
-          suffix={daysAgoLabel}
-          min={0}
-          max={90}
-          onChange={setDaysAgo}
-        />
+        {!settingsOnly ? (
+          <Stepper
+            label={t("seed.lastPeriodStarted")}
+            value={daysAgo}
+            suffix={daysAgoLabel}
+            min={0}
+            max={90}
+            onChange={setDaysAgo}
+          />
+        ) : null}
         <Stepper
           label={t("seed.typicalCycleLength")}
           value={cycleLength}
@@ -155,16 +164,18 @@ export default function SeedCycleScreen() {
         disabled={saving}
         className="mx-4 mt-6 rounded-card bg-[var(--accent)] px-6 py-4 active:opacity-60"
         accessibilityRole="button"
-        accessibilityLabel={t("seed.title")}
+        accessibilityLabel={t("common.save")}
       >
         <Text className="text-center text-lg font-semibold text-[var(--on-accent)]">
           {t("common.save")}
         </Text>
       </Pressable>
 
-      <Text className="mx-8 mt-4 text-center text-xs text-[var(--text-muted)] opacity-70">
-        {t("seed.explainer")}
-      </Text>
+      {!settingsOnly ? (
+        <Text className="mx-8 mt-4 text-center text-xs text-[var(--text-muted)] opacity-70">
+          {t("seed.explainer")}
+        </Text>
+      ) : null}
 
       <View className="h-8" />
     </ScrollView>
