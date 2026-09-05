@@ -9,7 +9,8 @@
 | [0005](./0005-android-only.md)               | Android-only platform target                                | Accepted               |
 | [0006](./0006-no-analytics.md)               | No analytics or telemetry                                   | Accepted               |
 | [0007](./0007-yarn-package-manager.md)       | Yarn 4 as package manager                                   | Accepted               |
-| [0008](./0008-static-csv-sync-files.md)      | Two static CSV files for GitHub sync format                 | Accepted               |
+| [0008](./0008-static-csv-sync-files.md)      | Two static CSV files for GitHub sync format                 | Superseded by ADR-0012 |
 | [0009](./0009-sync-persistence-merge.md)     | Sync persistence and merge semantics                        | Superseded by ADR-0010 |
 | [0010](./0010-native-room-db-predictions.md) | Native Room database and prediction modules                 | Accepted               |
 | [0011](./0011-ui-button-primitive.md)        | Owned UI button primitive                                   | Accepted               |
+| [0012](./0012-revision-based-sync.md)        | Revision-based, restart-safe GitHub sync                    | Accepted               |

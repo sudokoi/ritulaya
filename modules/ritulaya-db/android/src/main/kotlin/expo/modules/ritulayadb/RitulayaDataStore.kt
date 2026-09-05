@@ -161,45 +161,131 @@ class RitulayaDataStore internal constructor(
         return log
     }
 
-    suspend fun deleteDayLog(id: String) {
-        dao.deleteDayLogById(id)
-        dao.insertTombstone(
-            SyncTombstoneEntity(entity = "day_log", entityId = id, deletedAt = nowISO()),
-        )
-    }
+    suspend fun deleteDayLog(id: String) =
+        db.withTransaction {
+            dao.deleteDayLogById(id)
+            dao.insertTombstone(
+                SyncTombstoneEntity(entity = "day_log", entityId = id, deletedAt = nowISO()),
+            )
+        }
 
     suspend fun getSettings(): SettingsEntity? = dao.getSettings()
 
-    suspend fun saveSettings(settings: SettingsEntity) {
-        dao.upsertSettings(settings)
-    }
-
-    suspend fun updateSettings(patch: SettingsPatch) {
-        val existing = dao.getSettings()
-        val base =
-            existing
-                ?: SettingsEntity(
-                    id = "default",
-                    createdAt = patch.createdAt ?: nowISO(),
+    suspend fun updateSettings(patch: SettingsPatch) =
+        db.withTransaction {
+            val existing = dao.getSettings()
+            val base =
+                existing
+                    ?: SettingsEntity(
+                        id = "default",
+                        createdAt = patch.createdAt ?: nowISO(),
+                        updatedAt = nowISO(),
+                    )
+            val merged =
+                base.copy(
+                    avgCycleLength = patch.avgCycleLength ?: base.avgCycleLength,
+                    avgPeriodLength = patch.avgPeriodLength ?: base.avgPeriodLength,
+                    lutealPhaseLength = patch.lutealPhaseLength ?: base.lutealPhaseLength,
+                    theme = patch.theme ?: base.theme,
+                    language = patch.language ?: base.language,
+                    biometricLock = patch.biometricLock ?: base.biometricLock,
+                    discreetMode = patch.discreetMode ?: base.discreetMode,
+                    reminderPeriodAhead = patch.reminderPeriodAhead ?: base.reminderPeriodAhead,
+                    reminderDailyLog = patch.reminderDailyLog ?: base.reminderDailyLog,
                     updatedAt = nowISO(),
                 )
-        val merged =
-            base.copy(
-                avgCycleLength = patch.avgCycleLength ?: base.avgCycleLength,
-                avgPeriodLength = patch.avgPeriodLength ?: base.avgPeriodLength,
-                lutealPhaseLength = patch.lutealPhaseLength ?: base.lutealPhaseLength,
-                theme = patch.theme ?: base.theme,
-                language = patch.language ?: base.language,
-                biometricLock = patch.biometricLock ?: base.biometricLock,
-                discreetMode = patch.discreetMode ?: base.discreetMode,
-                reminderPeriodAhead = patch.reminderPeriodAhead ?: base.reminderPeriodAhead,
-                reminderDailyLog = patch.reminderDailyLog ?: base.reminderDailyLog,
-                updatedAt = nowISO(),
-            )
-        dao.upsertSettings(merged)
-    }
+            patch.biometricLock?.let { dao.upsertDevicePolicy(DevicePolicyEntity(biometricLock = it)) }
+            if (existing == null || merged.copy(biometricLock = 0, updatedAt = base.updatedAt) != base.copy(biometricLock = 0)) {
+                dao.upsertSettings(merged.copy(biometricLock = 0))
+            }
+        }
 
     suspend fun listTombstones(): List<SyncTombstoneEntity> = dao.listTombstones()
+
+    data class SyncSnapshot(
+        val cycles: List<SyncRow<CycleEntity>>,
+        val dayLogs: List<SyncRow<DayLogEntity>>,
+        val settings: SettingsEntity?,
+        val tombstones: List<SyncTombstoneEntity>,
+        val revisions: List<SyncRevisionEntity>,
+    )
+
+    suspend fun readSyncSnapshot(): SyncSnapshot =
+        db.withTransaction {
+            SyncSnapshot(
+                listCyclesIncludingTombstones(),
+                listDayLogsIncludingTombstones(),
+                getSettings(),
+                listTombstones(),
+                dao.syncRevisions(),
+            )
+        }
+
+    suspend fun syncCheckpoint(target: String): String? = dao.syncCheckpoint(target)?.state
+
+    suspend fun saveSyncCheckpoint(
+        target: String,
+        state: String,
+    ) = dao.saveSyncCheckpoint(SyncCheckpointEntity(target, state))
+
+    /** Apply only captured revisions; later edits stay pending against the newly accepted baseline. */
+    suspend fun completeSync(
+        target: String,
+        checkpoint: String,
+        captured: Map<String, Long>,
+        cycles: Map<String, CycleEntity?>,
+        days: Map<String, DayLogEntity?>,
+        settings: SettingsEntity?,
+        capturedRecords: String? = null,
+    ) = db.withTransaction {
+        val live = dao.syncRevisions().associate { it.key to it.revision }
+        // Cycles and their entry associations form one aggregate. Never install
+        // half a remote snapshot around local edits made while it was uploading.
+        val unchanged = live == captured
+        cycles.forEach { (id, value) ->
+            if (unchanged) {
+                if (value == null) dao.deleteCycleById(id) else dao.insertCycle(value)
+            }
+        }
+        days.forEach { (date, value) ->
+            if (unchanged) {
+                val current = dao.getDayLogByDate(date)
+                if (value == null) {
+                    current?.let { dao.deleteDayLogById(it.id) }
+                } else {
+                    var localId = current?.id
+                    if (localId == null) {
+                        do {
+                            localId = generateId()
+                        } while (dao.getDayLogById(localId) != null)
+                    }
+                    dao.upsertDayLog(value.copy(id = localId))
+                }
+            }
+        }
+        if (settings != null && unchanged) {
+            dao.upsertSettings(settings.copy(biometricLock = 0))
+        }
+        for (revision in dao.syncRevisions()) {
+            if (unchanged) dao.acknowledgeRevision(revision.key, revision.revision)
+        }
+        val journal =
+            if (capturedRecords == null) {
+                checkpoint
+            } else {
+                val capturedValues = org.json.JSONObject(capturedRecords)
+                val localBase = org.json.JSONObject()
+                if (!unchanged) {
+                    capturedValues.keys().asSequence().forEach { key -> localBase.put(key, capturedValues.get(key)) }
+                }
+                org.json
+                    .JSONObject(checkpoint)
+                    .put("localBase", localBase)
+                    .put("rebasePending", !unchanged)
+                    .toString()
+            }
+        dao.saveSyncCheckpoint(SyncCheckpointEntity(target, journal))
+    }
 
     suspend fun listCyclesIncludingTombstones(): List<SyncRow<CycleEntity>> = mergeWithTombstones(dao.listCycles(), "cycle") { it.id }
 
@@ -214,86 +300,6 @@ class RitulayaDataStore internal constructor(
         val tombstones = dao.listTombstones().filter { it.entity == entity }.associateBy { it.entityId }
         val ids = byId.keys + tombstones.keys
         return ids.map { id -> SyncRow(id, byId[id], tombstones[id]?.deletedAt) }
-    }
-
-    /**
-     * Applies a merged sync result without wiping rows written while the sync
-     * was in flight: live rows are upserted, only rows that were deleted on
-     * either side are removed, and only the tombstones captured when the sync
-     * started are cleared — tombstones created mid-sync survive so their
-     * deletions are pushed on a later sync. Deletion maps carry each row's
-     * deletion timestamp; a live row edited after that timestamp survives,
-     * mirroring the recency rule the merge applies to snapshot-era rows.
-     */
-    suspend fun applyMerge(
-        cycles: List<CycleEntity>,
-        dayLogs: List<DayLogEntity>,
-        deletedCycles: Map<String, String>,
-        deletedDayLogs: Map<String, String>,
-        snapshotTombstones: List<SyncTombstoneEntity>,
-    ) {
-        db.withTransaction {
-            // A deletion made while the sync was running (a tombstone newer
-            // than the merged row) must not be resurrected by the upsert
-            // pass — the merge only saw the pre-deletion snapshot.
-            val tombstones =
-                dao
-                    .listTombstones()
-                    .associateBy { "${it.entity}:${it.entityId}" }
-                    .mapValues { it.value.deletedAt }
-            // Last-write-wins against live rows so a local edit made while the
-            // sync was running is not clobbered by a snapshot-era merged row.
-            cycles.forEach { incoming ->
-                if (isDeletedNewer(tombstones, "cycle", incoming.id, incoming.updatedAt)) return@forEach
-                val live = dao.getCycleById(incoming.id)
-                if (live == null || incoming.updatedAt >= live.updatedAt) {
-                    dao.insertCycle(incoming)
-                }
-            }
-            dayLogs.forEach { incoming ->
-                if (isDeletedNewer(tombstones, "day_log", incoming.id, incoming.updatedAt)) return@forEach
-                val live = dao.getDayLogById(incoming.id)
-                if (live == null || incoming.updatedAt >= live.updatedAt) {
-                    dao.upsertDayLog(incoming)
-                }
-            }
-            deletedCycles.forEach { (id, deletedAt) ->
-                val live = dao.getCycleById(id)
-                if (live == null || !isEditedAfter(live.updatedAt, deletedAt)) {
-                    dao.deleteCycleById(id)
-                }
-            }
-            deletedDayLogs.forEach { (id, deletedAt) ->
-                val live = dao.getDayLogById(id)
-                if (live == null || !isEditedAfter(live.updatedAt, deletedAt)) {
-                    dao.deleteDayLogById(id)
-                }
-            }
-            snapshotTombstones.forEach {
-                dao.deleteTombstone(entity = it.entity, entityId = it.entityId)
-            }
-        }
-    }
-
-    private fun isEditedAfter(
-        updatedAt: String,
-        deletedAt: String,
-    ): Boolean =
-        try {
-            Instant.parse(updatedAt).toEpochMilli() > Instant.parse(deletedAt).toEpochMilli()
-        } catch (e: Exception) {
-            false
-        }
-
-    /** True when the row was deleted (mid-sync) at or after its incoming edit. */
-    private fun isDeletedNewer(
-        tombstones: Map<String, String>,
-        entity: String,
-        id: String,
-        updatedAt: String,
-    ): Boolean {
-        val deletedAt = tombstones["$entity:$id"] ?: return false
-        return !isEditedAfter(updatedAt, deletedAt)
     }
 
     /**

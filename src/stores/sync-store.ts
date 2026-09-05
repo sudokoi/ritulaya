@@ -121,14 +121,16 @@ export async function configureExistingRepo(owner: string, repo: string) {
 }
 
 export async function syncNowAction() {
+  if (syncStore.getSnapshot().context.syncing) return
   syncStore.send({ type: "setSyncing", syncing: true })
   syncStore.send({ type: "setError", error: null })
   try {
     const result = await syncNow()
-    if (result?.status === "inSync") {
+    if (result) {
       await refreshAll()
     }
     await loadSyncStatus()
+    return result
   } catch (e) {
     syncStore.send({
       type: "setError",

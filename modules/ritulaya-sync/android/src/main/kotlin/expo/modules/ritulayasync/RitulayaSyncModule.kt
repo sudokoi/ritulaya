@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.withLock
 
 class RitulayaSyncModule : Module() {
     private lateinit var prefs: SharedPreferences
@@ -46,9 +47,13 @@ class RitulayaSyncModule : Module() {
             }
 
             AsyncFunction("disconnect") {
-                prefs.edit().clear().apply()
-                tokenStore.remove("github_token")
-                SyncWorker.cancel(appContext.reactContext?.applicationContext!!)
+                runBlocking {
+                    SyncOrchestrator.syncMutex.withLock {
+                        prefs.edit().clear().apply()
+                        tokenStore.remove("github_token")
+                        SyncWorker.cancel(appContext.reactContext?.applicationContext!!)
+                    }
+                }
             }
 
             AsyncFunction("getUsername") {
@@ -67,12 +72,26 @@ class RitulayaSyncModule : Module() {
             }
 
             AsyncFunction("configureRepo") { owner: String, repo: String, branch: String ->
-                prefs
-                    .edit()
-                    .putString("repo_owner", owner)
-                    .putString("repo_name", repo)
-                    .putString("repo_branch", branch)
-                    .apply()
+                runBlocking {
+                    SyncOrchestrator.syncMutex.withLock {
+                        val metadata = GithubApiClient(requireNotNull(tokenStore.load("github_token"))).repository(owner, repo)
+                        val selectedBranch = if (branch == "main") metadata.getString("default_branch") else branch
+                        prefs
+                            .edit()
+                            .putString("repo_owner", owner)
+                            .putString("repo_name", repo)
+                            .putString("repo_branch", selectedBranch)
+                            .putString("sync_target", "${metadata.getLong("id")}:$selectedBranch")
+                            .remove("action_required")
+                            .putString("sync_status", "idle")
+                            .apply()
+                    }
+                }
+            }
+
+            AsyncFunction("getSyncReview") { runBlocking { orchestrator.review() } }
+            AsyncFunction("resolveSyncReview") { id: String, choices: Map<String, String> ->
+                runBlocking { orchestrator.resolve(id, choices) }
             }
 
             AsyncFunction("getConfig") {

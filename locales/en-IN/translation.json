@@ -1,4 +1,25 @@
 {
+  "syncV2": {
+    "cycle": "Cycle association",
+    "review": "Review sync",
+    "migrationBody": "Upgrade this repository to the new sync protocol? Existing records will be imported into ritulaya/v2 as readable JSON. Legacy files remain unchanged. Upgrade all devices: older apps cannot read the new directory, and later edits to legacy files will not sync here. Conflicts require review before publication.",
+    "conflictBody": "Both copies changed independently. Choose which value to keep for each conflict. Nothing is published until every conflict is resolved. If either copy changes during review, you will be asked again.",
+    "reveal": "Show conflict details",
+    "local": "This device",
+    "remote": "Repository",
+    "keepLocal": "Keep device value",
+    "keepRemote": "Keep repository value",
+    "deleted": "Deleted or not recorded",
+    "approve": "Approve migration and sync",
+    "apply": "Apply choices and sync",
+    "noReview": "No review is pending. Return to Sync to check the latest status.",
+    "failed": "Could not complete this review. Your choices have not been discarded. Retry, or reload the review if the data changed.",
+    "error": {
+      "remoteChanged": "Another device updated the repository. Try syncing again.",
+      "github": "GitHub could not complete the request. Check access and try again after any rate limit expires.",
+      "invalidData": "Sync stopped safely: the repository or data is incompatible, incomplete, or inconsistent. No invalid snapshot was published. Check repository access, protocol version, and cycle associations before retrying."
+    }
+  },
   "bootstrap": {
     "failed": "Your data could not be loaded. Nothing has been changed. Please try again."
   },

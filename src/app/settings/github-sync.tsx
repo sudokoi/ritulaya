@@ -27,6 +27,8 @@ import { discreetLabel } from "@/lib/discreet"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import { i18n } from "@/i18n"
+import { Button } from "@/components/ui/button"
+import { AppText } from "@/components/ui/text"
 
 const REPO_NAME_PATTERN = /^[A-Za-z0-9._-]+$/
 
@@ -315,6 +317,21 @@ export default function GithubSyncScreen() {
                 })}
               </Text>
             </View>
+          ) : null}
+
+          {sync.status?.actionRequired ? (
+            <Button
+              variant="secondary"
+              className="mt-4"
+              onPress={() => router.push("/settings/sync-review")}
+            >
+              {t("syncV2.review")}
+            </Button>
+          ) : null}
+          {sync.status?.errorCode ? (
+            <AppText tone="muted" className="mt-3" accessibilityRole="alert">
+              {t(`syncV2.error.${sync.status.errorCode}`)}
+            </AppText>
           ) : null}
 
           <Pressable

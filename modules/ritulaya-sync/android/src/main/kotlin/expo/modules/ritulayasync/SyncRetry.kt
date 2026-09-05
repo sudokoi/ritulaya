@@ -13,6 +13,7 @@ internal fun shouldRetrySync(
 ): Boolean {
     if (attempt >= 3) return false
     return when (error) {
+        is SyncPublicationMoved -> true
         is GithubHttpException -> error.statusCode in 500..599 || error.statusCode in setOf(408, 409, 429)
         is HttpNotFoundException -> false
         is IOException -> true

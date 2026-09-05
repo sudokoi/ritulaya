@@ -13,7 +13,7 @@ interface ButtonProps {
   disabled?: boolean
   pending?: boolean
   pendingLabel?: string
-  accessibilityState?: { expanded?: boolean }
+  accessibilityState?: { expanded?: boolean; selected?: boolean }
   accessibilityLabel?: string
   accessibilityRole?: "button"
   className?: string

@@ -4,6 +4,10 @@ Date: 2026-08-14
 
 Status: Accepted
 
+Sync addendum: [ADR-0012](./0012-revision-based-sync.md) replaces timestamp merging
+and adds the Room v2 revision journal and device-local biometric policy. Native
+Room ownership and SQLCipher encryption remain unchanged.
+
 ## Context
 
 ADR-0003 chose expo-sqlite + Drizzle ORM, with the JS layer owning query construction and migrations. In practice this produced a split-brain: the JS app wrote via expo-sqlite's bundled SQLCipher while `ritulaya-sync` opened the same file via `android-database-sqlcipher` — two SQLCipher stacks, two copies of the schema (Drizzle + a hand-mirrored `LocalDataStore`), and prediction logic duplicated across JS and Kotlin.

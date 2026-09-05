@@ -1,7 +1,5 @@
 package expo.modules.ritulayasync
 
-import java.io.BufferedReader
-import java.io.StringReader
 import java.io.StringWriter
 import java.time.Instant
 import java.time.LocalDate
@@ -38,24 +36,20 @@ object CsvHandler {
     )
 
     fun parseCycles(csv: String): List<CycleRow> {
-        val reader = BufferedReader(StringReader(csv))
-        require(reader.readLine() == CYCLE_HEADER) { "Unsupported cycle CSV header" }
-
-        return reader
-            .lineSequence()
-            .filter { it.isNotBlank() }
+        val rows = parseCsv(csv)
+        require(rows.firstOrNull()?.joinToString(",") == CYCLE_HEADER) { "Unsupported cycle CSV header" }
+        return rows
+            .drop(1)
             .map { parseCycleRow(it) }
             .toList()
             .also { rows -> require(rows.map { it.id }.distinct().size == rows.size) { "Duplicate cycle IDs" } }
     }
 
     fun parseDayLogs(csv: String): List<DayLogRow> {
-        val reader = BufferedReader(StringReader(csv))
-        require(reader.readLine() == LOG_HEADER) { "Unsupported day-log CSV header" }
-
-        return reader
-            .lineSequence()
-            .filter { it.isNotBlank() }
+        val rows = parseCsv(csv)
+        require(rows.firstOrNull()?.joinToString(",") == LOG_HEADER) { "Unsupported day-log CSV header" }
+        return rows
+            .drop(1)
             .map { parseDayLogRow(it) }
             .toList()
             .also { rows ->
@@ -126,8 +120,7 @@ object CsvHandler {
             }
         }
 
-    private fun parseCycleRow(line: String): CycleRow {
-        val parts = parseCsvLine(line)
+    private fun parseCycleRow(parts: List<String>): CycleRow {
         require(parts.size == 6) { "Invalid cycle column count" }
         validateIdentity(parts[0], parts[3], parts[4], parts[5])
         if (parts[5].isEmpty()) {
@@ -146,8 +139,7 @@ object CsvHandler {
         )
     }
 
-    private fun parseDayLogRow(line: String): DayLogRow {
-        val parts = parseCsvLine(line)
+    private fun parseDayLogRow(parts: List<String>): DayLogRow {
         require(parts.size == 13) { "Invalid day-log column count" }
         validateIdentity(parts[0], parts[10], parts[11], parts[12])
         if (parts[12].isEmpty()) {
@@ -173,10 +165,12 @@ object CsvHandler {
         )
     }
 
-    private fun parseCsvLine(line: String): List<String> {
+    private fun parseCsv(line: String): List<List<String>> {
+        val rows = mutableListOf<List<String>>()
         val fields = mutableListOf<String>()
         val current = StringBuilder()
         var inQuotes = false
+        var closedQuote = false
         var i = 0
 
         while (i < line.length) {
@@ -189,6 +183,7 @@ object CsvHandler {
                             i++
                         } else {
                             inQuotes = false
+                            closedQuote = true
                         }
                     } else {
                         current.append(c)
@@ -196,15 +191,27 @@ object CsvHandler {
                 }
 
                 c == '"' -> {
+                    require(current.isEmpty() && !closedQuote) { "Quote inside an unquoted CSV field" }
                     inQuotes = true
                 }
 
                 c == ',' -> {
                     fields.add(current.toString())
                     current.setLength(0)
+                    closedQuote = false
+                }
+
+                c == '\n' || c == '\r' -> {
+                    fields.add(current.toString())
+                    if (fields.size != 1 || fields[0].isNotEmpty()) rows.add(fields.toList())
+                    fields.clear()
+                    current.setLength(0)
+                    closedQuote = false
+                    if (c == '\r' && i + 1 < line.length && line[i + 1] == '\n') i++
                 }
 
                 else -> {
+                    require(!closedQuote) { "Unexpected text after a closing CSV quote" }
                     current.append(c)
                 }
             }
@@ -212,8 +219,11 @@ object CsvHandler {
         }
 
         require(!inQuotes) { "Unterminated CSV quote" }
-        fields.add(current.toString())
-        return fields
+        if (fields.isNotEmpty() || current.isNotEmpty() || closedQuote) {
+            fields.add(current.toString())
+            rows.add(fields.toList())
+        }
+        return rows
     }
 
     private fun validateIdentity(
