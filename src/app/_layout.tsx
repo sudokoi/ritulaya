@@ -9,6 +9,7 @@ import { useWidget } from "@/hooks/use-widget"
 import { useAppRefresh } from "@/hooks/use-app-refresh"
 import { useSettings } from "@/hooks/use-settings"
 import { BiometricGate } from "@/components/biometric-gate"
+import { CaptureGate } from "@/components/capture-gate"
 import { AppBootstrap } from "@/components/app-bootstrap"
 import { useNotifications } from "@/hooks/use-notifications"
 import { changeLanguage } from "@/i18n"
@@ -34,19 +35,21 @@ export default function RootLayout() {
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} animated={false} />
       <AppBootstrap>
         <AppEffects />
-        <BiometricGate>
-          <ThemeProvider
-            value={colorScheme === "dark" ? darkNavigationTheme : lightNavigationTheme}
-          >
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="settings/github-sync" />
-              <Stack.Screen name="settings/privacy" />
-              <Stack.Screen name="settings/insights" />
-            </Stack>
-            <PortalHost />
-          </ThemeProvider>
-        </BiometricGate>
+        <CaptureGate>
+          <BiometricGate>
+            <ThemeProvider
+              value={colorScheme === "dark" ? darkNavigationTheme : lightNavigationTheme}
+            >
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="settings/github-sync" />
+                <Stack.Screen name="settings/privacy" />
+                <Stack.Screen name="settings/insights" />
+              </Stack>
+              <PortalHost />
+            </ThemeProvider>
+          </BiometricGate>
+        </CaptureGate>
       </AppBootstrap>
     </GestureHandlerRootView>
   )

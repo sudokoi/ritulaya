@@ -283,6 +283,7 @@
     "increase": "{{label}} 늘리기"
   },
   "gate": {
+    "captureFailed": "화면 개인정보 보호를 적용하지 못했습니다. 다시 시도할 때까지 기록을 숨깁니다.",
     "lockedTitle": "Ritulaya가 잠겨 있습니다",
     "lockedBody": "데이터를 보려면 인증하세요.",
     "unavailable": "이 기기에서는 생체 인증을 사용할 수 없습니다.",

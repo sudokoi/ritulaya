@@ -284,6 +284,7 @@
     "increase": "Increase {{label}}"
   },
   "gate": {
+    "captureFailed": "Screen privacy could not be applied. Your entries will stay hidden until you retry.",
     "lockedTitle": "Ritulaya is locked",
     "lockedBody": "Authenticate to view your data.",
     "unavailable": "Biometric authentication is unavailable on this device.",

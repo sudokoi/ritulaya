@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.view.WindowManager
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -20,6 +21,7 @@ class RitulayaAuthModule : Module() {
     private var active: Request? = null
     private var prompt: BiometricPrompt? = null
     private var credentialPending = false
+    private var captureProtected = true
 
     private data class Request(
         val id: Long,
@@ -95,7 +97,15 @@ class RitulayaAuthModule : Module() {
 
             Function("isAuthenticationCurrent") { token: String -> session.isCurrent(token) }
             AsyncFunction("cancel") { cancel() }.runOnQueue(Queues.MAIN)
-            OnActivityEntersForeground { session.enterForeground() }
+            AsyncFunction("setCaptureProtected") { enabled: Boolean ->
+                val activity = requireNotNull(appContext.currentActivity) { "No active window" }
+                captureProtected = enabled
+                applyCapturePolicy(activity)
+            }.runOnQueue(Queues.MAIN)
+            OnActivityEntersForeground {
+                session.enterForeground()
+                appContext.currentActivity?.let { activity -> activity.runOnUiThread { applyCapturePolicy(activity) } }
+            }
             OnActivityEntersBackground {
                 session.enterBackground()
                 if (!credentialPending) cancel()
@@ -113,6 +123,14 @@ class RitulayaAuthModule : Module() {
                 }
             }
         }
+
+    private fun applyCapturePolicy(activity: Activity) {
+        if (captureProtected) {
+            activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
 
     @Suppress("DEPRECATION")
     private fun credentials(

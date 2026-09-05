@@ -23,6 +23,7 @@ import { AppText } from "@/components/ui/text"
 import { ChoiceChip } from "@/components/ui/choice-chip"
 import { Field } from "@/components/ui/field"
 import { useDateLocale } from "@/hooks/use-date-locale"
+import { useCaptureReady } from "@/components/capture-gate"
 
 const FLOW_LEVELS: FlowIntensity[] = ["none", "spotting", "light", "medium", "heavy"]
 
@@ -59,6 +60,7 @@ export function DayDetailSheet({
   onDelete,
   onClose,
 }: DayDetailSheetProps) {
+  const captureReady = useCaptureReady()
   const [flow, setFlow] = useState<FlowIntensity | null>(existing?.flowIntensity ?? null)
   const [symptoms, setSymptoms] = useState<SymptomKey[]>(existing?.symptoms ?? [])
   const [mood, setMood] = useState<MoodKey | null>(existing?.mood ?? null)
@@ -181,7 +183,12 @@ export function DayDetailSheet({
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
+    <Modal
+      visible={Boolean(visible && captureReady)}
+      animationType={captureReady ? "slide" : "none"}
+      transparent
+      onRequestClose={close}
+    >
       {/* Resize the sheet's available height rather than padding its scrolling content. */}
       <KeyboardAvoidingView behavior="height" style={styles.keyboardContainer}>
         <Pressable className="absolute inset-0" onPress={close} accessible={false} />

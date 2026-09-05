@@ -23,6 +23,9 @@
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification
   permission only when enabling reminders. Guard pending settings writes, separate
   cycle-length editing from seeding, and disable Android automatic backup.
+- Protect Android screenshots, recordings and recent-app previews when biometric
+  lock or discreet mode is enabled. Keep routes hidden until the native window
+  policy is applied, and offer a fail-closed retry if it cannot be applied.
 - Replace timestamp-based sync with local revisions, three-way merging, explicit
   conflict review, atomic Git publication, and restart-safe recovery. Migrate old
   repository data only after confirmation, into readable JSON under `ritulaya/v2`;
