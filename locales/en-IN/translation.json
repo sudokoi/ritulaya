@@ -63,6 +63,9 @@
     "privatePreview": "Entry recorded. Tap to view or edit."
   },
   "today": {
+    "cycleDay": "Cycle day",
+    "noCycleTitle": "No current cycle yet",
+    "noCycleBody": "Record a period start or add your last period to see your cycle day and estimates. You can still log how you feel today.",
     "logToday": "Log today",
     "editToday": "Edit today's entry",
     "logEntry": "Log this day",

@@ -1,6 +1,6 @@
-import { View, Text, ScrollView, Pressable } from "react-native"
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native"
 import { useState, useCallback, useMemo } from "react"
-import { format, differenceInDays, isToday } from "date-fns"
+import { format, differenceInCalendarDays, parseISO, isToday } from "date-fns"
 import { useFocusEffect, router } from "expo-router"
 import { useColorScheme } from "nativewind"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -50,15 +50,17 @@ export default function TodayScreen() {
   )
 
   const daysUntilPeriod = prediction
-    ? Math.max(0, differenceInDays(prediction.nextPeriodStart, today))
-    : 14
+    ? Math.max(0, differenceInCalendarDays(prediction.nextPeriodStart, today))
+    : 0
 
   const phaseColor = PHASE_COLORS[phase].hex
   const phaseTextColor = dark ? PHASE_COLORS[phase].darkHex : phaseColor
 
-  const cycleDay = currentCycle
-    ? Math.max(1, differenceInDays(today, new Date(currentCycle.startDate)) + 1)
-    : "-"
+  const cycleDay =
+    isLoaded && currentCycle
+      ? differenceInCalendarDays(today, parseISO(currentCycle.startDate)) + 1
+      : null
+  const hasCycleDay = cycleDay !== null && cycleDay > 0
 
   const selectedWeekLog = useMemo(
     () => getLogForDate(format(selectedWeekDate, "yyyy-MM-dd")),
@@ -75,51 +77,75 @@ export default function TodayScreen() {
     <>
       <ScrollView className="flex-1 bg-[var(--bg-primary)]">
         <View className="items-center px-6 pb-6" style={{ paddingTop: insets.top + 24 }}>
-          <Text className="text-7xl font-bold text-[var(--text-primary)]">
-            {isLoaded ? cycleDay : "-"}
-          </Text>
-          <View className="mt-3 flex-row items-center gap-2">
-            <View
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: phaseColor }}
-            />
-            <Text className="text-lg font-medium" style={{ color: phaseTextColor }}>
-              {t(phaseNameKey(phase))}
-            </Text>
-          </View>
-          <View className="mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-[var(--bg-muted)]">
-            <View
-              className="h-full rounded-full"
-              style={{
-                backgroundColor: phaseColor,
-                width: `${Math.min(((cycleDay === "-" ? 14 : (cycleDay as number)) / avgCycleLength) * 100, 100)}%`,
-              }}
-            />
-          </View>
-          <Text className="mt-2 text-base text-[var(--text-muted)]">
-            {lowConfidence
-              ? t("today.roughlyDaysUntil", { count: daysUntilPeriod })
-              : t("today.daysUntil", { count: daysUntilPeriod })}
-          </Text>
-          {prediction ? (
+          {hasCycleDay ? (
             <>
-              <Text className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
-                {format(prediction.nextPeriodStart, "MMM d")} —{" "}
-                {format(prediction.nextPeriodEnd, "MMM d")}
+              <Text className="text-7xl font-bold text-[var(--text-primary)]">
+                {cycleDay}
               </Text>
-              <Text className="mt-1 text-center text-sm text-[var(--text-muted)]">
-                {t("today.couldStart", {
-                  start: format(prediction.uncertaintyWindow.start, "MMM d"),
-                  end: format(prediction.uncertaintyWindow.end, "MMM d"),
-                })}
+              <Text className="text-base text-[var(--text-muted)]">
+                {t("today.cycleDay")}
+              </Text>
+              {prediction ? (
+                <>
+                  <View className="mt-3 flex-row items-center gap-2">
+                    <View
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: phaseColor }}
+                    />
+                    <Text
+                      className="text-lg font-medium"
+                      style={{ color: phaseTextColor }}
+                    >
+                      {t(phaseNameKey(phase))}
+                    </Text>
+                  </View>
+                  <View className="mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-[var(--bg-muted)]">
+                    <View
+                      className="h-full rounded-full"
+                      style={{
+                        backgroundColor: phaseColor,
+                        width: `${Math.min((cycleDay / avgCycleLength) * 100, 100)}%`,
+                      }}
+                    />
+                  </View>
+                  <Text className="mt-2 text-base text-[var(--text-muted)]">
+                    {lowConfidence
+                      ? t("today.roughlyDaysUntil", { count: daysUntilPeriod })
+                      : t("today.daysUntil", { count: daysUntilPeriod })}
+                  </Text>
+                  <Text className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
+                    {format(prediction.nextPeriodStart, "MMM d")} —{" "}
+                    {format(prediction.nextPeriodEnd, "MMM d")}
+                  </Text>
+                  <Text className="mt-1 text-center text-sm text-[var(--text-muted)]">
+                    {t("today.couldStart", {
+                      start: format(prediction.uncertaintyWindow.start, "MMM d"),
+                      end: format(prediction.uncertaintyWindow.end, "MMM d"),
+                    })}
+                  </Text>
+                  {lowConfidence ? (
+                    <Text className="mt-2 text-xs text-[var(--text-muted)] opacity-70">
+                      {t("today.logMoreCycles")}
+                    </Text>
+                  ) : null}
+                </>
+              ) : null}
+            </>
+          ) : isLoaded ? (
+            <>
+              <Text
+                accessibilityRole="header"
+                className="text-center text-2xl font-bold text-[var(--text-primary)]"
+              >
+                {t("today.noCycleTitle")}
+              </Text>
+              <Text className="mt-3 text-center text-base leading-6 text-[var(--text-muted)]">
+                {t("today.noCycleBody")}
               </Text>
             </>
-          ) : null}
-          {lowConfidence ? (
-            <Text className="mt-2 text-xs text-[var(--text-muted)] opacity-70">
-              {t("today.logMoreCycles")}
-            </Text>
-          ) : null}
+          ) : (
+            <ActivityIndicator />
+          )}
         </View>
 
         {isLoaded && currentCycle === null ? (
@@ -234,14 +260,16 @@ export default function TodayScreen() {
           </View>
         </View>
 
-        <View
-          className="mx-4 mt-4 mb-8 rounded-card px-5 py-4"
-          style={{ backgroundColor: `${phaseTextColor}1f` }}
-        >
-          <Text className="text-sm font-medium" style={{ color: phaseTextColor }}>
-            {t(phaseTipKey(phase))}
-          </Text>
-        </View>
+        {hasCycleDay && prediction ? (
+          <View
+            className="mx-4 mt-4 mb-8 rounded-card px-5 py-4"
+            style={{ backgroundColor: `${phaseTextColor}1f` }}
+          >
+            <Text className="text-sm font-medium" style={{ color: phaseTextColor }}>
+              {t(phaseTipKey(phase))}
+            </Text>
+          </View>
+        ) : null}
       </ScrollView>
       <DayDetailSheet
         key={editor.selectedDate ? format(editor.selectedDate, "yyyy-MM-dd") : "closed"}
