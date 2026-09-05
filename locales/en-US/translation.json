@@ -1,4 +1,7 @@
 {
+  "bootstrap": {
+    "failed": "Your data could not be loaded. Nothing has been changed. Please try again."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -109,6 +112,10 @@
     "egg-white": "Egg white"
   },
   "settings": {
+    "saveFailedTitle": "Settings not saved",
+    "saveFailedBody": "Your change could not be saved. Please try again.",
+    "permissionTitle": "Notifications are disabled",
+    "permissionBody": "Allow notifications in Android settings to enable reminders.",
     "title": "Settings",
     "viewInsights": "View Full Insights",
     "adjustCycle": "Adjust cycle lengths",

@@ -32,5 +32,6 @@ export async function loadCycles() {
     cycleStore.send({ type: "setCycles", cycles, currentCycle })
   } catch (e) {
     logger.error("db:cycles", "Failed to load cycles", e)
+    throw e
   }
 }

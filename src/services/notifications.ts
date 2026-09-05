@@ -45,6 +45,7 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync()
   if (existing === "granted") return true
 
+  await ensureReminderChannel(i18n.language)
   const { status } = await Notifications.requestPermissionsAsync()
   return status === "granted"
 }
@@ -142,23 +143,33 @@ export async function scheduleOverdueNudge(discreet: boolean) {
   })
 }
 
-export async function updateAllReminders(
+let reminderQueue: Promise<void> = Promise.resolve()
+
+export function updateAllReminders(
   nextPeriodStart: Date | null,
   periodDaysAhead: number,
   dailyLogEnabled: boolean,
   discreet: boolean,
   overdue: boolean,
 ) {
-  await cancelAllReminders()
+  const work = reminderQueue
+    .catch(() => undefined)
+    .then(async () => {
+      await cancelAllReminders()
+      const permission = await Notifications.getPermissionsAsync()
+      if (permission.status !== "granted") return
 
-  if (overdue) {
-    // While overdue, the daily nudge replaces the period-ahead reminder.
-    await scheduleOverdueNudge(discreet)
-  } else if (nextPeriodStart && periodDaysAhead > 0) {
-    await schedulePeriodReminder(nextPeriodStart, periodDaysAhead, discreet)
-  }
+      if (overdue && periodDaysAhead > 0) {
+        // While overdue, the daily nudge replaces the period-ahead reminder.
+        await scheduleOverdueNudge(discreet)
+      } else if (nextPeriodStart && periodDaysAhead > 0) {
+        await schedulePeriodReminder(nextPeriodStart, periodDaysAhead, discreet)
+      }
 
-  if (dailyLogEnabled) {
-    await scheduleDailyLogReminder(discreet)
-  }
+      if (dailyLogEnabled) {
+        await scheduleDailyLogReminder(discreet)
+      }
+    })
+  reminderQueue = work
+  return work
 }

@@ -9,10 +9,8 @@ import { TodayCard } from "@/components/today-card"
 import { useCycles } from "@/hooks/use-cycles"
 import { useSettings } from "@/hooks/use-settings"
 import { usePrediction } from "@/hooks/use-predictions"
-import { useNotifications } from "@/hooks/use-notifications"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
-import { refreshAll } from "@/data/refresh"
 import { phaseNameKey, phaseTipKey } from "@/lib/phase"
 import { useTranslation } from "react-i18next"
 import { PHASE_COLORS } from "@/constants/phase-colors"
@@ -30,7 +28,6 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const [today, setToday] = useState(() => new Date())
   const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(() => new Date())
-  useNotifications()
 
   const { todayLog, getLogForDate } = useDayLogs()
   const dayStates = useCycleDayStates()
@@ -40,7 +37,6 @@ export default function TodayScreen() {
       const now = new Date()
       setToday(now)
       setSelectedWeekDate((prev) => (isToday(prev) ? now : prev))
-      void refreshAll()
     }, []),
   )
 

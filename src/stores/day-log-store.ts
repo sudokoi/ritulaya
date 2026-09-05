@@ -59,6 +59,7 @@ export async function loadDayLogs() {
     dayLogStore.send({ type: "setLogs", logs })
   } catch (e) {
     logger.error("db:day-logs", "Failed to load day logs", e)
+    throw e
   }
 }
 
