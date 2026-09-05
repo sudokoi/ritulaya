@@ -67,8 +67,10 @@ describe("toCyclesCsv", () => {
     const csv = toCyclesCsv([cycle])
     const lines = csv.split("\n")
 
-    expect(lines[0]).toBe("start_date,end_date,created_at")
-    expect(lines[1]).toBe('"2026-01-01","2026-01-28","2026-01-01T00:00:00.000Z"')
+    expect(lines[0]).toBe("start_date,end_date,created_at,id,updated_at")
+    expect(lines[1]).toBe(
+      '"2026-01-01","2026-01-28","2026-01-01T00:00:00.000Z","c1","2026-01-01T00:00:00.000Z"',
+    )
   })
 
   it("renders a missing end date as an empty cell", () => {
@@ -81,7 +83,7 @@ describe("toCyclesCsv", () => {
     }
 
     expect(toCyclesCsv([cycle]).split("\n")[1]).toBe(
-      '"2026-01-01","","2026-01-01T00:00:00.000Z"',
+      '"2026-01-01","","2026-01-01T00:00:00.000Z","c1","2026-01-01T00:00:00.000Z"',
     )
   })
 })
@@ -91,14 +93,33 @@ describe("toLogsCsv", () => {
     const csv = toLogsCsv([baseLog])
     const lines = csv.split("\n")
 
-    expect(lines[0]).toBe("date,flow_intensity,symptoms,mood,notes")
-    expect(lines[1]).toBe('"2026-01-01","medium","cramps;bloating","calm",""')
+    expect(lines[0]).toBe(
+      "date,flow_intensity,symptoms,mood,notes,id,cycle_id,cervical_mucus,bbt,sexual_activity,created_at,updated_at",
+    )
+    expect(lines[1]).toBe(
+      '"2026-01-01","medium","cramps;bloating","calm","","1","","","","0","2026-01-01T00:00:00.000Z","2026-01-01T00:00:00.000Z"',
+    )
   })
 
   it("keeps notes containing commas intact", () => {
     const log = { ...baseLog, notes: "cramps, bad" }
     const row = toLogsCsv([log]).split("\n")[1]
 
-    expect(row).toBe('"2026-01-01","medium","cramps;bloating","calm","cramps, bad"')
+    expect(row).toContain('"2026-01-01","medium","cramps;bloating","calm","cramps, bad"')
+  })
+
+  it("exports body fields, identities, relationships and timestamps", () => {
+    const csv = toLogsCsv([
+      {
+        ...baseLog,
+        cycleId: "c1",
+        cervicalMucus: "creamy",
+        bbt: 36.7,
+        sexualActivity: 1,
+      },
+    ])
+    expect(csv.split("\n")[1]).toContain(
+      '"1","c1","creamy","36.7","1","2026-01-01T00:00:00.000Z","2026-01-01T00:00:00.000Z"',
+    )
   })
 })
