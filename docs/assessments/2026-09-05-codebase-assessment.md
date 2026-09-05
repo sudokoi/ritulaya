@@ -67,7 +67,7 @@ Configuration/documentation changes:
 - README storage/module/version descriptions, privacy and Keystore wording,
   OAuth-scope disclosure, ADR implementation notes/index, and bug-report
   instructions now match this pass. GitHub CSV/JSON stays plaintext by design.
-- Release notes are recorded in `.changeset/privacy-data-sync-hardening.md`.
+- Release notes are consolidated in `.changeset/ui-refresh-and-hardening.md`.
 
 Still open / intentionally not claimed complete:
 
@@ -142,7 +142,7 @@ tests of behavior already guaranteed by external libraries.
 Validation: 57 JS/React tests in 15 suites and all native Kotlin test tasks passed.
 No database schema migration was introduced. This command requires a rebuilt
 Android app; it must not be delivered as JS alone to an older native binary.
-Release notes: `.changeset/atomic-day-entry.md`.
+Release notes: `.changeset/ui-refresh-and-hardening.md`.
 
 Still not addressed by this slice: cycle reconciliation after clearing/deleting
 flow, existing orphan repair, sexual-activity tri-state semantics, and complete
@@ -215,7 +215,7 @@ Pending device checks when access is granted:
 
 The keyboard change is an implementation awaiting device confirmation, not a
 verified fix of the tester's report. Nothing in this slice establishes a cause or
-fix for the intermittent crash. Release notes: `.changeset/today-logging-ux.md`.
+fix for the intermittent crash. Release notes: `.changeset/ui-refresh-and-hardening.md`.
 
 ### Day-entry workflow and searchable history follow-up
 
@@ -274,8 +274,7 @@ Cycle reconciliation, historical orphan repair, nullable-field migration, sync
 concurrency, and atomic cross-store refresh remain outside this slice. The earlier
 native `saveDayEntry` change still requires a rebuilt Android app.
 
-Release notes: `.changeset/day-entry-workflow.md` and
-`.changeset/searchable-history.md`. The workflow changes were committed as
+Release notes: `.changeset/ui-refresh-and-hardening.md`. The workflow changes were committed as
 `64bb7c8`, searchable history as `c3cfaf4`, and the Today fallback below as
 `9149297`. Nothing was pushed.
 
@@ -332,7 +331,7 @@ approved OpenCode temporary directory. Key artifacts are
 History device interaction checks, full multiline/BBT keyboard checks, large-font
 and TalkBack checks, and the Pixel 8 Pro / Android 17 crash investigation remain
 open. The latest Today correction is recorded in
-`.changeset/today-cycle-fallback.md`; it does not alter native predictions or
+`.changeset/ui-refresh-and-hardening.md`; it does not alter native predictions or
 stored history.
 
 The host Metro server on port 8082 remains available for inspecting the QA app;
