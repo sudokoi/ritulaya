@@ -16,6 +16,10 @@ class SyncCompatibilityTest {
         assertThat(roundTrip).isEqualTo(records)
         assertThat(roundTrip.getValue("day:2026-09-05")?.get("notes")).isEqualTo("First line\nSecond, \"quoted\" line")
         assertThat(roundTrip.getValue("day:2026-09-05")?.get("sexual_activity")).isEqualTo("0")
+        val unrecorded = records + ("day:2026-09-05" to (records.getValue("day:2026-09-05")!! + ("sexual_activity" to null)))
+        val files = SyncRecordsCodec.encode(unrecorded).mapKeys { it.key.substringAfterLast('/') }
+        assertThat(JSONObject(files.getValue("manifest.json")).getInt("schemaVersion")).isEqualTo(3)
+        assertThat(SyncRecordsCodec.decode(files).getValue("day:2026-09-05")?.get("sexual_activity")).isNull()
     }
 
     @Test(expected = IllegalArgumentException::class)

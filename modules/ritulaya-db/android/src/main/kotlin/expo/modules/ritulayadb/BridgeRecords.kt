@@ -23,6 +23,9 @@ class DayLogInput : Record {
     @Field var bbt: Double? = null
 
     @Field var sexualActivity: Boolean? = null
+
+    /** Omitted/null values keep stored data; these named fields explicitly clear it. */
+    @Field var clearFields: List<String> = emptyList()
 }
 
 class SettingsPatch : Record {

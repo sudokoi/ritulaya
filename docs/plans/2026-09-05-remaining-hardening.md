@@ -49,5 +49,11 @@ and unrelated port 8081 must remain untouched.
   ADR-0012, including explicit remote migration and review UI. Implementation and
   local validation are recorded in the [sync follow-up](../assessments/2026-09-05-revision-sync-validation.md).
   Steps 3–6 above remain to be completed; live-sync validation is not claimed.
+- Entry semantics now use explicit clear intent and nullable sexual activity,
+  preserving prior Yes/No through Room v1/v2→v3. Historical repair and future-edit
+  reconciliation are still pending within step 3; no stored history is rewritten.
+  Validation: 139 JS/React tests and 75 native tests passed, plus typecheck,
+  lint/format/whitespace checks. The Room v3 ARM64 release-mode build passed;
+  no production install, live GitHub test or publication was performed.
 - The maintainer disallowed live GitHub testing and publication. Complete codewise
   and commit each validated logical change; do not create a remote QA repository.

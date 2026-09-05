@@ -139,6 +139,7 @@
     "today": "आज"
   },
   "sheet": {
+    "notRecorded": "दर्ज नहीं किया गया",
     "moreTracking": "अतिरिक्त जानकारी",
     "lessTracking": "अतिरिक्त जानकारी छिपाएँ",
     "flow": "फ्लो",

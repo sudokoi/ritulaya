@@ -15,6 +15,9 @@
 - Save entries through one native transaction using persisted flow. Preserve
   existing fields and cycle associations during period fill; clear flow without
   overwriting other fields. All editors await shared persistence/refresh commands.
+- Add explicit Yes, No and Not recorded activity choices. Preserve existing No
+  values during migration; new entries remain unrecorded. Replace implicit clear
+  sentinels with named field intent and keep partial writes transactional.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification

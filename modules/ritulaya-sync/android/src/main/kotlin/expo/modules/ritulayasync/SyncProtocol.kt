@@ -88,11 +88,11 @@ internal object ThreeWayMerge {
                                         l[field]
                                     }
 
-                                    l[field] == b?.get(field) -> {
+                                    b != null && l[field] == b[field] -> {
                                         r[field]
                                     }
 
-                                    r[field] == b?.get(field) -> {
+                                    b != null && r[field] == b[field] -> {
                                         l[field]
                                     }
 

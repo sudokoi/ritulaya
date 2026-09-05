@@ -36,6 +36,41 @@ class DayEntryStoreTest {
     }
 
     @Test
+    fun `new entries are unrecorded and partial edits preserve an explicit No until cleared`(): Unit =
+        runBlocking {
+            store.saveDayEntry(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    flowIntensity = "medium"
+                },
+                2,
+            )
+            assertThat(store.listDayLogs().all { it.sexualActivity == null }).isTrue()
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    sexualActivity = false
+                },
+            )
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    notes = "keep No"
+                },
+            )
+            assertThat(store.listDayLogs().single { it.date == "2026-06-01" }.sexualActivity).isEqualTo(0)
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    clearFields = listOf("sexualActivity")
+                },
+            )
+            val cleared = store.listDayLogs().single { it.date == "2026-06-01" }
+            assertThat(cleared.sexualActivity).isNull()
+            assertThat(cleared.notes).isEqualTo("keep No")
+        }
+
+    @Test
     fun `period fill associates every entry with the chosen cycle`(): Unit =
         runBlocking {
             store.logPeriodOn("2026-06-01", "medium", 3)

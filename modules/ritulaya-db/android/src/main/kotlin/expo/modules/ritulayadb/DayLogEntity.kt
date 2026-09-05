@@ -16,7 +16,7 @@ data class DayLogEntity(
     @ColumnInfo(name = "notes") val notes: String?,
     @ColumnInfo(name = "cervical_mucus") val cervicalMucus: String?,
     @ColumnInfo(name = "bbt") val bbt: Double?,
-    @ColumnInfo(name = "sexual_activity", defaultValue = "0") val sexualActivity: Int,
+    @ColumnInfo(name = "sexual_activity") val sexualActivity: Int?,
     @ColumnInfo(name = "created_at") val createdAt: String,
     @ColumnInfo(name = "updated_at") val updatedAt: String,
 )

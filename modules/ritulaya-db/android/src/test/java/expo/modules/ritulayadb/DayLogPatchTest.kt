@@ -4,8 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 /**
- * Pins the bridge's clear convention: null keeps the stored value, an empty
- * string clears text fields, 0.0 clears BBT. If these tests fail, the
+ * Pins the bridge's clear convention: null keeps the stored value and named
+ * clearFields remove recorded values. If these tests fail, the
  * contract between saveDayEntry (JS) and resolveDayLogFields has drifted.
  */
 class DayLogPatchTest {
@@ -55,12 +55,10 @@ class DayLogPatchTest {
     }
 
     @Test
-    fun `empty string explicitly clears a text field`() {
+    fun `clear intent explicitly removes nullable fields`() {
         val input =
             DayLogInput().apply {
-                mood = CLEAR_TEXT
-                notes = CLEAR_TEXT
-                cervicalMucus = CLEAR_TEXT
+                clearFields = listOf("mood", "notes", "cervicalMucus", "cycleId", "flowIntensity", "sexualActivity")
             }
 
         val resolved = resolveDayLogFields(input, existing())
@@ -68,11 +66,14 @@ class DayLogPatchTest {
         assertThat(resolved.mood).isNull()
         assertThat(resolved.notes).isNull()
         assertThat(resolved.cervicalMucus).isNull()
+        assertThat(resolved.cycleId).isNull()
+        assertThat(resolved.flowIntensity).isNull()
+        assertThat(resolved.sexualActivity).isNull()
     }
 
     @Test
-    fun `zero BBT explicitly clears the field`() {
-        val resolved = resolveDayLogFields(DayLogInput().apply { bbt = CLEAR_BBT }, existing())
+    fun `clear intent removes BBT without an impossible temperature sentinel`() {
+        val resolved = resolveDayLogFields(DayLogInput().apply { clearFields = listOf("bbt") }, existing())
 
         assertThat(resolved.bbt).isNull()
     }
@@ -108,6 +109,17 @@ class DayLogPatchTest {
         assertThat(resolved.flowIntensity).isEqualTo("none")
         assertThat(resolved.mood).isNull()
         assertThat(resolved.bbt).isNull()
-        assertThat(resolved.sexualActivity).isEqualTo(0)
+        assertThat(resolved.sexualActivity).isNull()
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `setting and clearing the same field fails instead of guessing intent`() {
+        resolveDayLogFields(
+            DayLogInput().apply {
+                sexualActivity = false
+                clearFields = listOf("sexualActivity")
+            },
+            existing(),
+        )
     }
 }

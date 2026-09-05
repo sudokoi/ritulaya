@@ -50,7 +50,7 @@ internal object SyncRecordsCodec {
             "notes" to row.notes,
             "cervical_mucus" to row.cervicalMucus,
             "bbt" to row.bbt?.toString(),
-            "sexual_activity" to row.sexualActivity.toString(),
+            "sexual_activity" to row.sexualActivity?.toString(),
             "created_at" to row.createdAt,
             "updated_at" to row.updatedAt,
         )
@@ -80,7 +80,7 @@ internal object SyncRecordsCodec {
                 JSONObject()
                     .put("app", "ritulaya")
                     .put("protocolVersion", 2)
-                    .put("schemaVersion", 2)
+                    .put("schemaVersion", 3)
                     .put("files", JSONArray(files.filter { it != "manifest.json" }))
                     .toString(2),
         )
@@ -90,7 +90,7 @@ internal object SyncRecordsCodec {
         require(contents.keys == files.toSet()) { "Incomplete protocol snapshot" }
         val manifest = JSONObject(contents.getValue("manifest.json"))
         require(
-            manifest.getString("app") == "ritulaya" && manifest.get("protocolVersion") == 2 && manifest.get("schemaVersion") == 2,
+            manifest.getString("app") == "ritulaya" && manifest.get("protocolVersion") == 2 && manifest.get("schemaVersion") in setOf(2, 3),
         ) {
             "Unsupported sync protocol; upgrade required"
         }
@@ -207,7 +207,7 @@ internal object SyncRecordsCodec {
             row["notes"],
             row["cervical_mucus"],
             row["bbt"]?.toDouble(),
-            row.getValue("sexual_activity")!!.toInt(),
+            row["sexual_activity"]?.toInt(),
             row.getValue("created_at")!!,
             row.getValue("updated_at")!!,
         )
@@ -295,7 +295,7 @@ internal object SyncRecordsCodec {
                     val entity = dayEntity(row)
                     require(key == "day:${entity.date}" && entity.id.isNotBlank())
                     require(entity.flowIntensity in setOf(null, "none", "spotting", "light", "medium", "heavy"))
-                    require(entity.sexualActivity in 0..1)
+                    require(entity.sexualActivity == null || entity.sexualActivity in 0..1)
                     require(entity.bbt?.isFinite() != false)
                     val symptoms = JSONArray(entity.symptoms)
                     val knownSymptoms =

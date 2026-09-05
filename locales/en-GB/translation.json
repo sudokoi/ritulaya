@@ -139,6 +139,7 @@
     "today": "Today"
   },
   "sheet": {
+    "notRecorded": "Not recorded",
     "moreTracking": "More tracking",
     "lessTracking": "Hide additional tracking",
     "flow": "Flow",

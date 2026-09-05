@@ -138,6 +138,7 @@
     "today": "오늘"
   },
   "sheet": {
+    "notRecorded": "기록하지 않음",
     "moreTracking": "추가 기록",
     "lessTracking": "추가 기록 숨기기",
     "flow": "월경량",

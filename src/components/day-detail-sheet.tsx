@@ -36,7 +36,7 @@ interface DayDetailSheetProps {
     notes: string | null
     cervicalMucus: string | null
     bbt: number | null
-    sexualActivity: number
+    sexualActivity: number | null
   } | null
   onSave: (entry: DayEntryInput) => Promise<void>
   onClearPeriod?: () => Promise<void>
@@ -364,11 +364,17 @@ export function DayDetailSheet({
                     <View className="gap-3">
                       <AppText variant="label">{t("sheet.sexualActivity")}</AppText>
                       <View className="flex-row flex-wrap gap-2">
-                        {[true, false].map((value) => (
+                        {[true, false, null].map((value) => (
                           <ChoiceChip
                             key={String(value)}
-                            label={t(value ? "common.yes" : "common.no")}
-                            accessibilityLabel={`${t("sheet.sexualActivity")}: ${t(value ? "common.yes" : "common.no")}`}
+                            label={t(
+                              value === null
+                                ? "sheet.notRecorded"
+                                : value
+                                  ? "common.yes"
+                                  : "common.no",
+                            )}
+                            accessibilityLabel={`${t("sheet.sexualActivity")}: ${t(value === null ? "sheet.notRecorded" : value ? "common.yes" : "common.no")}`}
                             selected={sexualActivity === value}
                             disabled={pending}
                             onPress={() => {

@@ -59,6 +59,20 @@ lists retain their JSON-array representation. A null record is a durable deletio
 Unknown legacy day IDs are retained as deletion aliases until they can be matched
 to an entry date. Malformed, incomplete and unsupported snapshots stop sync.
 
+### Entry-semantics follow-up
+
+Room v2→v3 makes sexual activity nullable without reinterpreting any existing 0/1
+value. The migration retains revision/checkpoint tables and reinstalls day-entry
+triggers after rebuilding that table. New entries default to unrecorded. The
+bridge uses named `clearFields` for explicit clears; omitted/null fields keep
+stored data, and an empty symptom list clears symptoms.
+
+Protocol 2 now writes schema 3, permitting null sexual activity. It still reads
+schema 2 records with their recorded No/Yes values and imports legacy CSV without
+changing those values. A schema-2-only client rejects schema 3 before merge or
+publication, rather than silently interpreting unknown as No. The versioned
+directory and plaintext storage decision are unchanged.
+
 Legacy files and Git history are not deleted or rewritten. Older apps cannot
 damage the versioned directory, but their later edits to legacy files do not
 participate in the new sync. All participating devices must upgrade. A first sync
