@@ -9,6 +9,7 @@ import expo.modules.ritulayadb.SettingsEntity
 import expo.modules.ritulayadb.SyncTombstoneEntity
 import expo.modules.ritulayasync.CsvHandler.CycleRow
 import expo.modules.ritulayasync.CsvHandler.DayLogRow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -33,7 +34,7 @@ class SyncOrchestrator(
         private val syncMutex = Mutex()
     }
 
-    suspend fun sync(): Map<String, Any?> {
+    suspend fun sync(propagateFailure: Boolean = false): Map<String, Any?> {
         val token = tokenStore.load("github_token")
         if (token == null) return notRunResult()
 
@@ -48,6 +49,9 @@ class SyncOrchestrator(
         setStatus(STATUS_SYNCING)
         return try {
             syncMutex.withLock { fetchMergePush(api, owner, repo, branch) }
+        } catch (e: CancellationException) {
+            setStatus(STATUS_IDLE)
+            throw e
         } catch (e: Exception) {
             val failures = prefs.getInt("consecutive_failures", 0) + 1
             prefs.edit().putInt("consecutive_failures", failures).apply()
@@ -55,6 +59,7 @@ class SyncOrchestrator(
                 prefs.edit().putBoolean("sync_warning", true).apply()
             }
             setStatus(STATUS_ERROR)
+            if (propagateFailure) throw e
             statusSnapshot()
         }
     }

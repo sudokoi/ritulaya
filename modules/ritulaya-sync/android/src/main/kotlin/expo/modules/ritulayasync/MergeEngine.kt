@@ -13,12 +13,12 @@ object MergeEngine {
         remote.forEach { remoteRow ->
             val localRow = merged[remoteRow.id]
             if (localRow == null) {
-                if (remoteRow.deletedAt == null) merged[remoteRow.id] = remoteRow
+                merged[remoteRow.id] = remoteRow
             } else if (remoteRow.deletedAt != null) {
                 if (localRow.deletedAt != null) {
-                    merged.remove(remoteRow.id)
+                    if (parseIso(remoteRow.deletedAt) >= parseIso(localRow.deletedAt)) merged[remoteRow.id] = remoteRow
                 } else if (parseIso(remoteRow.deletedAt) >= parseIso(localRow.updatedAt)) {
-                    merged.remove(remoteRow.id)
+                    merged[remoteRow.id] = remoteRow
                 }
             } else if (localRow.deletedAt != null) {
                 if (parseIso(localRow.deletedAt) >= parseIso(remoteRow.updatedAt)) {
@@ -44,12 +44,12 @@ object MergeEngine {
         remote.forEach { remoteRow ->
             val localRow = merged[remoteRow.id]
             if (localRow == null) {
-                if (remoteRow.deletedAt == null) merged[remoteRow.id] = remoteRow
+                merged[remoteRow.id] = remoteRow
             } else if (remoteRow.deletedAt != null) {
                 if (localRow.deletedAt != null) {
-                    merged.remove(remoteRow.id)
+                    if (parseIso(remoteRow.deletedAt) >= parseIso(localRow.deletedAt)) merged[remoteRow.id] = remoteRow
                 } else if (parseIso(remoteRow.deletedAt) >= parseIso(localRow.updatedAt)) {
-                    merged.remove(remoteRow.id)
+                    merged[remoteRow.id] = remoteRow
                 }
             } else if (localRow.deletedAt != null) {
                 if (parseIso(localRow.deletedAt) >= parseIso(remoteRow.updatedAt)) {

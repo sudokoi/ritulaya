@@ -4,7 +4,19 @@ Date: 2026-08-14
 
 Status: Superseded by ADR-0010
 
-> Superseded by ADR-0010 on 2026-08-14. The sync semantics (one pipeline, tombstones, delete-wins) remain, but `LocalDataStore` was replaced by the shared `RitulayaDataStore` facade in `ritulaya-db`.
+> Superseded by ADR-0010 on 2026-08-14: `LocalDataStore` was replaced by the
+> shared `RitulayaDataStore` facade in `ritulaya-db`. The original decision below
+> is historical. Current merge behavior compares edit and deletion timestamps;
+> deletion wins ties, but an explicitly newer edit can restore a row.
+
+> Hardening addendum (2026-09-05): remote tombstones are retained indefinitely,
+> including on repeated syncs with no local row. There is no device registry or
+> acknowledgement protocol that could prove all offline devices observed a
+> deletion. Retention trades small CSV growth for protection against stale
+> resurrection. Local pending tombstones may be acknowledged after upload;
+> that does not remove the repository tombstone. Older app versions can still
+> drop tombstones, so all syncing devices should upgrade. Plaintext CSV/JSON
+> remains intentional and must not be encrypted by the application.
 
 ## Context
 

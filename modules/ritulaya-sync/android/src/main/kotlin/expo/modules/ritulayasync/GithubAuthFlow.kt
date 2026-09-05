@@ -83,14 +83,19 @@ class GithubAuthFlow(
     ): JSONObject {
         val url = URL(urlStr)
         val conn = url.openConnection() as HttpURLConnection
+        conn.connectTimeout = 15_000
+        conn.readTimeout = 30_000
         conn.requestMethod = "POST"
         conn.setRequestProperty("Content-Type", "application/json")
         conn.setRequestProperty("Accept", accept)
         conn.doOutput = true
 
-        OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
-
-        val body = conn.inputStream.bufferedReader().use { it.readText() }
-        return if (body.isNotEmpty()) JSONObject(body) else JSONObject()
+        return try {
+            OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { it.write(json.toString()) }
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            if (body.isNotEmpty()) JSONObject(body) else JSONObject()
+        } finally {
+            conn.disconnect()
+        }
     }
 }

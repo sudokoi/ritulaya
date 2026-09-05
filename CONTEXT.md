@@ -42,8 +42,8 @@ measured against their own pattern (never population averages).
 **Discreet mode** — a privacy setting that relabels cycle-related language
 with neutral wording across the app, notifications, and widget.
 
-**Tombstone** — a durable record that an entry was deleted, kept until a
-successful sync pushes the deletion. The pending-deletion queue.
+**Tombstone** — a durable record of an entry's deletion and when it occurred,
+used to distinguish a deleted entry from one that has never been recorded.
 
 **Day strip** — a consecutive run of calendar dates rendered with their
 Cycle-day state and a today marker (e.g. the 7-day strip on the Today screen).

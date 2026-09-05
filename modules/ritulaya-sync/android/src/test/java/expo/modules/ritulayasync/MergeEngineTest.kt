@@ -20,11 +20,29 @@ class MergeEngineTest {
         )
 
     @Test
+    fun `deletion survives repeat sync and a stale offline third device`() {
+        val stale = cycle("a", "2026-01-01T00:00:00.000Z")
+        val deletion = cycle("a", stale.updatedAt, "2026-02-01T00:00:00.000Z")
+        val firstPush = MergeEngine.mergeCycles(listOf(deletion), listOf(stale))
+        val secondPush = MergeEngine.mergeCycles(emptyList(), firstPush)
+        val thirdDevice = MergeEngine.mergeCycles(listOf(stale), secondPush)
+        assertThat(thirdDevice).containsExactly(deletion)
+    }
+
+    @Test
+    fun `two deletions retain the newest tombstone`() {
+        val older = cycle("a", "2026-01-01T00:00:00.000Z", "2026-02-01T00:00:00.000Z")
+        val newer = older.copy(deletedAt = "2026-03-01T00:00:00.000Z")
+        assertThat(MergeEngine.mergeCycles(listOf(newer), listOf(older))).containsExactly(newer)
+        assertThat(MergeEngine.mergeCycles(listOf(older), listOf(newer))).containsExactly(newer)
+    }
+
+    @Test
     fun `remote deletion removes the row`() {
         val local = listOf(cycle("a", "2026-01-01T00:00:00.000Z"))
         val remote = listOf(cycle("a", "2026-01-01T00:00:00.000Z", deletedAt = "2026-02-01T00:00:00.000Z"))
 
-        assertThat(MergeEngine.mergeCycles(local, remote)).isEmpty()
+        assertThat(MergeEngine.mergeCycles(local, remote)).containsExactlyElementsIn(remote)
     }
 
     @Test
@@ -44,7 +62,7 @@ class MergeEngineTest {
         val local = listOf(cycle("a", "2026-02-01T00:00:00.000Z"))
         val remote = listOf(cycle("a", "2026-01-01T00:00:00.000Z", deletedAt = "2026-03-01T00:00:00.000Z"))
 
-        assertThat(MergeEngine.mergeCycles(local, remote)).isEmpty()
+        assertThat(MergeEngine.mergeCycles(local, remote)).containsExactlyElementsIn(remote)
     }
 
     @Test

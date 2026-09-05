@@ -3,6 +3,7 @@ package expo.modules.ritulayasync
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import kotlinx.coroutines.CancellationException
 
 class SyncWork(
     context: Context,
@@ -13,10 +14,12 @@ class SyncWork(
         val orchestrator = SyncOrchestrator(applicationContext, prefs)
 
         return try {
-            orchestrator.sync()
+            orchestrator.sync(propagateFailure = true)
             Result.success()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            if (runAttemptCount < 3) Result.retry() else Result.failure()
+            if (shouldRetrySync(e, runAttemptCount)) Result.retry() else Result.failure()
         }
     }
 }
