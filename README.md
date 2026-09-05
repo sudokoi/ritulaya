@@ -62,6 +62,7 @@ yarn build:android:local
 
 - **State** — one `@xstate/store` per domain (cycles, day-logs, settings, sync, predictions), read via `useSelector`. Module-level stores, no global provider.
 - **Data** — Room + SQLCipher behind `RitulayaDataStore` in `modules/ritulaya-db/`; `src/services/db.ts` is the JS bridge client.
+- **Day entries** — `src/domain/day-entry.ts` owns save/delete/clear-flow commands and their post-write refresh. `useDayEditor` connects screens to those commands; `useDayLogs` reads the cache rather than exposing another mutation path.
 - **Encryption** — the SQLite file is encrypted at rest with SQLCipher; the key is a random value wrapped by an AES-256-GCM key held in the Android Keystore.
 - **Sync** — a Kotlin module (`ritulaya-sync`) drives GitHub sync end-to-end (OAuth device flow, CSV merge, background WorkManager). The device copy is encrypted; the repo copy is plaintext in your private repository.
 - **Native modules** — database, crypto, predictions, sync, local logging, and home-screen widget under `modules/`.
@@ -71,6 +72,19 @@ See [docs/decisions/](./docs/decisions/) for architecture decision records.
 For enhancement planning, start with the latest
 [codebase assessment](./docs/assessments/2026-09-05-codebase-assessment.md) rather
 than repeating the repository survey.
+
+## Entry history (unreleased)
+
+From Today or Calendar, choose **Search history** to browse recorded entries,
+newest first. Search note text or expand the filters to choose a symptom, mood,
+or inclusive date range. Dates use `YYYY-MM-DD`; a blank date leaves that end
+unrestricted. Filters combine, and **Clear filters** resets them all.
+
+Tap a result to edit it. Saved changes and deletions update the results without
+resetting the current filters. Discreet mode hides result details until you open
+an entry. Search queries remain in screen memory; the app does not save them or
+send them to a search service. This is a view of recorded entries, not predictions
+or a claim that automatically filled days were individually observed.
 
 ## Versioning
 
