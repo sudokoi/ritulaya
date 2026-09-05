@@ -1,4 +1,3 @@
-import { Alert } from "react-native"
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { router } from "expo-router"
 import LogTodayScreen from "@/app/log-today"
@@ -7,7 +6,10 @@ import { saveDayEntry } from "@/domain/day-entry"
 jest.mock("expo-router", () => ({
   router: { canGoBack: jest.fn(() => false), back: jest.fn(), replace: jest.fn() },
 }))
-jest.mock("lucide-react-native", () => ({ X: () => null, Trash2: () => null }))
+jest.mock("lucide-react-native", () => ({ Check: () => null }))
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ bottom: 0 }),
+}))
 jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -45,7 +47,6 @@ test("widget logging uses the shared command and navigates only after it complet
 })
 
 test("a failed widget save retains the draft and does not navigate away", async () => {
-  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined)
   jest.mocked(saveDayEntry).mockRejectedValueOnce(new Error("disk full"))
   await render(<LogTodayScreen />)
   await fireEvent.changeText(screen.getByLabelText("sheet.notes"), "Keep widget draft")
@@ -53,5 +54,5 @@ test("a failed widget save retains the draft and does not navigate away", async 
   expect(screen.getByDisplayValue("Keep widget draft")).toBeTruthy()
   expect(router.replace).not.toHaveBeenCalled()
   expect(router.back).not.toHaveBeenCalled()
-  alert.mockRestore()
+  expect(screen.getByRole("alert")).toHaveTextContent(/calendar.saveFailedTitle/)
 })

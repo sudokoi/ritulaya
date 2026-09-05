@@ -1,38 +1,29 @@
 import {
   View,
-  Text,
   TextInput,
   Modal,
   ScrollView,
   Pressable,
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
+  StyleSheet,
 } from "react-native"
 import { useState, useCallback, useEffect, useRef } from "react"
 import { format } from "date-fns"
-import { X, Trash2 } from "lucide-react-native"
 import * as Haptics from "expo-haptics"
-import { SYMPTOM_CATALOG } from "@/constants/symptoms"
-import { MOOD_CATALOG } from "@/constants/moods"
-import { CERVICAL_MUCUS_CATALOG } from "@/constants/cervical-mucus"
-import { useThemeColors } from "@/hooks/use-theme-colors"
-import type { SymptomKey } from "@/constants/symptoms"
-import type { MoodKey } from "@/constants/moods"
-import type { CervicalMucusKey } from "@/constants/cervical-mucus"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { SYMPTOM_CATALOG, type SymptomKey } from "@/constants/symptoms"
+import { MOOD_CATALOG, type MoodKey } from "@/constants/moods"
+import { CERVICAL_MUCUS_CATALOG, type CervicalMucusKey } from "@/constants/cervical-mucus"
 import type { FlowIntensity } from "@/types/day-log"
 import type { DayEntryInput } from "@/domain/day-entry"
-import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { AppText } from "@/components/ui/text"
+import { ChoiceChip } from "@/components/ui/choice-chip"
+import { Field } from "@/components/ui/field"
 
-const FLOW_LEVELS: { key: FlowIntensity }[] = [
-  { key: "none" },
-  { key: "spotting" },
-  { key: "light" },
-  { key: "medium" },
-  { key: "heavy" },
-]
+const FLOW_LEVELS: FlowIntensity[] = ["none", "spotting", "light", "medium", "heavy"]
 
 interface DayDetailSheetProps {
   visible: boolean
@@ -52,11 +43,9 @@ interface DayDetailSheetProps {
   onClose: () => void
 }
 
-function SectionLabel({ children }: { children: string }) {
+function hasMeasurements(existing: DayDetailSheetProps["existing"]) {
   return (
-    <Text className="mb-3 text-sm font-medium text-[var(--text-muted)] uppercase">
-      {children}
-    </Text>
+    !!existing?.cervicalMucus || existing?.bbt != null || existing?.sexualActivity === 1
   )
 }
 
@@ -77,25 +66,40 @@ export function DayDetailSheet({
     (existing?.cervicalMucus as CervicalMucusKey) ?? null,
   )
   const [bbt, setBbt] = useState(existing?.bbt != null ? String(existing.bbt) : "")
-  // Null until first toggled so an entry that never recorded sexual
-  // activity is not saved as an explicit "No".
   const [sexualActivity, setSexualActivity] = useState<boolean | null>(
     existing?.sexualActivity == null ? null : existing.sexualActivity === 1,
   )
-  const { muted, danger } = useThemeColors()
+  const [moreTracking, setMoreTracking] = useState(hasMeasurements(existing))
+  const [error, setError] = useState<"save" | "delete" | "update" | null>(null)
   const { t } = useTranslation()
+  const insets = useSafeAreaInsets()
   const prevVisibleRef = useRef(visible)
   const pendingRef = useRef(false)
-  const [pending, setPending] = useState(false)
+  const [pendingAction, setPendingAction] = useState<"save" | "delete" | "update" | null>(
+    null,
+  )
+  const pending = pendingAction !== null
   const scrollRef = useRef<ScrollView>(null)
+  const contentRef = useRef<View>(null)
+  const viewportHeightRef = useRef(0)
   const notesRef = useRef<TextInput>(null)
   const bbtRef = useRef<TextInput>(null)
   const focusedInputRef = useRef<TextInput | null>(null)
 
   const revealFocusedInput = useCallback(() => {
     const input = focusedInputRef.current
-    if (input?.isFocused()) {
-      scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(input, 16, true)
+    const content = contentRef.current
+    if (input?.isFocused() && content && viewportHeightRef.current > 0) {
+      // The stock scroll-to-keyboard helper assumes a full-screen ScrollView.
+      // Measure against our content and use the actual viewport below the header.
+      input.measureLayout(content, (_x, top, _width, height) => {
+        if (input.isFocused()) {
+          scrollRef.current?.scrollTo({
+            y: Math.max(0, top + height + 16 - viewportHeightRef.current),
+            animated: false,
+          })
+        }
+      })
     }
   }, [])
 
@@ -118,6 +122,8 @@ export function DayDetailSheet({
     setSexualActivity(
       existing?.sexualActivity == null ? null : existing.sexualActivity === 1,
     )
+    setMoreTracking(hasMeasurements(existing))
+    setError(null)
   }, [visible, existing])
 
   const toggleSymptom = useCallback((key: SymptomKey) => {
@@ -137,16 +143,20 @@ export function DayDetailSheet({
   ) => {
     if (pendingRef.current) return
     pendingRef.current = true
-    setPending(true)
+    setPendingAction(kind)
+    setError(null)
     try {
       await action()
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       onClose()
     } catch {
-      Alert.alert(t(`calendar.${kind}FailedTitle`), t(`calendar.${kind}FailedBody`))
+      setError(kind)
+      focusedInputRef.current = null
+      Keyboard.dismiss()
+      scrollRef.current?.scrollTo({ y: 0, animated: false })
     } finally {
       pendingRef.current = false
-      setPending(false)
+      setPendingAction(null)
     }
   }
 
@@ -168,225 +178,175 @@ export function DayDetailSheet({
     )
   }
 
-  const handleDelete = () => {
-    if (onDelete) void mutate(onDelete, "delete")
-  }
-
-  const handleClearPeriod = () => {
-    if (onClearPeriod) void mutate(onClearPeriod, "update")
-  }
-
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
-      <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <Pressable className="flex-1 justify-end bg-black/30" onPress={close}>
-          <View className="max-h-[90%]">
-            <Pressable className="shrink rounded-t-3xl bg-[var(--bg-primary)] pb-8">
-              <View className="flex-row items-center justify-between border-b border-[var(--border)] px-6 py-4">
-                <Text className="text-lg font-semibold text-[var(--text-primary)]">
-                  {format(date, "EEE, MMM d")}
-                </Text>
-                <View className="flex-row gap-2">
-                  {onDelete ? (
-                    <Pressable
-                      onPress={handleDelete}
+      {/* Resize the sheet's available height rather than padding its scrolling content. */}
+      <KeyboardAvoidingView behavior="height" style={styles.keyboardContainer}>
+        <Pressable className="absolute inset-0" onPress={close} accessible={false} />
+        <View className="max-h-[90%] rounded-t-sheet bg-[var(--bg-primary)]">
+          <View className="flex-row flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-screen py-4">
+            <AppText variant="section" accessibilityRole="header">
+              {format(date, "EEE, MMM d")}
+            </AppText>
+            <View className="flex-row flex-wrap gap-2">
+              <Button
+                size="sm"
+                onPress={handleSave}
+                disabled={pending}
+                pending={pendingAction === "save"}
+                pendingLabel={t("common.saving")}
+                accessibilityLabel={t("sheet.saveEntry")}
+              >
+                {t("common.save")}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={close}
+                disabled={pending}
+                accessibilityLabel={t("common.close")}
+              >
+                {t("common.close")}
+              </Button>
+            </View>
+          </View>
+          <ScrollView
+            ref={scrollRef}
+            className="shrink"
+            keyboardShouldPersistTaps="handled"
+            onLayout={(event) => {
+              viewportHeightRef.current = event.nativeEvent.layout.height
+              revealFocusedInput()
+            }}
+            contentContainerStyle={{ paddingBottom: (insets.bottom ?? 0) + 24 }}
+          >
+            <View
+              ref={contentRef}
+              collapsable={false}
+              className="gap-section px-screen py-section"
+            >
+              {error ? (
+                <View
+                  accessible
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="polite"
+                  className="gap-2 border-l-2 border-[var(--danger)] pl-3"
+                >
+                  <AppText variant="label" tone="danger">
+                    {t(`calendar.${error}FailedTitle`)}
+                  </AppText>
+                  <AppText variant="supporting">
+                    {t(`calendar.${error}FailedBody`)}
+                  </AppText>
+                </View>
+              ) : null}
+              <View className="gap-3">
+                <AppText variant="label">{t("sheet.flow")}</AppText>
+                <View className="flex-row flex-wrap gap-2">
+                  {FLOW_LEVELS.map((level) => (
+                    <ChoiceChip
+                      key={level}
+                      label={t(`flow.${level}`)}
+                      accessibilityLabel={t("sheet.flowState", {
+                        label: t(`flow.${level}`),
+                      })}
+                      selected={flow === level}
                       disabled={pending}
-                      className="p-3 active:opacity-60"
-                      accessibilityRole="button"
-                      accessibilityLabel={t("sheet.deleteEntry")}
-                    >
-                      <Trash2 size={20} color={danger} />
-                    </Pressable>
-                  ) : null}
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onPress={handleSave}
-                    disabled={pending}
-                    accessibilityLabel={t("sheet.saveEntry")}
-                  >
-                    {t("common.save")}
-                  </Button>
-                  <Pressable
-                    onPress={close}
-                    disabled={pending}
-                    className="p-3 active:opacity-60"
-                    accessibilityRole="button"
-                    accessibilityLabel={t("common.close")}
-                  >
-                    <X size={20} color={muted} />
-                  </Pressable>
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        setFlow(flow === level ? null : level)
+                      }}
+                    />
+                  ))}
                 </View>
               </View>
-
-              <ScrollView
-                ref={scrollRef}
-                className="shrink"
-                keyboardShouldPersistTaps="handled"
-                onLayout={revealFocusedInput}
-                showsVerticalScrollIndicator={false}
-              >
-                <View className="px-6 py-4">
-                  <SectionLabel>{t("sheet.flow")}</SectionLabel>
-                  <View className="flex-row gap-2">
-                    {FLOW_LEVELS.map((level) => (
-                      <Pressable
-                        key={level.key}
-                        disabled={pending}
-                        onPress={() => {
-                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                          setFlow(flow === level.key ? null : level.key)
-                        }}
-                        className={cn(
-                          "flex-1 rounded-button py-2.5 active:opacity-60",
-                          flow === level.key
-                            ? "bg-[var(--accent)]"
-                            : "bg-[var(--bg-muted)]",
-                        )}
-                        accessibilityRole="button"
-                        accessibilityLabel={t("sheet.flowState", {
-                          label: t(`flow.${level.key}`),
-                        })}
-                        accessibilityState={{ selected: flow === level.key }}
-                      >
-                        <Text
-                          className={cn(
-                            "text-center text-sm",
-                            flow === level.key
-                              ? "font-medium text-[var(--on-accent)]"
-                              : "text-[var(--text-primary)]",
-                          )}
-                        >
-                          {t(`flow.${level.key}`)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                  {onClearPeriod &&
-                  existing?.flowIntensity &&
-                  existing.flowIntensity !== "none" ? (
-                    <Pressable
-                      onPress={handleClearPeriod}
+              <View className="gap-3">
+                <AppText variant="label">{t("sheet.mood")}</AppText>
+                <View className="flex-row flex-wrap gap-2">
+                  {MOOD_CATALOG.map((item) => (
+                    <ChoiceChip
+                      key={item.key}
+                      label={`${item.emoji} ${t(`moods.${item.key}`)}`}
+                      accessibilityLabel={t("sheet.moodState", {
+                        label: t(`moods.${item.key}`),
+                      })}
+                      selected={mood === item.key}
                       disabled={pending}
-                      className="mt-3 self-start active:opacity-60"
-                      accessibilityRole="button"
-                      accessibilityLabel={t("sheet.removePeriod")}
-                    >
-                      <Text className="text-sm font-medium" style={{ color: danger }}>
-                        {t("sheet.removePeriod")}
-                      </Text>
-                    </Pressable>
-                  ) : null}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        setMood(mood === item.key ? null : item.key)
+                      }}
+                    />
+                  ))}
                 </View>
-
-                <View className="px-6 py-4">
-                  <SectionLabel>{t("sheet.mood")}</SectionLabel>
-                  <View className="flex-row flex-wrap gap-3">
-                    {MOOD_CATALOG.map((m) => (
-                      <Pressable
-                        key={m.key}
-                        disabled={pending}
-                        onPress={() => {
-                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                          setMood(mood === m.key ? null : m.key)
-                        }}
-                        className={cn(
-                          "items-center gap-1 rounded-xl px-3 py-2 active:opacity-60",
-                          mood === m.key && "bg-[var(--accent-wash)]",
-                        )}
-                        accessibilityRole="button"
-                        accessibilityLabel={t("sheet.moodState", {
-                          label: t(`moods.${m.key}`),
-                        })}
-                        accessibilityState={{ selected: mood === m.key }}
-                      >
-                        <Text className="text-2xl">{m.emoji}</Text>
-                        <Text className="text-xs text-[var(--text-muted)]">
-                          {t(`moods.${m.key}`)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
+              </View>
+              <View className="gap-3">
+                <AppText variant="label">{t("sheet.symptoms")}</AppText>
+                <View className="flex-row flex-wrap gap-2">
+                  {SYMPTOM_CATALOG.map((item) => (
+                    <ChoiceChip
+                      key={item.key}
+                      label={t(`symptoms.${item.key}`)}
+                      selected={symptoms.includes(item.key)}
+                      disabled={pending}
+                      onPress={() => toggleSymptom(item.key)}
+                    />
+                  ))}
                 </View>
-
-                <View className="px-6 py-4">
-                  <SectionLabel>{t("sheet.symptoms")}</SectionLabel>
-                  <View className="flex-row flex-wrap gap-2">
-                    {SYMPTOM_CATALOG.map((symptom) => (
-                      <Pressable
-                        key={symptom.key}
-                        disabled={pending}
-                        onPress={() => toggleSymptom(symptom.key)}
-                        className={cn(
-                          "rounded-pill px-4 py-2.5 active:opacity-60",
-                          symptoms.includes(symptom.key)
-                            ? "bg-[var(--accent)]"
-                            : "bg-[var(--bg-muted)]",
-                        )}
-                        accessibilityRole="button"
-                        accessibilityLabel={t(`symptoms.${symptom.key}`)}
-                        accessibilityState={{ selected: symptoms.includes(symptom.key) }}
-                      >
-                        <Text
-                          className={cn(
-                            "text-sm",
-                            symptoms.includes(symptom.key)
-                              ? "font-medium text-[var(--on-accent)]"
-                              : "text-[var(--text-primary)]",
-                          )}
-                        >
-                          {t(`symptoms.${symptom.key}`)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
-
-                <View className="px-6 py-4">
-                  <SectionLabel>{t("sheet.cervicalMucus")}</SectionLabel>
-                  <View className="flex-row flex-wrap gap-2">
-                    {CERVICAL_MUCUS_CATALOG.map((mucus) => (
-                      <Pressable
-                        key={mucus.key}
-                        disabled={pending}
-                        onPress={() => {
-                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                          setCervicalMucus(cervicalMucus === mucus.key ? null : mucus.key)
-                        }}
-                        className={cn(
-                          "rounded-pill px-4 py-2.5 active:opacity-60",
-                          cervicalMucus === mucus.key
-                            ? "bg-[var(--accent)]"
-                            : "bg-[var(--bg-muted)]",
-                        )}
-                        accessibilityRole="button"
-                        accessibilityLabel={t("sheet.mucusState", {
-                          label: t(`mucus.${mucus.key}`),
-                        })}
-                        accessibilityState={{ selected: cervicalMucus === mucus.key }}
-                      >
-                        <Text
-                          className={cn(
-                            "text-sm",
-                            cervicalMucus === mucus.key
-                              ? "font-medium text-[var(--on-accent)]"
-                              : "text-[var(--text-primary)]",
-                          )}
-                        >
-                          {t(`mucus.${mucus.key}`)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
-
-                <View className="px-6 py-4">
-                  <SectionLabel>{t("sheet.body")}</SectionLabel>
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-base text-[var(--text-primary)]">
-                      {t("sheet.bbtLabel")}
-                    </Text>
-                    <TextInput
+              </View>
+              <Field
+                label={t("sheet.notes")}
+                ref={notesRef}
+                onFocus={() => {
+                  focusedInputRef.current = notesRef.current
+                  revealFocusedInput()
+                }}
+                onContentSizeChange={revealFocusedInput}
+                value={notes}
+                editable={!pending}
+                onChangeText={setNotes}
+                placeholder={t("sheet.notesPlaceholder")}
+                multiline
+                submitBehavior="newline"
+                className="min-h-32 max-h-48"
+                style={styles.notes}
+              />
+              <View className="border-y border-[var(--border)] py-2">
+                <Button
+                  variant="ghost"
+                  onPress={() => setMoreTracking((value) => !value)}
+                  disabled={pending}
+                  accessibilityState={{ expanded: moreTracking }}
+                >
+                  {t(moreTracking ? "sheet.lessTracking" : "sheet.moreTracking")}
+                </Button>
+                {moreTracking ? (
+                  <View className="gap-section py-4">
+                    <View className="gap-3">
+                      <AppText variant="label">{t("sheet.cervicalMucus")}</AppText>
+                      <View className="flex-row flex-wrap gap-2">
+                        {CERVICAL_MUCUS_CATALOG.map((item) => (
+                          <ChoiceChip
+                            key={item.key}
+                            label={t(`mucus.${item.key}`)}
+                            accessibilityLabel={t("sheet.mucusState", {
+                              label: t(`mucus.${item.key}`),
+                            })}
+                            selected={cervicalMucus === item.key}
+                            disabled={pending}
+                            onPress={() => {
+                              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                              setCervicalMucus(
+                                cervicalMucus === item.key ? null : item.key,
+                              )
+                            }}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    <Field
+                      label={t("sheet.bbtLabel")}
+                      accessibilityLabel={t("sheet.bbtA11y")}
                       ref={bbtRef}
                       onFocus={() => {
                         focusedInputRef.current = bbtRef.current
@@ -396,76 +356,68 @@ export function DayDetailSheet({
                       editable={!pending}
                       onChangeText={setBbt}
                       placeholder="36.6"
-                      placeholderTextColor={muted}
                       keyboardType="decimal-pad"
                       returnKeyType="done"
-                      className="w-24 rounded-button bg-[var(--bg-surface)] px-3 py-2 text-right text-[var(--text-primary)]"
-                      accessibilityLabel={t("sheet.bbtA11y")}
                     />
+                    <View className="gap-3">
+                      <AppText variant="label">{t("sheet.sexualActivity")}</AppText>
+                      <View className="flex-row flex-wrap gap-2">
+                        {[true, false].map((value) => (
+                          <ChoiceChip
+                            key={String(value)}
+                            label={t(value ? "common.yes" : "common.no")}
+                            accessibilityLabel={`${t("sheet.sexualActivity")}: ${t(value ? "common.yes" : "common.no")}`}
+                            selected={sexualActivity === value}
+                            disabled={pending}
+                            onPress={() => {
+                              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                              setSexualActivity(value)
+                            }}
+                          />
+                        ))}
+                      </View>
+                    </View>
                   </View>
-                  <View className="mt-4 flex-row items-center justify-between">
-                    <Text className="text-base text-[var(--text-primary)]">
-                      {t("sheet.sexualActivity")}
-                    </Text>
-                    <Pressable
-                      onPress={() => {
-                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                        setSexualActivity(!(sexualActivity ?? false))
-                      }}
-                      disabled={pending}
-                      className={cn(
-                        "rounded-pill px-5 py-2 active:opacity-60",
-                        sexualActivity ? "bg-[var(--accent)]" : "bg-[var(--bg-muted)]",
-                      )}
-                      accessibilityRole="button"
-                      accessibilityLabel={t("sheet.sexualActivity")}
-                      accessibilityState={{ selected: sexualActivity ?? false }}
-                    >
-                      <Text
-                        className={cn(
-                          "text-sm font-medium",
-                          sexualActivity
-                            ? "text-[var(--on-accent)]"
-                            : "text-[var(--text-primary)]",
-                        )}
-                      >
-                        {sexualActivity
-                          ? t("common.yes")
-                          : sexualActivity === false
-                            ? t("common.no")
-                            : "—"}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-
-                <View className="px-6 py-4">
-                  <SectionLabel>{t("sheet.notes")}</SectionLabel>
-                  <TextInput
-                    ref={notesRef}
-                    onFocus={() => {
-                      focusedInputRef.current = notesRef.current
-                      revealFocusedInput()
-                    }}
-                    onContentSizeChange={revealFocusedInput}
-                    accessibilityLabel={t("sheet.notes")}
-                    value={notes}
-                    editable={!pending}
-                    onChangeText={setNotes}
-                    placeholder={t("sheet.notesPlaceholder")}
-                    placeholderTextColor={muted}
-                    multiline
-                    numberOfLines={3}
-                    returnKeyType="done"
-                    className="min-h-[80px] max-h-40 rounded-card bg-[var(--bg-surface)] p-4 text-[var(--text-primary)]"
-                    style={{ textAlignVertical: "top" }}
-                  />
-                </View>
-              </ScrollView>
-            </Pressable>
-          </View>
-        </Pressable>
+                ) : null}
+              </View>
+              {onClearPeriod &&
+              existing?.flowIntensity &&
+              existing.flowIntensity !== "none" ? (
+                <Button
+                  variant="danger"
+                  disabled={pending}
+                  pending={pendingAction === "update"}
+                  onPress={() => void mutate(onClearPeriod, "update")}
+                  accessibilityLabel={t("sheet.removePeriod")}
+                >
+                  {t("sheet.removePeriod")}
+                </Button>
+              ) : null}
+              {onDelete ? (
+                <Button
+                  variant="danger"
+                  disabled={pending}
+                  pending={pendingAction === "delete"}
+                  onPress={() => void mutate(onDelete, "delete")}
+                  accessibilityLabel={t("sheet.deleteEntry")}
+                >
+                  {t("sheet.deleteEntry")}
+                </Button>
+              ) : null}
+            </View>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   )
 }
+
+const styles = StyleSheet.create({
+  // Keep this as a native style: KAV must override flex when it sets its height.
+  keyboardContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  notes: { textAlignVertical: "top" },
+})

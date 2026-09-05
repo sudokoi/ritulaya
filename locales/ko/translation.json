@@ -3,6 +3,7 @@
     "failed": "데이터를 불러오지 못했습니다. 변경된 내용은 없습니다. 다시 시도해 주세요."
   },
   "common": {
+    "saving": "저장 중…",
     "save": "저장",
     "cancel": "취소",
     "delete": "삭제",
@@ -62,6 +63,13 @@
     "privatePreview": "저장된 기록이 있어요. 눌러서 확인하거나 수정하세요."
   },
   "today": {
+    "entryTitle": "오늘의 기록",
+    "weekTitle": "이번 주",
+    "nextPeriodEstimate": "다음 생리 예상",
+    "privateTitle": "비공개 개요",
+    "privateBody": "비밀 모드에서는 상세 정보가 숨겨져요. 확인하거나 수정하려면 기록을 열어 주세요.",
+    "detailsHidden": "기록 상세 정보가 숨겨져 있어요",
+    "openEntry": "오늘의 기록 열기",
     "cycleDay": "주기 일수",
     "noCycleTitle": "아직 현재 주기가 없어요",
     "noCycleBody": "생리 시작일이나 지난 생리를 기록하면 주기 일수와 예상이 표시돼요. 오늘의 상태는 지금도 기록할 수 있어요.",
@@ -109,6 +117,8 @@
     "today": "오늘"
   },
   "sheet": {
+    "moreTracking": "추가 기록",
+    "lessTracking": "추가 기록 숨기기",
     "flow": "월경량",
     "removePeriod": "생리 기록 제거",
     "mood": "기분",
