@@ -71,9 +71,9 @@ Configuration/documentation changes:
 
 Still open / intentionally not claimed complete:
 
-- Native atomic entry/cycle reconciliation and repair of historical orphaned
-  cycles; including the ignored `writeDayLog` cycle-ID parameter. Agree expected
-  boundaries and migration behavior before rewriting stored history.
+- Full entry/cycle reconciliation and repair of historical orphaned cycles.
+  The atomic save and cycle-association fixes are covered by the follow-up below;
+  agree expected boundaries and migration behavior before rewriting stored history.
 - Sexual-activity tri-state Room migration and explicit bridge keep/set/clear
   semantics; CSV schema compatibility with old devices must be tested together.
 - Full discreet visual/accessibility policy, recent-app preview protection,
@@ -113,6 +113,108 @@ Validation for the hardening pass:
   warning suppression was applied.
 - No release APK/AAB, connected-device tests, live GitHub sync, or commits/pushes
   were made during this pass.
+
+### Native day-entry follow-up
+
+The first hardening pass was subsequently committed as five focused commits:
+`85de7f1`, `2a54cfd`, `acb4c5f`, `a168c9d`, and `9ef5977`. Nothing was pushed.
+
+The next slice adds:
+
+- A native `saveDayEntry` command. It reads persisted flow, performs period fill
+  only for a non-flow-to-flow transition, and saves the submitted fields inside
+  one Room transaction. JS no longer decides this transition from its cache or
+  makes separate period/log writes. Existing period placement rules are unchanged.
+- Correct use of `writeDayLog`'s selected cycle ID, so new/updated period-fill
+  entries are associated with their cycle.
+- Preservation of symptoms on existing entries during period fill. In the patch
+  contract, omitted/null symptoms now keep the stored value, while an explicit
+  empty list still clears it. The full editor already supplies an explicit list.
+- App-level data-store tests with an in-memory Room database via Robolectric
+  4.16.1 (test dependency only), plus a JS bridge-command test. The constructor
+  seam is internal; production still opens the encrypted singleton database.
+
+The association and symptom-preservation tests failed against the prior behavior
+before the fixes. Tests cover Ritulaya's commands, not Room/SQLCipher transaction,
+encryption, or storage guarantees. The maintainer explicitly requested avoiding
+tests of behavior already guaranteed by external libraries.
+
+Validation: 57 JS/React tests in 15 suites and all native Kotlin test tasks passed.
+No database schema migration was introduced. This command requires a rebuilt
+Android app; it must not be delivered as JS alone to an older native binary.
+Release notes: `.changeset/atomic-day-entry.md`.
+
+Still not addressed by this slice: cycle reconciliation after clearing/deleting
+flow, existing orphan repair, sexual-activity tri-state semantics, and complete
+keep/set/clear semantics for the full day-entry form. No stored history is
+automatically rebuilt.
+
+### Tester-feedback UX follow-up
+
+The maintainer confirmed that **0.1.2 is the current shipped version**. Four
+tester reports refer to **0.1.0**, not 0.1.2 or this working branch. Setup was
+consistently understandable, two testers independently struggled to find logging
+from Today, one reported Notes being obscured by the keyboard, and one requested
+larger prediction text. One tester also reported intermittent crashes on a Pixel
+8 Pro with Android 17; no crash trace or current-build reproduction is available.
+Positive impressions of predictions are usability feedback, not accuracy evidence.
+
+Implemented on this branch:
+
+- Today has explicit Log today / Edit today's entry actions. Week-strip dates and
+  the selected-day action open the existing shared editor directly, preserving
+  the selected date and preloading recorded fields. Calendar remains available
+  for browsing; it is no longer a required detour for logging.
+- Successful cycle seeding shows a completion state with Log today and Explore
+  the app actions. It appears only after persistence completes. Settings-only
+  length editing still returns directly and never seeds a period.
+- Prediction dates use larger, higher-contrast text; uncertainty remains visible
+  in larger supporting text. Prediction calculations are unchanged.
+- The day sheet uses a keyboard-avoiding, height-bounded layout and reveals the
+  focused Notes/BBT input when the keyboard or viewport changes. Notes height is
+  bounded so long text can scroll internally. Save remains outside the scrolling
+  fields and taps are handled while the keyboard is open.
+- New text is translated in all six locales. Week-strip selection uses the native
+  accessibility state instead of a hardcoded English “selected” suffix.
+- React tests exercise Today-to-editor interactions with existing/empty entries
+  and setup success/failure handoffs. No tests merely assert framework keyboard props
+  or re-test library-provided behavior.
+
+Validation after the UX changes:
+
+- 63 JS/React tests in 16 suites passed; all native Kotlin test tasks passed.
+- `yarn typecheck`, `yarn lint` (ESLint + ktlint), `yarn format:check`, and
+  `git diff --check` passed.
+- Production Android Hermes export passed. No release APK/AAB was produced.
+- The native day-entry follow-up was committed as `dcd4a1e` and the UX follow-up
+  as `b410898`; nothing was pushed.
+
+Native debug builds succeeded, including a temporary isolated QA application ID.
+Emulator verification is **not complete**: installation over the existing app was
+rejected due to a signing mismatch; the original app/data were not removed. A
+separate `com.sudokoi.ritulaya.qa` package was installed, but its Metro connection
+failed before functional UI testing. The maintainer then reserved the emulator
+for another agent. **Do not use ADB/emulator tools until the maintainer says it is
+free.** The QA package and the temporary reverse mapping for port 8082 were left
+in place to avoid further emulator access. Only this session's host Metro server
+on port 8082 was stopped; the other project's server on 8081 was left alone.
+
+Pending device checks when access is granted:
+
+1. Notes stays visible above the keyboard; multiline typing, internal scrolling,
+   switching focus to BBT, Save, and keyboard dismissal preserve the draft.
+2. The same behavior works from Today, Calendar, and the widget route, including
+   large system fonts and a small viewport.
+3. One tap opens the correct date, existing entries preload, and saving updates
+   the visible summary without a Calendar detour.
+4. Setup offers both next steps without re-seeding when returning to the app;
+   settings-only length changes do not show the onboarding completion state.
+5. Reproduce/capture the Pixel 8 Pro Android 17 crash separately on a current
+   build, with exact app/OS build, triggering action/time, and redacted logs.
+
+The keyboard change is an implementation awaiting device confirmation, not a
+verified fix of the tester's report. Nothing in this slice establishes a cause or
+fix for the intermittent crash. Release notes: `.changeset/today-logging-ux.md`.
 
 ### Baseline assessment
 
