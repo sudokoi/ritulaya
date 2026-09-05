@@ -339,6 +339,19 @@ The host Metro server on port 8082 remains available for inspecting the QA app;
 the debug-only QA preferences point to `localhost:8082` through the existing ADB
 reverse mapping. The separate project's port 8081 was not changed.
 
+### UI refresh design review
+
+The maintainer approved starting a UI refresh while preserving Ritulaya's
+identity. The design brief and current token/component inventory live in
+[`docs/design/ui-refresh.md`](../design/ui-refresh.md), with an offline
+Today/editor proposal in
+[`docs/design/ui-refresh-preview.html`](../design/ui-refresh-preview.html).
+These are review artifacts, not implemented native screens. Layout changes,
+the additional-tracking disclosure, and the proposed discreet overview await
+approval. Production theme tokens, components, navigation, and data behavior
+are unchanged by this design slice. Existing native keyboard and crash QA gaps
+remain open.
+
 ### Baseline assessment
 
 - Repository state assessed: `main` at `dc7003d` (`0.1.2`).

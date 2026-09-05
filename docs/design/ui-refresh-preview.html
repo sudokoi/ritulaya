@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ritulaya · UI direction</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --canvas: #faf8f5;
+        --surface: #ffffff;
+        --muted: #ece7e1;
+        --text: #2d2d2f;
+        --supporting: #6f6b64;
+        --divider: #e8e4df;
+        --control: #8e877f;
+        --accent: #0f766e;
+        --on-accent: #ffffff;
+        --danger: #dc2626;
+        --menstrual: #a15878;
+        --follicular: #42725a;
+        --ovulation: #8c6a24;
+        --luteal: #67589c;
+        --type-scale: 1;
+      }
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --canvas: #141416;
+        --surface: #1e1e21;
+        --muted: #2c2c30;
+        --text: #f2f1ee;
+        --supporting: #a9a8a4;
+        --divider: #2f2f33;
+        --control: #77777e;
+        --accent: #5eead4;
+        --on-accent: #0f2e2a;
+        --danger: #f87171;
+        --menstrual: #dfa9c0;
+        --follicular: #a2ccb4;
+        --ovulation: #e4c585;
+        --luteal: #bda9e2;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--text);
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: 32px;
+        font-weight: 600;
+        letter-spacing: -0.8px;
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 4px;
+      }
+      button,
+      select,
+      input,
+      textarea,
+      summary {
+        font: inherit;
+      }
+      button,
+      select,
+      summary {
+        cursor: pointer;
+      }
+      button {
+        color: inherit;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      summary:focus-visible,
+      a:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+      button:active:not(:disabled) {
+        opacity: 0.75;
+      }
+      button:disabled {
+        cursor: default;
+      }
+      .review {
+        max-width: 1100px;
+        margin: auto;
+        padding: 32px 24px 48px;
+      }
+      .intro {
+        max-width: 740px;
+      }
+      .intro > p {
+        margin-top: 12px;
+        color: var(--supporting);
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 24px 0 32px;
+        padding: 20px 0;
+        border-block: 1px solid var(--divider);
+      }
+      .toolbar label {
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+      }
+      select {
+        min-height: 48px;
+        padding: 8px 32px 8px 12px;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--control);
+        border-radius: 10px;
+        max-width: 100%;
+      }
+      .boards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 390px));
+        justify-content: center;
+        gap: 40px;
+      }
+      .specimen {
+        min-width: 0;
+      }
+      .caption {
+        font-size: 14px;
+        color: var(--supporting);
+        margin: 0 0 12px;
+      }
+      .screen {
+        background: var(--canvas);
+        border: 1px solid var(--control);
+        border-radius: 24px;
+        overflow: hidden;
+        height: 844px;
+        display: flex;
+        flex-direction: column;
+        font-size: calc(16px * var(--type-scale));
+      }
+      .screen h2 {
+        font-size: 1.75em;
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: -0.5px;
+      }
+      .screen h3 {
+        font-size: 1.125em;
+        font-weight: 600;
+        line-height: 1.45;
+      }
+      .support {
+        color: var(--supporting);
+        font-size: 0.875em;
+        line-height: 1.45;
+      }
+      .status {
+        padding: 12px 20px 4px;
+        font-size: 0.875em;
+        font-weight: 600;
+      }
+      .content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 20px;
+      }
+      .screen-header {
+        margin-bottom: 24px;
+      }
+      .screen-header .support {
+        margin-top: 4px;
+      }
+      .cycle {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .cycle-number {
+        font-size: 3.25em;
+        line-height: 1.15;
+        font-weight: 600;
+        letter-spacing: -2px;
+      }
+      .phase {
+        color: var(--menstrual);
+        font-weight: 500;
+        margin-top: 4px;
+      }
+      .phase::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        margin-right: 8px;
+      }
+      .estimate {
+        border-block: 1px solid var(--divider);
+        padding: 16px 0;
+      }
+      .estimate .dates {
+        font-size: 1.5em;
+        line-height: 1.35;
+        font-weight: 600;
+        margin: 4px 0;
+      }
+      .estimate .support + .support {
+        margin-top: 8px;
+      }
+      .entry {
+        border-radius: 20px;
+        background: var(--surface);
+        padding: 20px;
+        margin: 24px 0;
+      }
+      .entry p {
+        margin-top: 8px;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 10px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-weight: 500;
+        text-align: center;
+        line-height: 1.5;
+        text-decoration: none;
+      }
+      .entry .button {
+        width: 100%;
+        margin-top: 16px;
+      }
+      .secondary {
+        background: transparent;
+        color: var(--accent);
+        border-color: var(--control);
+      }
+      .quiet {
+        background: transparent;
+        color: var(--accent);
+        padding-inline: 0;
+      }
+      .section-heading {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .week {
+        display: flex;
+        overflow-x: auto;
+        margin: 12px 0;
+        padding: 4px 0;
+      }
+      .day {
+        flex: 1 0 48px;
+        text-align: center;
+        padding: 4px 0;
+        font-size: 0.875em;
+      }
+      .day strong {
+        display: flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        margin-top: 4px;
+        border-radius: 50%;
+      }
+      .day.current strong {
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+      .day.period strong {
+        text-decoration: underline;
+        text-decoration-color: var(--menstrual);
+        text-decoration-thickness: 3px;
+        text-underline-offset: 6px;
+      }
+      .advice {
+        border-left: 3px solid var(--menstrual);
+        padding-left: 12px;
+        margin-top: 24px;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-around;
+        gap: 8px;
+        padding: 18px 12px 22px;
+        border-top: 1px solid var(--divider);
+        font-size: 0.875em;
+        color: var(--supporting);
+      }
+      .nav .active {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .empty h3 {
+        font-size: 1.5em;
+      }
+      .empty p {
+        margin-top: 12px;
+      }
+      .empty .button {
+        margin-top: 16px;
+      }
+      .editor-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--divider);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .editor-header h2 {
+        font-size: 1.125em;
+        letter-spacing: 0;
+      }
+      .editor-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .editor-actions .secondary {
+        color: var(--text);
+      }
+      .editor-content {
+        padding-top: 0;
+      }
+      fieldset {
+        padding: 0;
+        margin: 24px 0;
+        border: 0;
+        min-width: 0;
+      }
+      legend,
+      .field-label {
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: block;
+      }
+      .choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .choice {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 48px;
+        padding: 8px 12px;
+        background: var(--canvas);
+        border: 1px solid var(--control);
+        border-radius: 999px;
+        font-size: 0.875em;
+      }
+      .choice[aria-pressed="true"] {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--on-accent);
+      }
+      .choice::before {
+        content: "✓";
+        visibility: hidden;
+      }
+      .choice[aria-pressed="true"]::before {
+        visibility: visible;
+      }
+      input,
+      textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px;
+        border: 1px solid var(--control);
+        border-radius: 14px;
+        background: var(--surface);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 128px;
+      }
+      .field {
+        margin: 24px 0;
+      }
+      details {
+        border-block: 1px solid var(--divider);
+        margin-top: 24px;
+      }
+      summary {
+        min-height: 48px;
+        padding: 16px 0;
+        font-weight: 500;
+      }
+      .danger {
+        color: var(--danger);
+      }
+      .error {
+        margin-top: 16px;
+        border-left: 3px solid var(--danger);
+        padding: 8px 12px;
+      }
+      .error p {
+        margin-top: 4px;
+      }
+      .destructive {
+        display: grid;
+        justify-items: start;
+        gap: 8px;
+        margin-top: 24px;
+      }
+      .explanation {
+        margin-top: 16px;
+        color: var(--supporting);
+        font-size: 14px;
+      }
+      .palette {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--divider);
+      }
+      .swatch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .swatch i {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--swatch);
+      }
+      .review-note {
+        margin-top: 24px;
+        color: var(--supporting);
+        max-width: 760px;
+      }
+      @media (max-width: 760px) {
+        .review {
+          padding: 24px 12px;
+        }
+        .boards {
+          grid-template-columns: minmax(0, 390px);
+          gap: 32px;
+        }
+        .toolbar {
+          gap: 12px;
+        }
+        .toolbar label {
+          flex: 1 1 140px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="review">
+      <header class="intro">
+        <h1>Ritulaya, refined.</h1>
+        <p>
+          Design proposal · Today and the entry editor. The same warmth and phase colors,
+          with clearer information and more consistent controls.
+        </p>
+        <p>
+          <strong>Review only.</strong> Synthetic data, no persistence. These are browser
+          layout specimens, not Android screenshots.
+          <a href="ui-refresh.md">Read the brief and inventory</a>.
+        </p>
+      </header>
+      <section class="toolbar" aria-label="Preview controls">
+        <label
+          >Theme<select id="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select></label
+        >
+        <label
+          >Today state<select id="today-state">
+            <option value="recorded">Cycle + entry</option>
+            <option value="empty">No cycle, no entry</option>
+            <option value="notes">Notes only, no cycle</option>
+            <option value="discreet">Discreet proposal</option>
+          </select></label
+        >
+        <label
+          >Specimen text size<select id="text-size">
+            <option value="1">Default</option>
+            <option value="1.25">125%</option>
+            <option value="1.5">150%</option>
+          </select></label
+        >
+        <label
+          >Editor state<select id="editor-state">
+            <option value="ready">Ready</option>
+            <option value="pending">Saving</option>
+            <option value="error">Save failed</option>
+          </select></label
+        >
+      </section>
+      <div class="boards">
+        <section class="specimen" aria-labelledby="today-caption">
+          <h2 class="caption" id="today-caption">
+            01 · Today / synthetic September 5, 2026
+          </h2>
+          <div class="screen">
+            <div class="status" aria-hidden="true">9:41</div>
+            <div class="content">
+              <header class="screen-header">
+                <h2>Today</h2>
+                <p class="support">Saturday, September 5</p>
+              </header>
+              <section id="cycle-context" aria-label="Cycle and prediction">
+                <div class="cycle">
+                  <span class="cycle-number">3</span>
+                  <div>
+                    <p>Cycle day</p>
+                    <p class="phase">Menstrual phase</p>
+                  </div>
+                </div>
+                <div class="estimate">
+                  <p class="support">Next period · estimate</p>
+                  <p class="dates">Oct 1–3</p>
+                  <p class="support">Could start Sep 28–Oct 4</p>
+                  <p class="support">Log a few more cycles for better predictions.</p>
+                </div>
+              </section>
+              <section id="no-cycle" class="empty" hidden>
+                <h3>No current cycle yet</h3>
+                <p class="support">
+                  Add your last period to see your cycle day and estimates. You can still
+                  log how you feel today.
+                </p>
+                <button
+                  class="button secondary"
+                  data-demo="Setup would open the existing cycle setup screen."
+                >
+                  Set up your cycle
+                </button>
+              </section>
+              <section id="discreet-context" class="empty" hidden>
+                <h3>Your private overview</h3>
+                <p class="support">
+                  Details are hidden in discreet mode. Open an entry when you want to view
+                  or edit it.
+                </p>
+              </section>
+              <section class="entry" aria-labelledby="entry-heading">
+                <h3 id="entry-heading">Your entry today</h3>
+                <p id="entry-detail">Medium flow · Calm · Cramps</p>
+                <p id="entry-note" class="support">
+                  A quiet morning. A short walk helped.
+                </p>
+                <button class="button" id="open-editor">Edit today's entry</button>
+              </section>
+              <section aria-labelledby="week-heading">
+                <div class="section-heading">
+                  <h3 id="week-heading">This week</h3>
+                  <button
+                    class="button quiet"
+                    data-demo="Search history would open the existing local history screen."
+                  >
+                    Search history
+                  </button>
+                </div>
+                <div
+                  class="week"
+                  role="group"
+                  tabindex="0"
+                  aria-label="Illustrative week; dates are not interactive"
+                >
+                  <div class="day">Wed<strong>2</strong></div>
+                  <div class="day period">Thu<strong>3</strong></div>
+                  <div class="day period">Fri<strong>4</strong></div>
+                  <div class="day current">Sat<strong>5</strong></div>
+                  <div class="day">Sun<strong>6</strong></div>
+                  <div class="day">Mon<strong>7</strong></div>
+                  <div class="day">Tue<strong>8</strong></div>
+                </div>
+                <p class="support">In the app, tap a day to log or edit.</p>
+              </section>
+              <p class="support advice" id="phase-advice">
+                Gentle movement and extra rest help. Be kind to yourself this week.
+              </p>
+            </div>
+            <div class="nav" role="group" aria-label="Illustrative navigation">
+              <span class="active">Today</span><span>Calendar</span><span>Settings</span>
+            </div>
+          </div>
+          <p class="explanation">
+            One entry summary, one primary action. Estimates stay separate from recorded
+            information. Native tab icons remain; this specimen shows labels only.
+          </p>
+        </section>
+        <section class="specimen" aria-labelledby="editor-caption">
+          <h2 class="caption" id="editor-caption">
+            02 · Editor / independent existing-entry specimen
+          </h2>
+          <div class="screen" id="editor">
+            <div class="status" aria-hidden="true">9:41</div>
+            <header class="editor-header">
+              <div>
+                <h2 tabindex="-1" id="editor-title">Sat, Sep 5</h2>
+                <p class="support">Edit entry</p>
+              </div>
+              <div class="editor-actions">
+                <button class="button" id="save">Save</button
+                ><button class="button secondary" id="close-editor">Close</button>
+              </div>
+            </header>
+            <div class="content editor-content">
+              <div class="error" id="save-error" role="alert" hidden>
+                <strong>Couldn't save entry</strong>
+                <p class="support">Your changes are still here. Try saving again.</p>
+              </div>
+              <form id="entry-form" onsubmit="return false">
+                <fieldset>
+                  <legend>Flow</legend>
+                  <div
+                    class="choices"
+                    data-selection="single"
+                    data-options="None|Spotting|Light|Medium|Heavy"
+                    data-selected="Medium"
+                  ></div>
+                </fieldset>
+                <fieldset>
+                  <legend>Mood</legend>
+                  <div
+                    class="choices"
+                    data-selection="single"
+                    data-options="😊 Happy|😌 Calm|⚡ Energetic|😰 Anxious|😢 Sad|😤 Angry|😠 Irritable|😴 Tired|🥰 Loved"
+                    data-selected="😌 Calm"
+                  ></div>
+                </fieldset>
+                <fieldset>
+                  <legend>Symptoms</legend>
+                  <div
+                    class="choices"
+                    data-selection="multiple"
+                    data-options="Cramps|Bloating|Headache|Fatigue|Acne|Cravings|Backache|Nausea|Tender Breasts|Insomnia|Dizziness|Hot Flashes|Constipation|Diarrhea|Spotting"
+                    data-selected="Cramps"
+                  ></div>
+                </fieldset>
+                <div class="field">
+                  <label class="field-label" for="notes">Notes</label
+                  ><textarea id="notes" rows="3">
+A quiet morning. A short walk helped.</textarea>
+                </div>
+                <details>
+                  <summary>More tracking</summary>
+                  <p class="support">Cervical mucus, temperature, sexual activity</p>
+                  <fieldset>
+                    <legend>Cervical mucus</legend>
+                    <div
+                      class="choices"
+                      data-selection="single"
+                      data-options="Dry|Sticky|Creamy|Watery|Egg white"
+                    ></div>
+                  </fieldset>
+                  <div class="field">
+                    <label class="field-label" for="bbt"
+                      >Basal body temperature (°C)</label
+                    ><input id="bbt" inputmode="decimal" autocomplete="off" />
+                  </div>
+                  <fieldset>
+                    <legend>Sexual activity</legend>
+                    <div
+                      class="choices"
+                      data-selection="single"
+                      data-options="No|Yes"
+                      data-selected="No"
+                      data-required="true"
+                    ></div>
+                  </fieldset>
+                </details>
+                <div class="destructive">
+                  <button
+                    type="button"
+                    class="button quiet danger"
+                    data-demo="Remove period would use the existing clear-flow command. Other fields remain unchanged."
+                  >
+                    Remove period</button
+                  ><button
+                    type="button"
+                    class="button quiet danger"
+                    data-demo="Delete entry would use the existing delete command. This preview does not delete anything."
+                  >
+                    Delete entry
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <p class="explanation">
+            Save stays in the header. Notes moves before additional measurements; every
+            existing field remains available. Scroll inside the specimen to review the
+            full form.
+          </p>
+        </section>
+      </div>
+      <div class="palette" role="group" aria-label="Retained identity colors">
+        <span class="swatch"><i style="--swatch: var(--accent)"></i>Teal actions</span
+        ><span class="swatch"><i style="--swatch: var(--menstrual)"></i>Menstrual</span
+        ><span class="swatch"><i style="--swatch: var(--follicular)"></i>Follicular</span
+        ><span class="swatch"><i style="--swatch: var(--ovulation)"></i>Ovulation</span
+        ><span class="swatch"><i style="--swatch: var(--luteal)"></i>Luteal</span>
+      </div>
+      <p class="review-note" id="demo-message" role="status">
+        Review decisions: the simpler Today hierarchy, the More tracking disclosure, and
+        the discreet overview. Native keyboard behavior, translations, and TalkBack still
+        need device validation.
+      </p>
+    </main>
+    <script>
+      // Review-only fixtures. No app bridge, network, storage, or health-data logging.
+      const byId = (id) => document.getElementById(id)
+      const message = (text) => {
+        byId("demo-message").textContent = text
+      }
+      byId("theme").addEventListener("change", (event) => {
+        document.documentElement.dataset.theme = event.target.value
+      })
+      byId("text-size").addEventListener("change", (event) => {
+        document.documentElement.style.setProperty("--type-scale", event.target.value)
+      })
+      byId("today-state").addEventListener("change", (event) => {
+        const state = event.target.value
+        byId("cycle-context").hidden = state !== "recorded"
+        byId("phase-advice").hidden = state !== "recorded"
+        byId("no-cycle").hidden = state !== "empty" && state !== "notes"
+        byId("discreet-context").hidden = state !== "discreet"
+        byId("entry-detail").textContent =
+          state === "recorded"
+            ? "Medium flow · Calm · Cramps"
+            : state === "discreet"
+              ? "Entry details hidden"
+              : state === "notes"
+                ? "Notes recorded"
+                : "Nothing logged yet today"
+        byId("entry-note").hidden = state === "empty" || state === "discreet"
+        byId("open-editor").textContent =
+          state === "empty"
+            ? "Log today"
+            : state === "discreet"
+              ? "Open today's entry"
+              : "Edit today's entry"
+        document.querySelectorAll(".day").forEach((day, index) => {
+          day.classList.toggle(
+            "period",
+            state === "recorded" && (index === 1 || index === 2),
+          )
+        })
+      })
+      document.querySelectorAll("[data-options]").forEach((group) => {
+        group.dataset.options.split("|").forEach((label) => {
+          const button = document.createElement("button")
+          button.type = "button"
+          button.className = "choice"
+          button.textContent = label
+          button.setAttribute("aria-label", label)
+          button.setAttribute("aria-pressed", String(label === group.dataset.selected))
+          button.addEventListener("click", () => {
+            const selected = button.getAttribute("aria-pressed") === "true"
+            if (group.dataset.selection === "single")
+              group.querySelectorAll("button").forEach((option) => {
+                option.setAttribute("aria-pressed", "false")
+              })
+            button.setAttribute(
+              "aria-pressed",
+              String(group.dataset.required === "true" || !selected),
+            )
+          })
+          group.append(button)
+        })
+      })
+      byId("editor-state").addEventListener("change", (event) => {
+        const pending = event.target.value === "pending"
+        byId("editor").setAttribute("aria-busy", String(pending))
+        byId("save").textContent = pending ? "Saving…" : "Save"
+        byId("save-error").hidden = event.target.value !== "error"
+        byId("editor")
+          .querySelectorAll("button, input, textarea")
+          .forEach((control) => {
+            control.disabled = pending
+          })
+        byId("editor").querySelector(".content").scrollTop = 0
+      })
+      byId("open-editor").addEventListener("click", () => {
+        byId("editor-title").focus()
+        message(
+          "Showing the independent editor specimen. Today's fixture is not connected to this form.",
+        )
+      })
+      byId("close-editor").addEventListener("click", () => {
+        byId("open-editor").focus()
+        message(
+          "Returned to Today. Preview drafts stay in this page until it is reloaded.",
+        )
+      })
+      byId("save").addEventListener("click", () => {
+        message(
+          "Preview only: nothing was saved. Use Editor state above to inspect Saving and Save failed.",
+        )
+      })
+      document.querySelectorAll("[data-demo]").forEach((button) => {
+        button.addEventListener("click", () => message(button.dataset.demo))
+      })
+    </script>
+  </body>
+</html>
