@@ -15,7 +15,7 @@ Ritulaya is in closed testing on Google Play. Join the test to install the lates
 
 ## Philosophy
 
-- **Your data lives on your device** — encrypted with a hardware-backed key that never leaves the Android Keystore
+- **Your data lives on your device** — encrypted with a database key wrapped by an Android Keystore key
 - **Sync is optional and automatic** — connect your own GitHub repo, it syncs silently in the background
 - **No telemetry, no tracking, no third-party SDKs** — structurally enforced, not just promised
 - **Phase-aware design** — the app's visual language shifts with your cycle, in calm muted tones
@@ -61,16 +61,20 @@ yarn build:android:local
 ## Architecture
 
 - **State** — one `@xstate/store` per domain (cycles, day-logs, settings, sync, predictions), read via `useSelector`. Module-level stores, no global provider.
-- **Data** — expo-sqlite + Drizzle, with per-entity repositories in `src/db/`.
+- **Data** — Room + SQLCipher behind `RitulayaDataStore` in `modules/ritulaya-db/`; `src/services/db.ts` is the JS bridge client.
 - **Encryption** — the SQLite file is encrypted at rest with SQLCipher; the key is a random value wrapped by an AES-256-GCM key held in the Android Keystore.
 - **Sync** — a Kotlin module (`ritulaya-sync`) drives GitHub sync end-to-end (OAuth device flow, CSV merge, background WorkManager). The device copy is encrypted; the repo copy is plaintext in your private repository.
-- **Native modules** — `ritulaya-crypto` (Keystore / SQLCipher key), `ritulaya-logger` (crash-surviving debug log), `ritulaya-widget` (home-screen widget).
+- **Native modules** — database, crypto, predictions, sync, local logging, and home-screen widget under `modules/`.
 
 See [docs/decisions/](./docs/decisions/) for architecture decision records.
 
+For enhancement planning, start with the latest
+[codebase assessment](./docs/assessments/2026-09-05-codebase-assessment.md) rather
+than repeating the repository survey.
+
 ## Versioning
 
-Versioned with [Changesets](https://github.com/changesets/changesets). Pre-release at `0.1.0-alpha` — unstable API.
+Versioned with [Changesets](https://github.com/changesets/changesets). See `package.json` for the current version and `CHANGELOG.md` for release history.
 
 ```bash
 yarn changeset        # Create a changeset

@@ -33,7 +33,7 @@ Why people use Ritulaya:
 What makes it different:
 
 - Predictions are computed on-device, not in the cloud
-- Your data is encrypted at rest with a hardware-backed key that never leaves your device
+- Your data is encrypted at rest using a database key protected by Android Keystore
 - GitHub sync is optional and uploads plaintext files to a repository you control
 - Discreet mode and biometric lock keep the app private on a shared device
 - The visual design shifts with your cycle in calm, muted tones
@@ -75,7 +75,7 @@ Keep these claims accurate in Play Store updates:
 - Describe Ritulaya as a period tracker, not a medical device, and do not imply it provides contraception or medical advice.
 - Describe predictions as computed on-device.
 - Describe GitHub sync as optional and as plaintext files in a repository the user owns.
-- Describe biometric lock as using the device's biometrics; do not overstate security beyond the hardware-backed encryption key.
+- Describe biometric lock as using the device's authentication. Say Android Keystore-backed, not guaranteed hardware-backed; the app does not verify the key's security level.
 - Describe notifications as used only for optional period and daily-log reminders.
 - Describe the app as Android-only.
 - If future direction is mentioned, clearly label it as planned and not current behavior.

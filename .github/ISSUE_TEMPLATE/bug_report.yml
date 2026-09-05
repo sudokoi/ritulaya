@@ -8,8 +8,8 @@ body:
       value: |
         Thanks for taking the time to fill out this bug report.
         Please note: Ritulaya never collects analytics or telemetry.
-        If you're sharing logs, sensitive data (cycle dates, symptoms)
-        will be automatically redacted.
+        Review diagnostic output before sharing it. Do not include health
+        entries, repository tokens, or other personal information.
 
   - type: textarea
     id: description
@@ -70,8 +70,8 @@ body:
     attributes:
       label: Debug Logs
       description: |
-        Export logs from Settings → Export Debug Logs.
-        All cycle data and personal information is automatically redacted.
+        Use Settings → Report Bug to prepare local diagnostics.
+        Review the output and remove any personal information before sharing.
       placeholder: Paste redacted log output here.
 
   - type: textarea

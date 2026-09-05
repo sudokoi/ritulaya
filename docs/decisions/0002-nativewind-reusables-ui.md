@@ -4,6 +4,10 @@ Date: 2026-08-12
 
 Status: Accepted
 
+> Implementation note (2026-09-05): the application currently pins NativeWind
+> 4.2.6, not the originally proposed version 5. Owned UI primitives are covered
+> by ADR-0011. This note does not authorize a dependency upgrade.
+
 ## Context
 
 We need a styling and component system for the UI. The reference project (expense-buddy) uses Tamagui, but we evaluated alternatives for a more minimal, agent-friendly stack.
