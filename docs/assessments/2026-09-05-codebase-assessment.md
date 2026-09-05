@@ -381,6 +381,41 @@ The reviewed direction is committed as `f9c8a7b`, the theme foundation as
 settings and the QA app's theme/discreet preferences were restored. The original
 app/data and the unrelated port 8081 remain untouched; QA Metro stays on 8082.
 
+### Calendar, History, Settings, and locale follow-up
+
+The remaining main-screen refresh is implemented on the same branch:
+
+- Calendar has readable dates separate from domain markers, explicit seven-column
+  week rows, wrapping legends, safe top spacing, and discreet health-label/marker
+  omission. At 320dp its edge-to-edge date targets are about 45.7dp wide; this is a
+  documented compromise against the preferred 48dp width, not a full target audit.
+- History uses the shared fields/chips/text without changing filters, virtualized
+  records, or command ownership. Full-width actions prevent sampled Hindi label
+  clipping at large text sizes.
+- Main Settings has explicit theme/language/reminder choices, single labeled
+  switch rows, pending-write guards, caught hardware failures, separate cycle-edit
+  and Insights actions, and hidden discreet statistics. Subpages are unchanged.
+- Dates react to language changes in already-mounted Today, Calendar, History,
+  editor, and week-strip views through an explicit locale dependency; global
+  date-fns defaults alone did not reliably update mounted/compiled views.
+
+Validation: 118 JS/React tests in 22 suites, typecheck, ESLint/ktlint, formatting,
+diff checks, and production Android Hermes export pass. Native Android 16 QA
+observed History search/range/filter behavior, Calendar save, edit with query
+retention, and deletion using a newly created synthetic notes-only entry. The
+three earlier synthetic flow entries were preserved. All six locales were sampled
+at 320dp/150% text; post-fix live language transitions were verified for Hindi,
+English, Japanese, and Korean. See the detailed
+[implementation/evidence record](../design/ui-refresh.md#remaining-screen-implementation--2026-09-05)
+for fixes, temporary artifacts, and sampling limits.
+
+QA theme/language/discreet and emulator density/font/keyboard preferences were
+restored. The original app/data and port 8081 were untouched. Full TalkBack,
+native failure injection, long-list performance, release/physical-device, and
+earlier lifecycle/integrity/sync checks remain open. No native, dependency,
+schema, or plaintext GitHub sync changes; no release install, live sync, push,
+or merge.
+
 ### Baseline assessment
 
 - Repository state assessed: `main` at `dc7003d` (`0.1.2`).
