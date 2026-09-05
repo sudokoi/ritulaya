@@ -7,6 +7,8 @@ import { useCycleDayStates } from "@/hooks/use-cycle-day-states"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useDayEditor } from "@/hooks/use-day-editor"
 import { useTranslation } from "react-i18next"
+import { router } from "expo-router"
+import { Button } from "@/components/ui/button"
 
 export default function CalendarScreen() {
   const { t } = useTranslation()
@@ -28,6 +30,14 @@ export default function CalendarScreen() {
   return (
     <ScrollView className="flex-1 bg-[var(--bg-primary)]">
       <View className="pt-12">
+        <Button
+          variant="ghost"
+          size="md"
+          className="mx-4 mb-2 self-end"
+          onPress={() => router.push("/history")}
+        >
+          {t("history.open")}
+        </Button>
         <View className="flex-row px-4 py-2">
           <View className="flex-1 items-center">
             <Text className="text-2xl font-bold text-[var(--text-primary)]">

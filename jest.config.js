@@ -1,3 +1,5 @@
+const expoPreset = require("jest-expo/jest-preset")
+
 module.exports = {
   projects: [
     {
@@ -16,6 +18,13 @@ module.exports = {
     {
       displayName: "react",
       preset: "jest-expo",
+      // Exercise the real store subscriptions in React tests; both packages are ESM.
+      transformIgnorePatterns: expoPreset.transformIgnorePatterns.map((pattern) =>
+        pattern.replace(
+          "/node_modules/",
+          "/node_modules/(?!@xstate/(?:store|store-react)/)",
+        ),
+      ),
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
       },

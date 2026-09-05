@@ -19,6 +19,7 @@ import { PHASE_COLORS } from "@/constants/phase-colors"
 import { symptomLabel, moodLabel } from "@/domain/day-entry-display"
 import { DayCircle } from "@/components/day-circle"
 import { flowLevelStyle } from "@/lib/day-colors"
+import { Button } from "@/components/ui/button"
 
 export default function TodayScreen() {
   const { t } = useTranslation()
@@ -140,9 +141,14 @@ export default function TodayScreen() {
         <TodayCard log={todayLog} onEdit={() => openDay(new Date())} />
 
         <View className="mx-4 mt-4 rounded-card bg-[var(--bg-surface)] px-5 py-4">
-          <Text className="mb-4 text-sm font-medium text-[var(--text-muted)]">
-            {t("today.sectionWeek")}
-          </Text>
+          <View className="mb-4 flex-row flex-wrap items-center justify-between">
+            <Text className="text-sm font-medium text-[var(--text-muted)]">
+              {t("today.sectionWeek")}
+            </Text>
+            <Button variant="ghost" size="md" onPress={() => router.push("/history")}>
+              {t("history.open")}
+            </Button>
+          </View>
           <CycleStrip
             centerDate={today}
             span={7}

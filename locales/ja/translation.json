@@ -39,6 +39,28 @@
       "tip": "区切りをつけるのに良い時期。休息と心地よさを大切に。"
     }
   },
+  "history": {
+    "title": "履歴",
+    "open": "履歴を検索",
+    "localSearch": "この端末の記録を新しい順に検索できます。",
+    "searchNotes": "メモを検索",
+    "filters": "日付・症状・気分で絞り込む",
+    "clearFilters": "絞り込みを解除",
+    "fromDate": "開始日",
+    "toDate": "終了日",
+    "dateHint": "YYYY-MM-DD形式で入力してください。空欄の場合は日付の制限なし。",
+    "anySymptom": "すべての症状",
+    "anyMood": "すべての気分",
+    "invalidDate": "有効な日付をYYYY-MM-DD形式で入力するか、空欄にしてください。",
+    "reversedRange": "開始日は終了日以前にしてください。",
+    "results_other": "{{count}}件の記録",
+    "emptyTitle": "まだ記録がありません",
+    "emptyBody": "今日の体調を記録してみましょう。記録がここに表示されます。",
+    "noResults": "一致する記録がありません",
+    "noResultsBody": "別の言葉で検索するか、絞り込みを解除してください。",
+    "editDate": "{{date}}の記録を編集",
+    "privatePreview": "記録があります。タップして表示・編集できます。"
+  },
   "today": {
     "logToday": "今日を記録",
     "editToday": "今日の記録を編集",
