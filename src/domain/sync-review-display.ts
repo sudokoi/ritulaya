@@ -31,7 +31,7 @@ export function syncValueLabel(
   value: string | null,
   t: TFunction,
 ): string {
-  if (value === null) return t("syncV2.deleted")
+  if (value === null) return t(field === null ? "syncV2.deleted" : "sheet.notRecorded")
   if (field === null) {
     const record: Record<string, string | null> = JSON.parse(value)
     return Object.entries(record)

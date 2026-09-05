@@ -138,6 +138,7 @@
     "today": "今日"
   },
   "sheet": {
+    "notRecorded": "未記録",
     "moreTracking": "追加の記録項目",
     "lessTracking": "追加項目を閉じる",
     "flow": "経血量",

@@ -41,20 +41,28 @@ export async function logPeriodOnDate(
 }
 
 export async function saveDayEntry(input: DayEntryInput, periodDays: number) {
-  // The sheet always submits the full form, so null here means the user
-  // cleared the field. The native decoder resolveDayLogFields
-  // (modules/ritulaya-db/.../DayLogPatch.kt) treats "" and 0 as explicit
-  // clears; an omitted field keeps its existing value.
+  // A full form uses null for Not recorded; a partial bridge patch keeps omitted
+  // values. Encode clear intent explicitly rather than using magic text/numbers.
   await saveDayEntryInDb(
     {
       date: input.date,
       flowIntensity: input.flowIntensity,
       symptoms: input.symptoms,
-      mood: input.mood ?? "",
-      notes: input.notes ?? "",
-      cervicalMucus: input.cervicalMucus ?? "",
-      bbt: input.bbt ?? 0,
+      mood: input.mood,
+      notes: input.notes,
+      cervicalMucus: input.cervicalMucus,
+      bbt: input.bbt,
       sexualActivity: input.sexualActivity ?? undefined,
+      clearFields: (
+        [
+          "flowIntensity",
+          "mood",
+          "notes",
+          "cervicalMucus",
+          "bbt",
+          "sexualActivity",
+        ] as const
+      ).filter((field) => input[field] === null),
     },
     periodDays,
   )

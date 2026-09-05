@@ -32,7 +32,10 @@ class RitulayaDataStore internal constructor(
 
     suspend fun listDayLogs(): List<DayLogEntity> = dao.listDayLogs()
 
-    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity = writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
+    suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
+        db.withTransaction {
+            writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
+        }
 
     /** Decide the flow transition from persisted data and commit the whole command together. */
     suspend fun saveDayEntry(

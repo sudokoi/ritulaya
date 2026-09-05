@@ -57,7 +57,7 @@ object SyncSchema {
             override fun onCreate(db: SupportSQLiteDatabase) = install(db)
         }
 
-    private fun install(db: SupportSQLiteDatabase) {
+    internal fun install(db: SupportSQLiteDatabase) {
         for ((table, prefix, column) in listOf(
             Triple("cycles", "cycle:", "id"),
             Triple("day_logs", "day:", "date"),

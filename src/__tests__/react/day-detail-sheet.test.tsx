@@ -142,6 +142,28 @@ test("sexual activity choices do not turn an explicit No into an unknown value",
   expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ sexualActivity: false }))
 })
 
+test("recorded sexual activity can be explicitly changed to Not recorded", async () => {
+  const onSave = jest.fn().mockResolvedValue(undefined)
+  await render(
+    <DayDetailSheet visible date={new Date()} onSave={onSave} onClose={jest.fn()} />,
+  )
+  await fireEvent.press(screen.getByRole("button", { name: "sheet.moreTracking" }))
+  expect(
+    screen.getByRole("button", {
+      name: "sheet.sexualActivity: sheet.notRecorded",
+      selected: true,
+    }),
+  ).toBeTruthy()
+  await fireEvent.press(
+    screen.getByRole("button", { name: "sheet.sexualActivity: common.yes" }),
+  )
+  await fireEvent.press(
+    screen.getByRole("button", { name: "sheet.sexualActivity: sheet.notRecorded" }),
+  )
+  await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
+  expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ sexualActivity: null }))
+})
+
 test("failed deletion retains the entry and offers an inline error without claiming it is saving", async () => {
   let fail!: (error: Error) => void
   const onDelete = jest.fn(

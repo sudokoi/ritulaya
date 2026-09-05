@@ -7,6 +7,14 @@ import org.junit.Test
 
 class SyncProtocolTest {
     @Test
+    fun `first sync must review recorded No versus unrecorded without inventing a baseline`() {
+        val local = mapOf(key to (entry() + ("sexual_activity" to null)))
+        val remote = mapOf(key to (entry() + ("sexual_activity" to "0")))
+        val merged = ThreeWayMerge.merge(emptyMap(), local, remote)
+        assertThat(merged.conflicts.map { it.field }).containsExactly("sexual_activity")
+    }
+
+    @Test
     fun `an accepted v2 target cannot fall back to stale legacy files`(): Unit =
         runBlocking {
             val local = Local(mapOf(key to entry()))
