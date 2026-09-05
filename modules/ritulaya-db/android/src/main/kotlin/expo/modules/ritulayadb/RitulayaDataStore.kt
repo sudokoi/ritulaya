@@ -7,10 +7,11 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class RitulayaDataStore(
-    context: Context,
+class RitulayaDataStore internal constructor(
+    private val db: RitulayaDatabase,
 ) {
-    private val db = RitulayaDatabase.getInstance(context.applicationContext)
+    constructor(context: Context) : this(RitulayaDatabase.getInstance(context.applicationContext))
+
     private val dao = db.dao()
 
     suspend fun listCycles(): List<CycleEntity> = dao.listCycles()
@@ -32,6 +33,23 @@ class RitulayaDataStore(
     suspend fun listDayLogs(): List<DayLogEntity> = dao.listDayLogs()
 
     suspend fun upsertDayLog(input: DayLogInput): DayLogEntity = writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
+
+    /** Decide the flow transition from persisted data and commit the whole command together. */
+    suspend fun saveDayEntry(
+        input: DayLogInput,
+        periodDays: Int,
+    ): DayLogEntity =
+        db.withTransaction {
+            val existing = dao.getDayLogByDate(input.date)
+            val flow = input.flowIntensity
+            val isPeriod = flow != null && flow != "none"
+            val wasPeriod = existing?.flowIntensity != null && existing.flowIntensity != "none"
+            if (isPeriod && !wasPeriod) {
+                logPeriodOn(input.date, requireNotNull(flow), periodDays)
+            }
+            // Re-read after period fill so its chosen cycle association is preserved.
+            writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
+        }
 
     suspend fun logPeriod(
         flow: String,
@@ -92,7 +110,6 @@ class RitulayaDataStore(
                     input =
                         DayLogInput().apply {
                             flowIntensity = flow
-                            symptoms = emptyList()
                         },
                 )
             }
@@ -118,7 +135,7 @@ class RitulayaDataStore(
                     cervicalMucus = fields.cervicalMucus,
                     bbt = fields.bbt,
                     sexualActivity = fields.sexualActivity,
-                    cycleId = fields.cycleId,
+                    cycleId = cycleId ?: fields.cycleId,
                     updatedAt = now,
                 )
             dao.upsertDayLog(updated)
@@ -129,7 +146,7 @@ class RitulayaDataStore(
             DayLogEntity(
                 id = generateId(),
                 date = date,
-                cycleId = fields.cycleId,
+                cycleId = cycleId ?: fields.cycleId,
                 flowIntensity = fields.flowIntensity,
                 symptoms = fields.symptomsJson,
                 mood = fields.mood,
