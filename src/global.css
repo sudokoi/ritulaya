@@ -2,29 +2,4 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Keep these tokens in sync with src/constants/palette.ts. */
-@layer base {
-  :root {
-    --bg-primary: #faf8f5;
-    --bg-surface: #ffffff;
-    --bg-muted: #ece7e1;
-    --text-primary: #2d2d2f;
-    --text-muted: #6f6b64;
-    --border: #e8e4df;
-    --accent: #0f766e;
-    --on-accent: #ffffff;
-    --accent-wash: rgba(15, 118, 110, 0.2);
-  }
-
-  .dark:root {
-    --bg-primary: #141416;
-    --bg-surface: #1e1e21;
-    --bg-muted: #2c2c30;
-    --text-primary: #f2f1ee;
-    --text-muted: #a9a8a4;
-    --border: #2f2f33;
-    --accent: #5eead4;
-    --on-accent: #0f2e2a;
-    --accent-wash: rgba(94, 234, 212, 0.2);
-  }
-}
+/* Theme variables are derived from theme-tokens.json by the Tailwind plugin. */

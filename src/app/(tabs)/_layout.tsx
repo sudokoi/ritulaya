@@ -24,11 +24,7 @@ function TabBarButton({
       onPress={onPress}
       onLongPress={onLongPress}
       android_ripple={undefined}
-      style={({ pressed }) => [
-        style,
-        { flex: 1, alignItems: "center", justifyContent: "center" },
-        pressed && { opacity: 0.55 },
-      ]}
+      style={[style, { flex: 1, alignItems: "center", justifyContent: "center" }]}
     >
       {children}
     </Pressable>
