@@ -40,6 +40,11 @@
     }
   },
   "today": {
+    "logToday": "Log today",
+    "editToday": "Edit today's entry",
+    "logEntry": "Log this day",
+    "editEntry": "Edit this entry",
+    "tapDayToLog": "Tap a day to log or edit an entry.",
     "daysUntil": "{{count}} days until next period",
     "roughlyDaysUntil": "roughly {{count}} days until next period",
     "couldStart": "Could start {{start}} – {{end}}",
@@ -205,6 +210,9 @@
     "ownerError": "Enter an owner."
   },
   "seed": {
+    "completeTitle": "You're all set",
+    "completeBody": "You can now record how you feel today. Estimates will adjust as you add more history.",
+    "exploreApp": "Explore the app",
     "title": "Set Up Cycle",
     "lastPeriodStarted": "Last period started",
     "daysAgo_one": "day ago",
