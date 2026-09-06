@@ -51,22 +51,27 @@ and unrelated port 8081 must remain untouched.
 
 The selected implementation slices are complete through `9e15d15`, including
 the follow-up native reminder race, language freshness and logger runtime findings.
-The subsequent original-audit recheck identified two still-open implementation
+The subsequent original-audit recheck identified two omitted implementation
 items: privacy-reviewed structured diagnostic fields/redaction tests, and an Expo
-compatibility/Doctor CI gate. They were missed by the original completion summary.
+compatibility/Doctor CI gate. They were missed by the original completion summary
+and are now addressed by these follow-ups.
 The diagnostics follow-up now implements finite error categories and native
 pre-storage/export projection, including legacy rows; see [the disclosure policy](../diagnostics.md).
 Validation for this follow-up: 158 JS/React tests and 84 native tests pass, along
 with typecheck, lint, formatting and the ARM64 release-mode rebuild. No new
 installed-app diagnostic export or production installation is claimed.
+The CI follow-up adds `yarn check:expo` after immutable dependency installation
+and updates the two outdated setup-action major tags with maintainer confirmation.
+The exact command passes under `CI=1` (Doctor **21/21**), and actionlint passes.
+No hosted workflow run is claimed. See [the compatibility policy](../assessments/2026-09-06-compatibility-and-platform.md).
 The subsequently authorized [live GitHub verification](../assessments/2026-09-06-live-github-sync.md)
 uses only a newly created private repository and synthetic Android test stores.
 The production-identity ARM64 release-mode build and a separately identified
 installed QA release-mode build both pass. Current checks and device observations
 are recorded in [the completion evidence](../assessments/2026-09-06-hardening-completion.md).
 
-This is completion of those slices, not all audit items, publication or universal
-device certification. Live GitHub testing is now authorized only in the new
+This completes the selected slices and the two subsequently identified audit
+omissions, not publication or universal device certification. Live GitHub testing is now authorized only in the new
 temporary private QA repository. Timed notification delivery, full TalkBack
 and locale/font matrices, OEM transfer/capture behavior, and the separate Android
 17 crash report remain external validation limits. Older checkpoints below are
