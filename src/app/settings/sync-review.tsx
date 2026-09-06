@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { FlatList, View } from "react-native"
+import { ActivityIndicator, FlatList, View } from "react-native"
 import { router } from "expo-router"
 import { ChevronLeft } from "lucide-react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -100,6 +100,18 @@ export default function SyncReviewScreen() {
         contentContainerStyle={{ padding: 20, gap: 16 }}
         ListHeaderComponent={
           <View className="gap-4">
+            {loading || busy ? (
+              <View
+                accessible
+                accessibilityRole="progressbar"
+                accessibilityLabel={t("sync.statusSyncing")}
+                accessibilityLiveRegion="polite"
+                className="flex-row items-center gap-3"
+              >
+                <ActivityIndicator color={colors.accent} />
+                <AppText className="flex-1">{t("sync.statusSyncing")}</AppText>
+              </View>
+            ) : null}
             {failed ? (
               <>
                 <AppText accessibilityRole="alert">{t("syncV2.failed")}</AppText>
@@ -128,9 +140,7 @@ export default function SyncReviewScreen() {
                 </Button>
               </>
             ) : null}
-            {loading ? (
-              <AppText>{t("sync.statusSyncing")}</AppText>
-            ) : review ? (
+            {loading ? null : review ? (
               <>
                 <AppText>
                   {t(
@@ -184,6 +194,7 @@ export default function SyncReviewScreen() {
           review && !loading ? (
             <Button
               pending={busy}
+              pendingLabel={t("sync.statusSyncing")}
               disabled={
                 busy ||
                 (review.kind === "conflicts" &&
