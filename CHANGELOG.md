@@ -1,5 +1,13 @@
 # ritulaya
 
+## 0.2.1
+
+### Patch Changes
+
+- 1acaab3: Show a spinner and localized syncing feedback while migration or conflict
+  confirmation is being saved, synchronized, and refreshed. Keep progress visible
+  through retries and clear it when the operation completes or fails.
+
 ## 0.2.0
 
 ### Minor Changes
