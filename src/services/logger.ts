@@ -1,15 +1,16 @@
 import RitulayaLogger from "../../modules/ritulaya-logger"
+import { diagnosticMetadata } from "./diagnostic-metadata"
 
 type LogLevel = "debug" | "info" | "warn" | "error"
 
 function log(level: LogLevel, tag: string, message: string, metadata?: unknown) {
   if (!RitulayaLogger) return
   try {
-    const meta = metadata === undefined ? null : JSON.stringify(metadata)
+    const meta = diagnosticMetadata(metadata)
     // Diagnostics must not create a second, unhandled application failure.
     void RitulayaLogger.log(level, tag, message, meta).catch(() => undefined)
   } catch {
-    // Non-serializable diagnostic metadata is not an application command failure.
+    // Even hostile getters on an error cannot fail the application command.
   }
 }
 
