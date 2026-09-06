@@ -45,6 +45,16 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Native logger follow-up
+
+Isolated QA reproduced Expo rejecting `RitulayaLogger.log` with “Unknown type:
+class kotlinx.coroutines.StandaloneCoroutine”. The function returned `launch`'s
+job across the bridge. It now uses Expo's suspend-function contract and completes
+the write instead. JS handles diagnostic-write rejection and non-serializable
+metadata without creating another application failure. Regression tests pass;
+installed verification of the rebuilt fix remains pending. This is not evidence
+for the separately reported Android 17 crash.
+
 ### Android backup policy follow-up
 
 Added durable Expo manifest wiring and explicit exclusion resources for legacy

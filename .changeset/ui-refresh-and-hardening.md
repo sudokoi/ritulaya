@@ -31,6 +31,8 @@
   React Native 0.86.3; preserve NativeWind 4 and the existing native architecture.
 - Exclude private and device-protected app storage explicitly from Android cloud
   backups and device transfers, in addition to disabling automatic backup.
+- Fix the native logging bridge returning a coroutine job instead of completing
+  its write; diagnostic failures no longer create unhandled JS errors.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification
