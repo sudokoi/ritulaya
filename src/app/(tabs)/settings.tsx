@@ -287,6 +287,11 @@ export default function SettingsScreen() {
             onPress={() => router.push("/settings/github-sync")}
           />
           <SettingsRow
+            icon={<Info size={20} color={colors.muted} />}
+            label={t("repair.title")}
+            onPress={() => router.push("/settings/repair-history")}
+          />
+          <SettingsRow
             icon={<Download size={20} color={colors.muted} />}
             label={discreetLabel(
               discreet,

@@ -138,6 +138,16 @@
     "stateFertile": "fertile",
     "stateLogged": "logged"
   },
+  "repair": {
+    "title": "Review history",
+    "body": "Preview rebuilt cycles from recorded flow. Gaps of 7 or more days start a new cycle. Confirmation removes empty cycles and repairs dates and associations, without changing your entries. Unrelated historical issues are never repaired automatically.",
+    "before": "Before",
+    "after": "After",
+    "entries": "Entries to reassociate: {{count}}",
+    "open": "Ongoing",
+    "confirm": "Confirm history repair",
+    "noChanges": "No repairs are needed."
+  },
   "sheet": {
     "notRecorded": "Not recorded",
     "moreTracking": "More tracking",

@@ -31,6 +31,13 @@ export interface SettingsPatch {
 }
 
 interface RitulayaDbNativeModule {
+  previewCycleRepair(): Promise<{
+    token: string
+    before: Cycle[]
+    after: Cycle[]
+    reassociatedEntries: number
+  }>
+  applyCycleRepair(token: string): Promise<void>
   listCycles(): Promise<Cycle[]>
   logPeriod(flow: string, periodDays: number): Promise<void>
   logPeriodOn(date: string, flow: string, periodDays: number): Promise<void>
