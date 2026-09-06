@@ -13,9 +13,14 @@ It is not a replacement for:
 
 ## Assessment status
 
+Current status: the [hardening completion evidence](./2026-09-06-hardening-completion.md)
+records codewise completion through `9e15d15`, final local checks, isolated
+installed QA and explicit external validation limits. The pending statements
+below describe historical checkpoints, not the current implementation backlog.
+
 The subsequent [revision-sync follow-up](./2026-09-05-revision-sync-validation.md)
 supersedes the timestamp/concurrency/remote-format limitations below. The original
-assessment remains historical; the broader hardening backlog is not yet complete.
+assessment remains historical; subsequent hardening completion is linked above.
 
 Latest: the [final branch audit](./2026-09-05-final-audit.md) records the standards
 and requirements findings, subsequent fixes, release-mode build evidence, and

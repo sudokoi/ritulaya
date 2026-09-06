@@ -45,6 +45,20 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Completion status — 2026-09-06
+
+The approved implementation backlog is complete through `9e15d15`, including
+the follow-up native reminder race, language freshness and logger findings.
+The production-identity ARM64 release-mode build and a separately identified
+installed QA release-mode build both pass. Current checks and device observations
+are recorded in [the completion evidence](../assessments/2026-09-06-hardening-completion.md).
+
+This is codewise completion, not publication or universal device certification.
+Live GitHub testing remains prohibited. Timed notification delivery, full TalkBack
+and locale/font matrices, OEM transfer/capture behavior, and the separate Android
+17 crash report remain external validation limits. Older checkpoints below are
+historical, not a current list of unimplemented work.
+
 ### Widget and reminder publication follow-up
 
 Widgets now omit cycle day, phase and countdown whenever discreet mode or app
@@ -75,10 +89,11 @@ clearing refusing installation. Widget tests cover Ritulaya's display policy,
 not RemoteViews or Android guarantees. The independent spec reviewer confirmed
 the three reported surface races resolved by static recheck.
 
-Latest checks: **155 JS/React tests and 79 native tests pass**, along with
-typechecking and lint. The final formatting warning was corrected before
-commit. The final release rebuild and installed QA for this slice remain pending;
-earlier release builds do not validate these latest native changes.
+Checks: **155 JS/React tests and 79 native tests pass**, along with typechecking,
+lint and formatting. The final release rebuild and isolated installed QA now
+cover this slice: actual launcher rendering, private suppression/restoration,
+widget-to-editor links and Android alarm registration are recorded in the
+completion evidence. Timed delivery is not claimed.
 
 ### Native logger follow-up
 
@@ -86,9 +101,10 @@ Isolated QA reproduced Expo rejecting `RitulayaLogger.log` with “Unknown type:
 class kotlinx.coroutines.StandaloneCoroutine”. The function returned `launch`'s
 job across the bridge. It now uses Expo's suspend-function contract and completes
 the write instead. JS handles diagnostic-write rejection and non-serializable
-metadata without creating another application failure. Regression tests pass;
-installed verification of the rebuilt fix remains pending. This is not evidence
-for the separately reported Android 17 crash.
+metadata without creating another application failure. Regression tests and the
+rebuilt app's startup pass. The observed QA process log contains no repeat of the
+coroutine-return error; deliberate native diagnostic failure injection was not
+performed. This is not evidence for the separately reported Android 17 crash.
 
 ### Android backup policy follow-up
 
@@ -175,13 +191,19 @@ persistence, and keep scheduling blocked on failure. Ordinary refreshes with an
 unchanged reminder policy retain durable schedules while computing, avoiding a
 process-interruption gap. Successful retry restores scheduling from the new version.
 
+### Historical implementation checkpoints
+
+These counts and pending statements describe the commits at those checkpoints.
+The follow-ups above supersede them.
+
 - Sync scope was subsequently approved as the full revision-based protocol in
   ADR-0012, including explicit remote migration and review UI. Implementation and
   local validation are recorded in the [sync follow-up](../assessments/2026-09-05-revision-sync-validation.md).
-  Steps 3–6 above remain to be completed; live-sync validation is not claimed.
+  Steps 3–6 were still pending at that checkpoint; they are implemented now.
+  Live-sync validation is not claimed.
 - Entry semantics now use explicit clear intent and nullable sexual activity,
   preserving prior Yes/No through Room v1/v2→v3. Historical repair and future-edit
-  reconciliation are still pending within step 3; no stored history is rewritten.
+  reconciliation were pending at that checkpoint and are implemented above.
   Validation: 139 JS/React tests and 75 native tests passed, plus typecheck,
   lint/format/whitespace checks. The Room v3 ARM64 release-mode build passed;
   no production install, live GitHub test or publication was performed.
@@ -192,7 +214,8 @@ process-interruption gap. Successful retry restores scheduling from the new vers
   exposing routes/dialogs; failed application stays closed and offers Retry.
   Transitions preserve the mounted navigator/editor draft while hiding both
   visual and accessibility content and closing the native dialog window.
-  This does not complete the remaining app-wide discreet visual/accessibility audit.
+  The remaining discreet overview fixes were implemented in the later follow-up;
+  this checkpoint alone was not evidence for them.
   Validation: 146 JS/React tests and 75 native tests passed. Isolated Android 16
   QA confirmed SECURE on both activity/editor windows in discreet mode, removed
   with privacy off, with the selected Settings route retained. The initial native

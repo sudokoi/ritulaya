@@ -1,5 +1,10 @@
 # Final branch audit — 2026-09-05
 
+Historical checkpoint: subsequent work implements the deferred approved backlog.
+See [hardening completion](./2026-09-06-hardening-completion.md) for current evidence
+and remaining external validation limits. The findings and deferrals below apply
+to this audit's stated baseline.
+
 Baseline approved by the maintainer: `main` at `dc7003d`, reviewed with
 `git diff main...HEAD` through `1656c58`, then rechecked against the audit fixes.
 Requirements came from the approved conversation, `CONTRIBUTING.md`, accepted
