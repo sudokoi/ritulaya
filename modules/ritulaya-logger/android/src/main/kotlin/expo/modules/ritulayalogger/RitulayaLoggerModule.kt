@@ -1,14 +1,11 @@
 package expo.modules.ritulayalogger
 
+import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class RitulayaLoggerModule : Module() {
-    private val scope = CoroutineScope(Dispatchers.IO)
     private lateinit var db: LogDatabase
 
     override fun definition() =
@@ -22,22 +19,20 @@ class RitulayaLoggerModule : Module() {
                 db = LogDatabase.getInstance(context)
             }
 
-            AsyncFunction("log") { level: String, tag: String, message: String, metadata: String? ->
-                scope.launch {
-                    val dao = db.logDao()
-                    dao.insert(
-                        LogEntity(
-                            timestamp = System.currentTimeMillis(),
-                            level = level,
-                            tag = tag,
-                            message = message,
-                            metadata = metadata,
-                        ),
-                    )
-                    val count = dao.count()
-                    if (count > LogDatabase.getMaxEntries()) {
-                        dao.prune(LogDatabase.getMaxEntries())
-                    }
+            AsyncFunction("log") Coroutine { level: String, tag: String, message: String, metadata: String? ->
+                val dao = db.logDao()
+                dao.insert(
+                    LogEntity(
+                        timestamp = System.currentTimeMillis(),
+                        level = level,
+                        tag = tag,
+                        message = message,
+                        metadata = metadata,
+                    ),
+                )
+                val count = dao.count()
+                if (count > LogDatabase.getMaxEntries()) {
+                    dao.prune(LogDatabase.getMaxEntries())
                 }
             }
 

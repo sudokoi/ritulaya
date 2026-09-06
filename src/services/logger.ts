@@ -4,8 +4,13 @@ type LogLevel = "debug" | "info" | "warn" | "error"
 
 function log(level: LogLevel, tag: string, message: string, metadata?: unknown) {
   if (!RitulayaLogger) return
-  const meta = metadata === undefined ? null : JSON.stringify(metadata)
-  void RitulayaLogger.log(level, tag, message, meta)
+  try {
+    const meta = metadata === undefined ? null : JSON.stringify(metadata)
+    // Diagnostics must not create a second, unhandled application failure.
+    void RitulayaLogger.log(level, tag, message, meta).catch(() => undefined)
+  } catch {
+    // Non-serializable diagnostic metadata is not an application command failure.
+  }
 }
 
 export const logger = {
