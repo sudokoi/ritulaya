@@ -1,5 +1,10 @@
 # Live GitHub sync verification — 2026-09-06
 
+The initial scenarios below tested the intermediate, unshipped `ritulaya/v2/`
+layout. The later flat-layout migration follow-up is recorded separately below;
+it supersedes the earlier legacy-file retention decision, not those historical
+observations.
+
 ## Authorization and isolation
 
 The maintainer explicitly authorized creating a temporary **private** GitHub
@@ -93,7 +98,48 @@ instrumentation package were confirmed absent afterward.
 No production code defect was exposed by these two live scenarios. They are not
 a substitute for the untested flows listed below.
 
-## Limits
+## Flat-layout migration follow-up — passed
+
+After the maintainer approved deleting legacy files and dropping the unshipped
+directory layout, the native protocol scenario was rerun on
+`qa/flat-layout-20260906` in the **same** private QA repository. No second
+repository was created. The branch starts at the original synthetic legacy seed
+`107311b785b998e5c3935e5bfc1439aa94819cac`, leaving the earlier QA `main` head and
+its evidence untouched.
+
+The new instrumentation scenario passed in **140.16 seconds**. It repeated
+migration consent, data preservation, fresh-device download, independent edits,
+conflict/stale-choice handling, nullable clears, real competing publication,
+acknowledgement recovery and offline deletion. It additionally checked that the
+legacy files were absent and the flat JSON files present immediately after
+migration and at the end.
+
+A separate GitHub API read verified the first migration commit
+`8e1c36c1852a1c933811e8d55ce2f07a3f984d7d` has the exact seed as its sole parent.
+Both its tree and the final tree at
+`2d5e3294e0183b0f26c894bc563837fb9c3b1cae` contain exactly:
+
+```text
+README.md
+QA-SYNTHETIC-ONLY.txt
+ritulaya-sync-manifest.json
+ritulaya-sync-cycles.json
+ritulaya-sync-day-logs.json
+ritulaya-sync-settings.json
+```
+
+The missing legacy settings file was not submitted as a nonexistent deletion.
+Unrelated blob SHAs stayed unchanged; repository ID/private visibility and the
+unchanged previous `main` head were rechecked. The credential file and dedicated
+instrumentation package were confirmed removed. The test repository/branch stay
+private for inspection. No other repository was modified by this live test.
+
+Local evidence: `ritulaya-flat-live-{build.log,results.log,repo.json,final.json}`
+under the approved temporary directory. The orchestrator and app-UI scenarios
+were not rerun for this layout-only amendment; do not attribute the earlier
+orchestrator result to a new run.
+
+## Remaining limits
 
 This verifies native synchronization with real GitHub, not the complete browser
 OAuth/device-code or React Native review-screen flow. GitHub CLI authentication

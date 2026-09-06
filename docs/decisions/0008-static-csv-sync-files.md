@@ -4,8 +4,9 @@ Date: 2026-08-12
 
 Status: Superseded by [ADR-0012](./0012-revision-based-sync.md)
 
-The root files below remain import-only compatibility inputs. New publication
-uses versioned plaintext JSON; no encryption or legacy-file rewriting is added.
+The root files below are legacy migration inputs. After confirmation, new
+publication uses flat `ritulaya-sync-*.json` files and removes the legacy files
+in the same Git commit. History is retained and repository data stays plaintext.
 
 ## Context
 

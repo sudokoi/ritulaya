@@ -4,6 +4,12 @@ Date: 2026-09-05
 
 Status: Accepted
 
+Amended 2026-09-06 before release: flat root files replace the unshipped
+`ritulaya/v2/` layout, and confirmed migration deletes legacy sync files atomically.
+The maintainer confirmed there are no users depending on that intermediate
+layout and accepted the older-client compatibility trade-off. No compatibility
+reader or migration for the intermediate directory is introduced.
+
 ## Context
 
 The maintainer requested a coherent solution to lost updates, deletion
@@ -52,9 +58,31 @@ Room v1→v2 preserves existing rows, imports the biometric preference into loca
 policy, and seeds pending revisions for records and legacy tombstones. There is
 no destructive fallback or downgrade path.
 
-After explicit confirmation, legacy root CSV/JSON files are imported into
-`ritulaya/v2/` as four human-readable JSON files: `cycles.json`, `day-logs.json`,
-`settings.json`, and `manifest.json`. Record fields are strings or null; symptom
+After explicit confirmation, legacy root CSV/JSON files are converted to four
+human-readable JSON files at the repository root:
+
+```text
+ritulaya-sync-manifest.json
+ritulaya-sync-cycles.json
+ritulaya-sync-day-logs.json
+ritulaya-sync-settings.json
+```
+
+The manifest owns `protocolVersion`, `schemaVersion` and the exact data-file list.
+Versions are not encoded in directory names or user settings. Missing, duplicate
+or unexpected manifest file entries are rejected. Fresh repositories use the
+same flat layout.
+
+The confirmed migration's tree writes those files and deletes **only existing**
+`ritulaya-cycles.csv`, `ritulaya-day-logs.csv`, `ritulaya-settings.json` and
+`ritulaya.json`. The deletion entries use explicit null SHAs in that same tree,
+not sequential Contents API deletions. The parent root tree must be complete and
+the matched paths regular files; unrelated files and Git history are preserved.
+Ordinary sync never repeats legacy cleanup. Migration approval stays bound to the
+inspected head; if a legacy edit advances the branch, a fresh confirmation is
+required before a new candidate can delete anything.
+
+Record fields are strings or null; symptom
 lists retain their JSON-array representation. A null record is a durable deletion.
 Unknown legacy day IDs are retained as deletion aliases until they can be matched
 to an entry date. Malformed, incomplete and unsupported snapshots stop sync.
@@ -70,12 +98,13 @@ stored data, and an empty symptom list clears symptoms.
 Protocol 2 now writes schema 3, permitting null sexual activity. It still reads
 schema 2 records with their recorded No/Yes values and imports legacy CSV without
 changing those values. A schema-2-only client rejects schema 3 before merge or
-publication, rather than silently interpreting unknown as No. The versioned
-directory and plaintext storage decision are unchanged.
+publication, rather than silently interpreting unknown as No. Plaintext storage
+is unchanged; both versions use the flat filenames above.
 
-Legacy files and Git history are not deleted or rewritten. Older apps cannot
-damage the versioned directory, but their later edits to legacy files do not
-participate in the new sync. All participating devices must upgrade. A first sync
+Legacy files are removed from the branch by migration but remain recoverable in
+Git history. Older apps are unsupported after migration and may recreate their
+legacy files; those writes are neither reimported nor automatically deleted by
+the new client. All participating devices must upgrade. A first sync
 has no invented common baseline; differing local/remote values require review.
 
 ## Consequences and checks
@@ -89,9 +118,10 @@ has no invented common baseline; differing local/remote values require review.
 - Tests cover our revision triggers with replace-style writes, v1 migration data
   preservation, three-way merge, conflict freshness, late-edit rebasing, competing
   publication, crash recovery, Git request contracts and confirmation UI.
-- Live GitHub testing is explicitly disallowed by the maintainer for this pass.
-  Hermetic tests and local Android builds must not be presented as live-sync or
-  production-release evidence.
+- Live GitHub testing requires explicit authorization and isolated synthetic
+  data. The maintainer authorized one newly created private QA repository;
+  [recorded evidence](../assessments/2026-09-06-live-github-sync.md) distinguishes
+  live Android instrumentation from hermetic tests and production-release claims.
 
 This replaces the timestamp-based merge implementation, rather than retaining a
 second sync path. ADR-0008 describes the legacy root-file format; its filenames

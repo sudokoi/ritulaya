@@ -47,6 +47,24 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Pre-release repository-layout amendment
+
+The maintainer confirmed no users depend on the unshipped `ritulaya/v2/` layout
+and approved removing legacy files. Current publication uses root-level
+`ritulaya-sync-{manifest,cycles,day-logs,settings}.json`; protocol/schema versions
+live in the manifest. The confirmed migration creates the new files and deletes
+only existing exact legacy sync paths in one commit. Git history and unrelated
+files are retained. Ordinary sync does not remove subsequently recreated legacy
+files. No compatibility path for the unshipped directory is added, and the
+revision/conflict/recovery protocol remains intact. All six locales disclose the
+file deletion before approval. See the amended ADR-0012 and live-sync follow-up.
+Local validation: 158 JS/React tests and 90 native tests pass, with typecheck,
+lint, formatting, whitespace checks and the ARM64 release-mode rebuild. A real Android instrumentation rerun on
+a new branch in the existing private QA repository verified flat-file creation
+and legacy-file deletion in the same Git commit, along with the existing
+conflict/recovery scenarios. The earlier QA branch and unrelated files remained
+unchanged; no new user repository or app data was accessed.
+
 ### Completion status — 2026-09-06
 
 The selected implementation slices are complete through `9e15d15`, including

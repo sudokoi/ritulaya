@@ -7,6 +7,57 @@ import org.junit.Test
 
 class SyncProtocolTest {
     @Test
+    fun `legacy edits after approval require a new migration confirmation before preparation`(): Unit =
+        runBlocking {
+            val local = Local(emptyMap())
+            val remote = Remote(emptyMap()).apply { migration = true }
+            val protocol = SyncProtocol(local, remote)
+            try {
+                protocol.run()
+                error("Expected confirmation")
+            } catch (_: SyncReviewRequired) {
+            }
+            protocol.resolve(local.state.getJSONObject("review").getString("id"), mapOf("migration" to "approve"))
+            remote.head = "changed"
+            remote.commits["changed"] = mapOf(key to entry("late legacy edit"))
+            try {
+                protocol.run()
+                error("Expected refreshed confirmation")
+            } catch (_: SyncReviewRequired) {
+            }
+            assertThat(local.state.getJSONObject("review").getString("head")).isEqualTo("changed")
+            assertThat(remote.preparedMigration).isFalse()
+            assertThat(remote.publications).isEqualTo(0)
+        }
+
+    @Test
+    fun `interrupted migration reuses the already prepared atomic candidate`(): Unit =
+        runBlocking {
+            val local = Local(emptyMap())
+            val remote = Remote(mapOf(key to entry())).apply { migration = true }
+            val protocol = SyncProtocol(local, remote)
+            try {
+                protocol.run()
+                error("Expected confirmation")
+            } catch (_: SyncReviewRequired) {
+            }
+            protocol.resolve(local.state.getJSONObject("review").getString("id"), mapOf("migration" to "approve"))
+            remote.beforePublish = { throw java.io.IOException("Interrupted migration") }
+            try {
+                protocol.run()
+                error("Expected interruption")
+            } catch (_: java.io.IOException) {
+            }
+            val candidate = local.state.getJSONObject("attempt").getString("candidate")
+            assertThat(remote.publications).isEqualTo(0)
+            SyncProtocol(local, remote).run()
+            assertThat(remote.head).isEqualTo(candidate)
+            assertThat(remote.publications).isEqualTo(1)
+            assertThat(local.records[key]).isEqualTo(entry())
+            assertThat(local.state.has("attempt")).isFalse()
+        }
+
+    @Test
     fun `first sync must review recorded No versus unrecorded without inventing a baseline`() {
         val local = mapOf(key to (entry() + ("sexual_activity" to null)))
         val remote = mapOf(key to (entry() + ("sexual_activity" to "0")))
@@ -137,6 +188,7 @@ class SyncProtocolTest {
         val commits = mutableMapOf("initial" to initial)
         val parents = mutableMapOf<String, String>()
         var publications = 0
+        var preparedMigration = false
         var beforePublish: (() -> Unit)? = null
 
         override fun head() = head
@@ -146,7 +198,9 @@ class SyncProtocolTest {
         override fun prepare(
             parent: String,
             records: SyncRecords,
+            migrateLegacy: Boolean,
         ): String {
+            preparedMigration = migrateLegacy
             val id = "commit-${commits.size}"
             commits[id] = records
             parents[id] = parent
@@ -217,6 +271,7 @@ class SyncProtocolTest {
             protocol.resolve(local.state.getJSONObject("review").getString("id"), mapOf("migration" to "approve"))
             protocol.run()
             assertThat(remote.publications).isEqualTo(1)
+            assertThat(remote.preparedMigration).isTrue()
             assertThat(remote.commits.getValue(remote.head)[key]).isEqualTo(entry())
         }
 

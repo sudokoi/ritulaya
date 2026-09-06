@@ -1,5 +1,9 @@
 # Revision sync — implementation and validation
 
+Historical checkpoint: the later pre-release amendment to ADR-0012 replaces the
+unshipped directory layout with flat files and deletes legacy files in the
+confirmed migration commit. The results below describe the earlier layout.
+
 This follow-up covers the sync replacement after `601cb5d`, not completion of the
 entire [remaining hardening scope](../plans/2026-09-05-remaining-hardening.md).
 The accepted protocol is [ADR-0012](../decisions/0012-revision-based-sync.md).

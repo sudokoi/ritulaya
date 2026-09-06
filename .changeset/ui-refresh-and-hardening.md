@@ -53,14 +53,16 @@
   policy is applied, and offer a fail-closed retry if it cannot be applied.
 - Replace timestamp-based sync with local revisions, three-way merging, explicit
   conflict review, atomic Git publication, and restart-safe recovery. Migrate old
-  repository data only after confirmation, into readable JSON under `ritulaya/v2`;
+  repository data only after confirmation, into readable root-level
+  `ritulaya-sync-*.json` files; remove legacy sync files in the same atomic commit,
+  preserving unrelated files and Git history. Store versions in the manifest;
   keep biometric policy local. Retain deletion records, validate inputs, and retry
   transient failures. Export all tracking fields and correct accumulated counts.
 
 **Upgrade:** requires a rebuilt Android app for the new native command, not a
 JS-only update. The local database migrates existing records and adds sync state.
-Upgrade all syncing devices: legacy repository files remain unchanged, but later
-edits made by older apps do not join the new sync. Existing cycle history is not
+Upgrade all syncing devices: confirmed migration deletes the legacy sync files
+from the branch, and older apps are unsupported afterward. Existing cycle history is not
 automatically repaired. GitHub data remains human-readable plaintext by design;
 on-device SQLCipher encryption is retained. CSV exports are not a complete
 settings/restore archive.

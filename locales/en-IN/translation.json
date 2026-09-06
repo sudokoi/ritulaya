@@ -2,7 +2,7 @@
   "syncV2": {
     "cycle": "Cycle association",
     "review": "Review sync",
-    "migrationBody": "Upgrade this repository to the new sync protocol? Existing records will be imported into ritulaya/v2 as readable JSON. Legacy files remain unchanged. Upgrade all devices: older apps cannot read the new directory, and later edits to legacy files will not sync here. Conflicts require review before publication.",
+    "migrationBody": "Upgrade this repository to the new sync protocol? Existing records will be converted to readable ritulaya-sync-*.json files at the repository root. The old sync files will be deleted in the same commit; unrelated files and Git history will be kept. Use the updated app on every syncing device. Conflicts require review before any files change.",
     "conflictBody": "Both copies changed independently. Choose which value to keep for each conflict. Nothing is published until every conflict is resolved. If either copy changes during review, you will be asked again.",
     "reveal": "Show conflict details",
     "local": "This device",
