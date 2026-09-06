@@ -80,6 +80,7 @@ module.exports = {
       "expo-image",
       "expo-sharing",
       "./plugins/withRitulayaWidget",
+      "./plugins/withRitulayaBackup",
       [
         "expo-build-properties",
         {
