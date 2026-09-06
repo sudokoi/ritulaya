@@ -39,22 +39,30 @@ evidence of completion.
 
 Physical/OEM testing and the reported Android 17 crash require a current installed
 build, exact OS version and reproducible trace or device access. Do not claim a
-fix from static review or Android 16 emulator success. Live GitHub testing and
-publication are explicitly prohibited for this pass. Original emulator/app data
+fix from static review or Android 16 emulator success. Live GitHub testing was
+initially prohibited; the maintainer subsequently authorized one newly created
+temporary private QA repository only. Publication and writes to any other repository
+remain prohibited. Original emulator/app data
 and unrelated port 8081 must remain untouched.
 
 ## Progress
 
 ### Completion status — 2026-09-06
 
-The approved implementation backlog is complete through `9e15d15`, including
-the follow-up native reminder race, language freshness and logger findings.
+The selected implementation slices are complete through `9e15d15`, including
+the follow-up native reminder race, language freshness and logger runtime findings.
+The subsequent original-audit recheck identified two still-open implementation
+items: privacy-reviewed structured diagnostic fields/redaction tests, and an Expo
+compatibility/Doctor CI gate. They were missed by the original completion summary.
+The subsequently authorized [live GitHub verification](../assessments/2026-09-06-live-github-sync.md)
+uses only a newly created private repository and synthetic Android test stores.
 The production-identity ARM64 release-mode build and a separately identified
 installed QA release-mode build both pass. Current checks and device observations
 are recorded in [the completion evidence](../assessments/2026-09-06-hardening-completion.md).
 
-This is codewise completion, not publication or universal device certification.
-Live GitHub testing remains prohibited. Timed notification delivery, full TalkBack
+This is completion of those slices, not all audit items, publication or universal
+device certification. Live GitHub testing is now authorized only in the new
+temporary private QA repository. Timed notification delivery, full TalkBack
 and locale/font matrices, OEM transfer/capture behavior, and the separate Android
 17 crash report remain external validation limits. Older checkpoints below are
 historical, not a current list of unimplemented work.

@@ -2,13 +2,21 @@
 
 ## Outcome and scope
 
-The approved codewise backlog and subsequent concrete review findings are
-implemented through `9e15d15`. The [execution plan](../plans/2026-09-05-remaining-hardening.md)
-records the individual changes. Earlier assessments remain historical evidence,
-not the current pending-work list.
+The selected hardening implementation and subsequent privacy-race/logger-runtime
+fixes are implemented through `9e15d15`. The
+[execution plan](../plans/2026-09-05-remaining-hardening.md) records the individual
+changes. Rechecking the original audit after this report found two outstanding
+implementation items: structured privacy-safe diagnostics and an Expo compatibility
+gate in CI. The earlier blanket claim that every audit finding was complete was
+incorrect; neither local Doctor success nor the logger runtime fix resolves those
+two findings.
 
-All commits after `601cb5d` remain local. No push, publication, production install,
-live GitHub sync, remote QA repository or test credentials were used. Production
+At this checkpoint all commits after `601cb5d` remained local. No push, publication,
+production install, live GitHub sync, remote QA repository or test credentials had
+been used. The maintainer subsequently authorized live verification in one newly
+created temporary private repository, with no changes to other repositories. The
+[live native-sync evidence](./2026-09-06-live-github-sync.md) records that separate
+verification. Production
 identity remains `com.sudokoi.ritulaya`. GitHub CSV/JSON stays human-readable
 plaintext; on-device SQLCipher remains enabled. There is still one consolidated
 minor changeset with native rebuild and all-syncing-devices upgrade guidance.
@@ -80,8 +88,10 @@ changed. QA screenshots/XML/logs remain local outside the repository.
 
 ## Remaining validation limits
 
-- **Prohibited:** live GitHub verification and publication. Hermetic Git adapter,
-  protocol and recovery tests are not a claim of live GitHub success.
+- **Not performed at this checkpoint:** live GitHub verification, which was then
+  prohibited. Subsequent permission is restricted to the newly created temporary
+  private QA repository; application publication and writes to other repositories
+  remain unauthorized.
 - **Unavailable:** current-build physical/OEM/Android 17 crash reproduction and
   trace, OEM transfer behavior, production signing and multi-ABI delivery.
 - **Not established here:** actual timed notification delivery, biometric-only
@@ -89,7 +99,8 @@ changed. QA screenshots/XML/logs remain local outside the repository.
   full TalkBack/locales/font-size coverage, or OEM recording/recents compliance.
   Application policies and relevant ordering failures have local regression tests.
 
-These are explicit evidence limits, not known unimplemented approved features.
+These are evidence limits. Separately, the diagnostics and CI items noted above
+remain unimplemented audit findings.
 
 ## Local evidence identifiers
 
