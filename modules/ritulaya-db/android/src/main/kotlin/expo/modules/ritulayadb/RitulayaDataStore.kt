@@ -2,6 +2,7 @@ package expo.modules.ritulayadb
 
 import android.content.Context
 import androidx.room.withTransaction
+import kotlinx.coroutines.sync.withLock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -9,8 +10,11 @@ import java.time.format.DateTimeFormatter
 
 class RitulayaDataStore internal constructor(
     private val db: RitulayaDatabase,
+    private val reminders: ReminderActions? = null,
 ) {
-    constructor(context: Context) : this(RitulayaDatabase.getInstance(context.applicationContext))
+    constructor(
+        context: Context,
+    ) : this(RitulayaDatabase.getInstance(context.applicationContext), AndroidReminderActions(context.applicationContext))
 
     private val dao = db.dao()
 
@@ -206,32 +210,38 @@ class RitulayaDataStore internal constructor(
 
     suspend fun getSettings(): SettingsEntity? = dao.getSettings()
 
+    suspend fun scheduleReminder(input: ReminderInput): Boolean =
+        ReminderPublication.schedule(input, ::getSettings, requireNotNull(reminders))
+
     suspend fun updateSettings(patch: SettingsPatch) =
-        db.withTransaction {
-            val existing = dao.getSettings()
-            val base =
-                existing
-                    ?: SettingsEntity(
-                        id = "default",
-                        createdAt = patch.createdAt ?: nowISO(),
+        ReminderPublication.mutex.withLock {
+            db.withTransaction {
+                val existing = dao.getSettings()
+                val base =
+                    existing
+                        ?: SettingsEntity(
+                            id = "default",
+                            createdAt = patch.createdAt ?: nowISO(),
+                            updatedAt = nowISO(),
+                        )
+                val merged =
+                    base.copy(
+                        avgCycleLength = patch.avgCycleLength ?: base.avgCycleLength,
+                        avgPeriodLength = patch.avgPeriodLength ?: base.avgPeriodLength,
+                        lutealPhaseLength = patch.lutealPhaseLength ?: base.lutealPhaseLength,
+                        theme = patch.theme ?: base.theme,
+                        language = patch.language ?: base.language,
+                        biometricLock = patch.biometricLock ?: base.biometricLock,
+                        discreetMode = patch.discreetMode ?: base.discreetMode,
+                        reminderPeriodAhead = patch.reminderPeriodAhead ?: base.reminderPeriodAhead,
+                        reminderDailyLog = patch.reminderDailyLog ?: base.reminderDailyLog,
                         updatedAt = nowISO(),
                     )
-            val merged =
-                base.copy(
-                    avgCycleLength = patch.avgCycleLength ?: base.avgCycleLength,
-                    avgPeriodLength = patch.avgPeriodLength ?: base.avgPeriodLength,
-                    lutealPhaseLength = patch.lutealPhaseLength ?: base.lutealPhaseLength,
-                    theme = patch.theme ?: base.theme,
-                    language = patch.language ?: base.language,
-                    biometricLock = patch.biometricLock ?: base.biometricLock,
-                    discreetMode = patch.discreetMode ?: base.discreetMode,
-                    reminderPeriodAhead = patch.reminderPeriodAhead ?: base.reminderPeriodAhead,
-                    reminderDailyLog = patch.reminderDailyLog ?: base.reminderDailyLog,
-                    updatedAt = nowISO(),
-                )
-            patch.biometricLock?.let { dao.upsertDevicePolicy(DevicePolicyEntity(biometricLock = it)) }
-            if (existing == null || merged.copy(biometricLock = 0, updatedAt = base.updatedAt) != base.copy(biometricLock = 0)) {
-                dao.upsertSettings(merged.copy(biometricLock = 0))
+                if (ReminderPublication.policyChanged(existing, merged)) reminders?.clear()
+                patch.biometricLock?.let { dao.upsertDevicePolicy(DevicePolicyEntity(biometricLock = it)) }
+                if (existing == null || merged.copy(biometricLock = 0, updatedAt = base.updatedAt) != base.copy(biometricLock = 0)) {
+                    dao.upsertSettings(merged.copy(biometricLock = 0))
+                }
             }
         }
 
@@ -272,54 +282,57 @@ class RitulayaDataStore internal constructor(
         days: Map<String, DayLogEntity?>,
         settings: SettingsEntity?,
         capturedRecords: String? = null,
-    ) = db.withTransaction {
-        val live = dao.syncRevisions().associate { it.key to it.revision }
-        // Cycles and their entry associations form one aggregate. Never install
-        // half a remote snapshot around local edits made while it was uploading.
-        val unchanged = live == captured
-        cycles.forEach { (id, value) ->
-            if (unchanged) {
-                if (value == null) dao.deleteCycleById(id) else dao.insertCycle(value)
+    ) = ReminderPublication.mutex.withLock {
+        db.withTransaction {
+            val live = dao.syncRevisions().associate { it.key to it.revision }
+            // Cycles and their entry associations form one aggregate. Never install
+            // half a remote snapshot around local edits made while it was uploading.
+            val unchanged = live == captured
+            cycles.forEach { (id, value) ->
+                if (unchanged) {
+                    if (value == null) dao.deleteCycleById(id) else dao.insertCycle(value)
+                }
             }
-        }
-        days.forEach { (date, value) ->
-            if (unchanged) {
-                val current = dao.getDayLogByDate(date)
-                if (value == null) {
-                    current?.let { dao.deleteDayLogById(it.id) }
-                } else {
-                    var localId = current?.id
-                    if (localId == null) {
-                        do {
-                            localId = generateId()
-                        } while (dao.getDayLogById(localId) != null)
+            days.forEach { (date, value) ->
+                if (unchanged) {
+                    val current = dao.getDayLogByDate(date)
+                    if (value == null) {
+                        current?.let { dao.deleteDayLogById(it.id) }
+                    } else {
+                        var localId = current?.id
+                        if (localId == null) {
+                            do {
+                                localId = generateId()
+                            } while (dao.getDayLogById(localId) != null)
+                        }
+                        dao.upsertDayLog(value.copy(id = localId))
                     }
-                    dao.upsertDayLog(value.copy(id = localId))
                 }
             }
-        }
-        if (settings != null && unchanged) {
-            dao.upsertSettings(settings.copy(biometricLock = 0))
-        }
-        for (revision in dao.syncRevisions()) {
-            if (unchanged) dao.acknowledgeRevision(revision.key, revision.revision)
-        }
-        val journal =
-            if (capturedRecords == null) {
-                checkpoint
-            } else {
-                val capturedValues = org.json.JSONObject(capturedRecords)
-                val localBase = org.json.JSONObject()
-                if (!unchanged) {
-                    capturedValues.keys().asSequence().forEach { key -> localBase.put(key, capturedValues.get(key)) }
-                }
-                org.json
-                    .JSONObject(checkpoint)
-                    .put("localBase", localBase)
-                    .put("rebasePending", !unchanged)
-                    .toString()
+            if (settings != null && unchanged) {
+                if (ReminderPublication.policyChanged(dao.getSettings(), settings)) reminders?.clear()
+                dao.upsertSettings(settings.copy(biometricLock = 0))
             }
-        dao.saveSyncCheckpoint(SyncCheckpointEntity(target, journal))
+            for (revision in dao.syncRevisions()) {
+                if (unchanged) dao.acknowledgeRevision(revision.key, revision.revision)
+            }
+            val journal =
+                if (capturedRecords == null) {
+                    checkpoint
+                } else {
+                    val capturedValues = org.json.JSONObject(capturedRecords)
+                    val localBase = org.json.JSONObject()
+                    if (!unchanged) {
+                        capturedValues.keys().asSequence().forEach { key -> localBase.put(key, capturedValues.get(key)) }
+                    }
+                    org.json
+                        .JSONObject(checkpoint)
+                        .put("localBase", localBase)
+                        .put("rebasePending", !unchanged)
+                        .toString()
+                }
+            dao.saveSyncCheckpoint(SyncCheckpointEntity(target, journal))
+        }
     }
 
     suspend fun listCyclesIncludingTombstones(): List<SyncRow<CycleEntity>> = mergeWithTombstones(dao.listCycles(), "cycle") { it.id }

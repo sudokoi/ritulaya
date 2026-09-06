@@ -1,6 +1,9 @@
 jest.mock("@/services/db", () => ({ readAppSnapshot: jest.fn() }))
 jest.mock("@/i18n", () => ({ changeLanguage: jest.fn().mockResolvedValue(undefined) }))
 jest.mock("@/services/predictions", () => ({ computePrediction: jest.fn() }))
+jest.mock("@/services/widget", () => ({
+  restoreWidgetDetails: jest.fn().mockResolvedValue(undefined),
+}))
 jest.mock("@/services/notifications", () => ({
   blockReminders: jest.fn().mockResolvedValue(undefined),
   allowReminders: jest.fn(),

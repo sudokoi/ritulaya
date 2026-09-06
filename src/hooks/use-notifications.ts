@@ -14,8 +14,13 @@ export function useNotifications() {
   const settingsWrites = useSelector(dataStore, (state) => state.context.settingsWrites)
   const version = useSelector(dataStore, (state) => state.context.version)
   const refreshing = useSelector(dataStore, (state) => state.context.refreshing)
-  const { reminderPeriodAhead, reminderDailyLog, discreetMode, avgCycleLength } =
-    useSettings()
+  const {
+    reminderPeriodAhead,
+    reminderDailyLog,
+    discreetMode,
+    avgCycleLength,
+    language: languageSetting,
+  } = useSettings()
   const prediction = usePrediction().prediction
   const { currentCycle } = useCycles()
   // Scheduled notification copy is frozen at schedule time, so reminders are
@@ -36,6 +41,7 @@ export function useNotifications() {
       reminderDailyLog,
       discreetMode,
       overdue,
+      languageSetting,
     ).catch((e) => logger.warn("notifications", "Reminder scheduling failed", e))
   }, [
     prediction,
@@ -48,5 +54,6 @@ export function useNotifications() {
     settingsWrites,
     version,
     refreshing,
+    languageSetting,
   ])
 }

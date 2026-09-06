@@ -33,6 +33,12 @@
   backups and device transfers, in addition to disabling automatic backup.
 - Fix the native logging bridge returning a coroutine job instead of completing
   its write; diagnostic failures no longer create unhandled JS errors.
+- Remove cycle-day and countdown details from private widgets and replace failed
+  widget updates with neutral content. Keep privacy blocks owned by the pending
+  app operation rather than releasing them during unrelated background sync.
+- Coordinate reminder registration and privacy/language changes natively. Reject
+  stale requests and await cancellation of scheduled and delivered notifications
+  before installing changed policy, even when JS is suspended or cancelled.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification

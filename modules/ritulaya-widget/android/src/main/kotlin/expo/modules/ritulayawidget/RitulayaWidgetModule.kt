@@ -8,6 +8,16 @@ class RitulayaWidgetModule : Module() {
         ModuleDefinition {
             Name("RitulayaWidget")
 
+            AsyncFunction("hideDetails") {
+                val context = appContext.reactContext?.applicationContext ?: error("Application context unavailable")
+                RitulayaWidgetProvider.hideDetails(context)
+            }
+
+            AsyncFunction("finishPrivacyTransition") {
+                val context = appContext.reactContext?.applicationContext ?: error("Application context unavailable")
+                RitulayaWidgetProvider.finishPrivacyTransition(context)
+            }
+
             AsyncFunction("refreshWidget") {
                 val ctx = appContext.reactContext?.applicationContext
                 if (ctx != null) {

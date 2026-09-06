@@ -22,6 +22,10 @@ jest.mock("@/hooks/use-sync", () => ({ useSync: () => ({ config: null }) }))
 jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("@/services/export", () => ({ exportData: jest.fn() }))
 jest.mock("@/services/bug-report", () => ({ reportBug: jest.fn() }))
+jest.mock("@/services/widget", () => ({
+  restoreWidgetDetails: jest.fn().mockResolvedValue(undefined),
+  hideWidgetDetails: jest.fn().mockResolvedValue(undefined),
+}))
 jest.mock("@/services/notifications", () => ({
   blockReminders: jest.fn().mockResolvedValue(undefined),
   allowReminders: jest.fn(),
