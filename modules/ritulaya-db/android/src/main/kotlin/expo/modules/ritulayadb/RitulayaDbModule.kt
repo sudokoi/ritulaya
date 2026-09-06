@@ -27,6 +27,7 @@ class RitulayaDbModule : Module() {
 
             AsyncFunction("previewCycleRepair") { runBlocking { store.previewCycleRepair() } }
             AsyncFunction("readAppSnapshot") { runBlocking { store.readAppSnapshot() } }
+            AsyncFunction("scheduleReminder") Coroutine { input: ReminderInput -> store.scheduleReminder(input) }
             AsyncFunction("applyCycleRepair") Coroutine { token: String -> store.applyCycleRepair(token) }
 
             AsyncFunction("logPeriod") Coroutine { flow: String, periodDays: Int ->

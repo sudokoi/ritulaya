@@ -3,6 +3,7 @@ import { subDays } from "date-fns"
 import { Platform } from "react-native"
 import { discreetLabel } from "@/lib/discreet"
 import i18n from "@/i18n"
+import { scheduleReminder } from "@/services/db"
 
 const REMINDER_CHANNEL_PREFIX = "reminders"
 
@@ -16,16 +17,12 @@ Notifications.setNotificationHandler({
   }),
 })
 
-/**
- * One channel per active language: Android never updates an existing
- * channel's name, so a language switch creates a fresh, correctly named
- * channel and the stale ones are removed.
- */
+/** Android channel names are immutable, so each active locale owns its channel. */
 async function ensureReminderChannel(language: string): Promise<string> {
   const channelId = `${REMINDER_CHANNEL_PREFIX}-${language}`
   if (Platform.OS !== "android") return channelId
   await Notifications.setNotificationChannelAsync(channelId, {
-    name: i18n.t("notifications.channelName"),
+    name: i18n.getFixedT(language)("notifications.channelName"),
     importance: Notifications.AndroidImportance.DEFAULT,
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
   })
@@ -44,7 +41,6 @@ async function ensureReminderChannel(language: string): Promise<string> {
 export async function requestNotificationPermissions(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync()
   if (existing === "granted") return true
-
   await ensureReminderChannel(i18n.language)
   const { status } = await Notifications.requestPermissionsAsync()
   return status === "granted"
@@ -52,95 +48,6 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 
 export async function cancelAllReminders() {
   await Notifications.cancelAllScheduledNotificationsAsync()
-}
-
-export async function schedulePeriodReminder(
-  nextPeriodStart: Date,
-  daysAhead: number,
-  discreet: boolean,
-) {
-  const triggerDate = subDays(nextPeriodStart, daysAhead)
-  triggerDate.setHours(9, 0, 0, 0)
-
-  if (triggerDate <= new Date()) return
-
-  const channelId = await ensureReminderChannel(i18n.language)
-  const t = i18n.t.bind(i18n)
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: discreetLabel(
-        discreet,
-        t("notifications.periodAheadTitle"),
-        t("discreet.periodAheadReminderTitle"),
-      ),
-      body: discreetLabel(
-        discreet,
-        t("notifications.periodAheadBody", { count: daysAhead }),
-        t("discreet.periodAheadReminderBody", {
-          count: daysAhead,
-          unit: daysAhead === 1 ? t("common.day") : t("common.daysUnit"),
-        }),
-      ),
-      data: { type: "period-reminder" },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: triggerDate,
-      channelId,
-    },
-  })
-}
-
-export async function scheduleDailyLogReminder(discreet: boolean) {
-  const t = i18n.t.bind(i18n)
-  const channelId = await ensureReminderChannel(i18n.language)
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: discreetLabel(
-        discreet,
-        t("notifications.dailyLogTitle"),
-        t("discreet.dailyLogCheckIn"),
-      ),
-      body: discreetLabel(
-        discreet,
-        t("notifications.dailyLogBody"),
-        t("discreet.dailyLogBody"),
-      ),
-      data: { type: "daily-log-reminder" },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: 20,
-      minute: 0,
-      channelId,
-    },
-  })
-}
-
-export async function scheduleOverdueNudge(discreet: boolean) {
-  const t = i18n.t.bind(i18n)
-  const channelId = await ensureReminderChannel(i18n.language)
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: discreetLabel(
-        discreet,
-        t("notifications.overdueTitle"),
-        t("discreet.overdueReminderTitle"),
-      ),
-      body: discreetLabel(
-        discreet,
-        t("notifications.overdueBody"),
-        t("discreet.overdueReminderBody"),
-      ),
-      data: { type: "overdue-nudge" },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: 9,
-      minute: 0,
-      channelId,
-    },
-  })
 }
 
 let reminderQueue: Promise<void> = Promise.resolve()
@@ -171,8 +78,11 @@ export function updateAllReminders(
   dailyLogEnabled: boolean,
   discreet: boolean,
   overdue: boolean,
+  languageSetting = "en",
 ) {
   const generation = reminderGeneration
+  const language = i18n.language
+  const t = i18n.getFixedT(language)
   const work = reminderQueue
     .catch(() => undefined)
     .then(async () => {
@@ -185,17 +95,71 @@ export function updateAllReminders(
         generation !== reminderGeneration
       )
         return
-
+      if (!dailyLogEnabled && periodDaysAhead <= 0) return
+      const channelId = await ensureReminderChannel(language)
+      if (remindersBlocked || generation !== reminderGeneration) return
+      const policy = {
+        discreet,
+        language: languageSetting,
+        channelId,
+        daysAhead: periodDaysAhead,
+        timestamp: 0,
+      }
+      // Native code checks this captured policy and awaits Android registration
+      // under the same lock used to invalidate reminders and install settings.
       if (overdue && periodDaysAhead > 0) {
-        // While overdue, the daily nudge replaces the period-ahead reminder.
-        await scheduleOverdueNudge(discreet)
+        await scheduleReminder({
+          ...policy,
+          kind: "overdue",
+          title: discreetLabel(
+            discreet,
+            t("notifications.overdueTitle"),
+            t("discreet.overdueReminderTitle"),
+          ),
+          body: discreetLabel(
+            discreet,
+            t("notifications.overdueBody"),
+            t("discreet.overdueReminderBody"),
+          ),
+        })
       } else if (nextPeriodStart && periodDaysAhead > 0) {
-        await schedulePeriodReminder(nextPeriodStart, periodDaysAhead, discreet)
+        const trigger = subDays(nextPeriodStart, periodDaysAhead)
+        trigger.setHours(9, 0, 0, 0)
+        if (trigger > new Date())
+          await scheduleReminder({
+            ...policy,
+            kind: "period",
+            timestamp: trigger.getTime(),
+            title: discreetLabel(
+              discreet,
+              t("notifications.periodAheadTitle"),
+              t("discreet.periodAheadReminderTitle"),
+            ),
+            body: discreetLabel(
+              discreet,
+              t("notifications.periodAheadBody", { count: periodDaysAhead }),
+              t("discreet.periodAheadReminderBody", {
+                count: periodDaysAhead,
+                unit: periodDaysAhead === 1 ? t("common.day") : t("common.daysUnit"),
+              }),
+            ),
+          })
       }
-
-      if (dailyLogEnabled) {
-        await scheduleDailyLogReminder(discreet)
-      }
+      if (dailyLogEnabled)
+        await scheduleReminder({
+          ...policy,
+          kind: "daily",
+          title: discreetLabel(
+            discreet,
+            t("notifications.dailyLogTitle"),
+            t("discreet.dailyLogCheckIn"),
+          ),
+          body: discreetLabel(
+            discreet,
+            t("notifications.dailyLogBody"),
+            t("discreet.dailyLogBody"),
+          ),
+        })
     })
   reminderQueue = work
   return work

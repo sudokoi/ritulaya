@@ -8,6 +8,7 @@ jest.mock("@/hooks/use-settings", () => ({
     reminderDailyLog: true,
     discreetMode: false,
     avgCycleLength: 28,
+    language: "en-US",
   }),
 }))
 jest.mock("@/hooks/use-predictions", () => ({
@@ -24,5 +25,5 @@ jest.mock("@/services/logger", () => ({ logger: { warn: jest.fn() } }))
 
 test("unanchored prediction suppression still preserves the user's daily-log reminder", async () => {
   await renderHook(useNotifications)
-  expect(updateAllReminders).toHaveBeenCalledWith(null, 2, true, false, false)
+  expect(updateAllReminders).toHaveBeenCalledWith(null, 2, true, false, false, "en-US")
 })

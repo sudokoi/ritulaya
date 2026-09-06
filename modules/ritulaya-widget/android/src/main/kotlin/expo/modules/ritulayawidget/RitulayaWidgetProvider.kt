@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.atomic.AtomicLong
 
 class RitulayaWidgetProvider : AppWidgetProvider() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -24,14 +25,18 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
+        for (widgetId in appWidgetIds) {
+            render(context, appWidgetManager, widgetId, 0, "", 0, true, WidgetCopy.fallback())
+        }
         val pending = goAsync()
+        val generation = renderGeneration.get()
         scope.launch {
             try {
                 for (widgetId in appWidgetIds) {
-                    updateWidget(context, appWidgetManager, widgetId)
+                    updateWidget(context, appWidgetManager, widgetId, generation)
                 }
             } catch (_: Exception) {
-                // Best-effort: leave existing widget content on failure.
+                // The neutral placeholder remains visible; never retain stale health details.
             } finally {
                 pending.finish()
             }
@@ -39,7 +44,23 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        fun refresh(context: Context) {
+        private val renderGeneration = AtomicLong()
+
+        @Volatile private var detailsBlocked = false
+
+        @Synchronized fun hideDetails(
+            context: Context,
+            holdForAppRefresh: Boolean = true,
+        ) {
+            if (holdForAppRefresh) detailsBlocked = true
+            renderGeneration.incrementAndGet()
+            val manager = AppWidgetManager.getInstance(context)
+            val ids = manager.getAppWidgetIds(ComponentName(context, RitulayaWidgetProvider::class.java))
+            for (id in ids) render(context, manager, id, 0, "", 0, true, WidgetCopy.fallback())
+        }
+
+        @Synchronized fun refresh(context: Context) {
+            renderGeneration.incrementAndGet()
             val intent = Intent(context, RitulayaWidgetProvider::class.java)
             intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             val ids =
@@ -50,14 +71,20 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             context.sendBroadcast(intent)
         }
 
+        @Synchronized fun finishPrivacyTransition(context: Context) {
+            detailsBlocked = false
+            refresh(context)
+        }
+
         private suspend fun updateWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             widgetId: Int,
+            generation: Long,
         ) {
             val store = RitulayaDataStore(context.applicationContext)
             val settings = store.getSettings()
-            val discreet = settings?.discreetMode == 1
+            val discreet = settings == null || settings.discreetMode == 1 || settings.biometricLock == 1
 
             // Prefer the snapshot the app persisted with its last prediction so
             // the widget always matches what the user sees in-app; counters are
@@ -85,7 +112,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
                             snapshot.lutealPhaseLength,
                         ),
                     )
-                render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet, copy)
+                render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet, copy, generation)
                 return
             }
 
@@ -109,7 +136,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val daysUntilNext = ChronoUnit.DAYS.between(today, output.nextPeriodStart).toInt()
             val phase = PredictionEngine.phase(daysUntilNext, config)
 
-            render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet, copy)
+            render(context, appWidgetManager, widgetId, dayNumber, phase, daysUntilNext, discreet, copy, generation)
         }
 
         private data class WidgetSnapshot(
@@ -162,7 +189,7 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        private fun render(
+        @Synchronized private fun render(
             context: Context,
             appWidgetManager: AppWidgetManager,
             widgetId: Int,
@@ -171,13 +198,13 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             rawDaysUntilNext: Int,
             discreetMode: Boolean,
             copy: WidgetCopy,
+            generation: Long? = null,
         ) {
+            if (generation != null && generation != renderGeneration.get()) return
             // The widget only re-renders when the app refreshes it; if the
             // stored next period passes in the meantime, show 0 rather than
             // a negative countdown.
-            val daysUntilNext = maxOf(0, rawDaysUntilNext)
-            // Missing or future cycle starts cannot anchor a day or countdown.
-            val hasCurrentCycle = dayNumber > 0
+            val content = WidgetContent.from(dayNumber, phase, rawDaysUntilNext, discreetMode || detailsBlocked, copy)
             val layoutId =
                 if (discreetMode) {
                     context.resources.getIdentifier(
@@ -196,19 +223,15 @@ class RitulayaWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, layoutId)
             views.setTextViewText(
                 context.resources.getIdentifier("day_number", "id", context.packageName),
-                if (hasCurrentCycle) dayNumber.toString() else "",
+                content.day,
             )
             views.setTextViewText(
                 context.resources.getIdentifier("phase_name", "id", context.packageName),
-                if (discreetMode || !hasCurrentCycle) copy.today else copy.phase(phase),
+                content.phase,
             )
             views.setTextViewText(
                 context.resources.getIdentifier("days_until", "id", context.packageName),
-                when {
-                    !hasCurrentCycle -> ""
-                    discreetMode -> "$daysUntilNext"
-                    else -> copy.daysUntil(daysUntilNext)
-                },
+                content.countdown,
             )
 
             // Deep-link straight into the log-today flow via the app's

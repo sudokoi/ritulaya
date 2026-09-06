@@ -1,9 +1,13 @@
 import { native, nativeRequire } from "@/lib/native"
-import type { SettingsRow, SettingsPatch } from "../../modules/ritulaya-db"
+import type { SettingsRow, SettingsPatch, ReminderInput } from "../../modules/ritulaya-db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog, DayLogCreate } from "@/types/day-log"
 
 export type { SettingsRow, SettingsPatch }
+
+export function scheduleReminder(input: ReminderInput) {
+  return nativeRequire(native.db, (db) => db.scheduleReminder(input))
+}
 
 export function readAppSnapshot() {
   return nativeRequire(native.db, (db) => db.readAppSnapshot())

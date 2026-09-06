@@ -30,7 +30,19 @@ export interface SettingsPatch {
   createdAt?: string
 }
 
+export interface ReminderInput {
+  kind: "daily" | "period" | "overdue"
+  discreet: boolean
+  language: string
+  daysAhead: number
+  title: string
+  body: string
+  channelId: string
+  timestamp: number
+}
+
 interface RitulayaDbNativeModule {
+  scheduleReminder(input: ReminderInput): Promise<boolean>
   readAppSnapshot(): Promise<{
     cycles: Cycle[]
     logs: DayLog[]

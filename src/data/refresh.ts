@@ -4,6 +4,7 @@ import { changeLanguage } from "@/i18n"
 import { toSettings } from "@/data/settings"
 import { dataStore } from "@/stores/data-store"
 import { blockReminders, allowReminders } from "@/services/notifications"
+import { restoreWidgetDetails } from "@/services/widget"
 
 let inFlight: Promise<void> | null = null
 let pending = false
@@ -41,7 +42,11 @@ export function refreshAll(): Promise<void> {
         })
         if (!prediction) throw new Error("Prediction computation did not complete")
         if (pending) continue
-        if (dataStore.getSnapshot().context.settingsWrites === 0) allowReminders()
+        if (dataStore.getSnapshot().context.settingsWrites === 0) {
+          await restoreWidgetDetails()
+          if (pending) continue
+          allowReminders()
+        }
         dataStore.send({
           type: "publish",
           snapshot: {

@@ -2,7 +2,9 @@ package expo.modules.ritulayasync
 
 import android.content.Context
 import android.content.SharedPreferences
+import expo.modules.ritulayadb.ReminderPublication
 import expo.modules.ritulayadb.RitulayaDataStore
+import expo.modules.ritulayawidget.RitulayaWidgetProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -40,7 +42,7 @@ class SyncOrchestrator(
                     .putString("repo_branch", branch)
                     .putString("sync_target", target)
                     .apply()
-                SyncProtocol(RoomSyncRepository(dataStore, target), api.remote(owner, repo, branch)).run()
+                SyncProtocol(repository(target), api.remote(owner, repo, branch)).run()
                 val pending = dataStore.readSyncSnapshot().revisions.any { it.pending }
                 prefs
                     .edit()
@@ -81,6 +83,8 @@ class SyncOrchestrator(
                         },
                     ).apply()
                 if (propagateFailure) throw error
+            } finally {
+                RitulayaWidgetProvider.refresh(appContext)
             }
             statusSnapshot()
         }
@@ -130,8 +134,17 @@ class SyncOrchestrator(
         val repo = requireNotNull(prefs.getString("repo_name", null))
         val branch = requireNotNull(prefs.getString("repo_branch", null))
         val api = GithubApiClient(requireNotNull(tokenStore.load("github_token")))
-        SyncProtocol(RoomSyncRepository(dataStore, target), api.remote(owner, repo, branch)).resolve(reviewId, choices)
+        SyncProtocol(repository(target), api.remote(owner, repo, branch)).resolve(reviewId, choices)
     }
+
+    private fun repository(target: String) =
+        RoomSyncRepository(dataStore, target) { records ->
+            val next = records["settings:default"]?.let(SyncRecordsCodec::settingsEntity)
+            val previous = dataStore.getSettings()
+            if (next != null && ReminderPublication.policyChanged(previous, next)) {
+                RitulayaWidgetProvider.hideDetails(appContext, holdForAppRefresh = false)
+            }
+        }
 
     fun effectiveStatus(): String {
         val status = prefs.getString("sync_status", "idle") ?: "idle"

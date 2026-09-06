@@ -15,6 +15,11 @@ import { loadSettings, updateSettingsFn } from "@/stores/settings-store"
 import { dataStore } from "@/stores/data-store"
 import { setCaptureProtected } from "@/services/capture-protection"
 import { blockReminders, allowReminders } from "@/services/notifications"
+import { hideWidgetDetails } from "@/services/widget"
+jest.mock("@/services/widget", () => ({
+  restoreWidgetDetails: jest.fn().mockResolvedValue(undefined),
+  hideWidgetDetails: jest.fn().mockResolvedValue(undefined),
+}))
 jest.mock("@/data/refresh", () => ({ refreshAll: jest.fn() }))
 
 beforeEach(() => {
@@ -39,6 +44,9 @@ test("privacy writes wait for protection and cancel stale reminders before persi
     jest.mocked(updateSettings).mock.invocationCallOrder[0],
   )
   expect(allowReminders).not.toHaveBeenCalled()
+  expect(jest.mocked(hideWidgetDetails).mock.invocationCallOrder[0]).toBeLessThan(
+    jest.mocked(updateSettings).mock.invocationCallOrder[0],
+  )
   expect(dataStore.getSnapshot().context.refreshFailed).toBe(true)
   expect(dataStore.getSnapshot().context.settingsWrites).toBe(0)
 })

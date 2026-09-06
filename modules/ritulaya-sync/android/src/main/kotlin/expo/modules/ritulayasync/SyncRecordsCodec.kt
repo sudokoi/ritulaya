@@ -339,6 +339,7 @@ internal object SyncRecordsCodec {
 internal class RoomSyncRepository(
     private val store: RitulayaDataStore,
     private val target: String,
+    private val beforeInstall: suspend (SyncRecords) -> Unit = {},
 ) : SyncRepository {
     override suspend fun capture(): LocalSyncView {
         val snapshot = store.readSyncSnapshot()
@@ -356,21 +357,24 @@ internal class RoomSyncRepository(
         capturedRecords: SyncRecords,
         revisions: Map<String, Long>,
         checkpoint: JSONObject,
-    ) = store.completeSync(
-        target,
-        checkpoint.toString(),
-        revisions,
-        records
-            .filterKeys {
-                it.startsWith("cycle:")
-            }.mapKeys { it.key.removePrefix("cycle:") }
-            .mapValues { it.value?.let(SyncRecordsCodec::cycle) },
-        records
-            .filterKeys {
-                it.startsWith("day:")
-            }.mapKeys { it.key.removePrefix("day:") }
-            .mapValues { it.value?.let(SyncRecordsCodec::dayEntity) },
-        records["settings:default"]?.let(SyncRecordsCodec::settingsEntity),
-        SyncProtocol.encodeRecords(capturedRecords).toString(),
-    )
+    ) {
+        beforeInstall(records)
+        store.completeSync(
+            target,
+            checkpoint.toString(),
+            revisions,
+            records
+                .filterKeys {
+                    it.startsWith("cycle:")
+                }.mapKeys { it.key.removePrefix("cycle:") }
+                .mapValues { it.value?.let(SyncRecordsCodec::cycle) },
+            records
+                .filterKeys {
+                    it.startsWith("day:")
+                }.mapKeys { it.key.removePrefix("day:") }
+                .mapValues { it.value?.let(SyncRecordsCodec::dayEntity) },
+            records["settings:default"]?.let(SyncRecordsCodec::settingsEntity),
+            SyncProtocol.encodeRecords(capturedRecords).toString(),
+        )
+    }
 }

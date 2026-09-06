@@ -4,6 +4,7 @@ import { refreshAll } from "@/data/refresh"
 import type { SettingsState } from "@/data/settings"
 import { setCaptureProtected } from "@/services/capture-protection"
 import { blockReminders, allowReminders } from "@/services/notifications"
+import { hideWidgetDetails, restoreWidgetDetails } from "@/services/widget"
 
 export { refreshAll as loadSettings } from "@/data/refresh"
 export type SettingsUpdate = Partial<Omit<SettingsState, "error" | "loaded">>
@@ -13,6 +14,7 @@ export async function updateSettingsFn(patch: SettingsUpdate) {
   try {
     // Protect before persistence, independently of prediction/cache completion.
     await setCaptureProtected(true)
+    await hideWidgetDetails()
     await blockReminders()
     const { biometricLock, discreetMode, reminderDailyLog, ...fields } = patch
     const data: SettingsPatch = { ...fields }
@@ -21,6 +23,7 @@ export async function updateSettingsFn(patch: SettingsUpdate) {
     if (reminderDailyLog !== undefined) data.reminderDailyLog = reminderDailyLog ? 1 : 0
     await updateSettings(data)
     await refreshAll()
+    if (dataStore.getSnapshot().context.settingsWrites === 1) await restoreWidgetDetails()
   } catch (error) {
     dataStore.send({ type: "refreshFailed" })
     dataStore.send({

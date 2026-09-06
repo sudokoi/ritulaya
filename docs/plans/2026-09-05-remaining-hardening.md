@@ -45,6 +45,41 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Widget and reminder publication follow-up
+
+Widgets now omit cycle day, phase and countdown whenever discreet mode or app
+lock is enabled, and publish a neutral placeholder before asynchronous reads.
+Failed reads cannot leave previous health details visible. JS settings changes
+hide widget details before persistence; only a successful app refresh releases
+that app-owned block. An unrelated native sync refresh cannot release it.
+Generation checks and synchronized rendering prevent older computations from
+overwriting a newer neutral state.
+
+Review found that JS post-registration cleanup was insufficient: JS can stop
+after Android durably registers stale notification copy. Reminder registration
+now uses the existing native database command boundary. `ReminderPublication`
+shares one mutex with both local settings writes and sync installation, checks
+the captured privacy/enabled/language policy against persisted settings, and
+holds registration through native acknowledgement even if its JS caller is
+cancelled. Changed policy awaits both scheduled cancellation and delivered
+dismissal before persistence. JS still owns localized copy, permissions and
+channel setup; Expo still owns platform scheduling. No new package is added.
+
+The interim JS before/after policy checks and native epoch lease were replaced,
+not retained as a second mechanism. The Expo dependency is obtained through
+`expoModule.getExpoDependency`, compatible with SDK 57's prebuilt modules.
+
+Native application tests cover local-write ordering, background installation
+against a cancelled registration caller, stale-language rejection and failed
+clearing refusing installation. Widget tests cover Ritulaya's display policy,
+not RemoteViews or Android guarantees. The independent spec reviewer confirmed
+the three reported surface races resolved by static recheck.
+
+Latest checks: **155 JS/React tests and 79 native tests pass**, along with
+typechecking and lint. The final formatting warning was corrected before
+commit. The final release rebuild and installed QA for this slice remain pending;
+earlier release builds do not validate these latest native changes.
+
 ### Native logger follow-up
 
 Isolated QA reproduced Expo rejecting `RitulayaLogger.log` with “Unknown type:
