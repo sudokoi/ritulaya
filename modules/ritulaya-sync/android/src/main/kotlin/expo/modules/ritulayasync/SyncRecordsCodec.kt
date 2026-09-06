@@ -9,10 +9,14 @@ import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDate
 
-/** Protocol 2 uses explicit, readable JSON records. Legacy CSV is import-only. */
+/** Protocol versions live in the manifest, not in repository directory names. */
 internal object SyncRecordsCodec {
-    const val DIRECTORY = "ritulaya/v2"
-    val files = listOf("cycles.json", "day-logs.json", "settings.json", "manifest.json")
+    const val CYCLES_FILE = "ritulaya-sync-cycles.json"
+    const val DAYS_FILE = "ritulaya-sync-day-logs.json"
+    const val SETTINGS_FILE = "ritulaya-sync-settings.json"
+    const val MANIFEST_FILE = "ritulaya-sync-manifest.json"
+    val files = listOf(CYCLES_FILE, DAYS_FILE, SETTINGS_FILE, MANIFEST_FILE)
+    val legacyFiles = setOf("ritulaya-cycles.csv", "ritulaya-day-logs.csv", "ritulaya-settings.json", "ritulaya.json")
 
     fun capture(snapshot: RitulayaDataStore.SyncSnapshot): SyncRecords =
         buildMap {
@@ -72,37 +76,44 @@ internal object SyncRecordsCodec {
     fun encode(records: SyncRecords): Map<String, String> {
         validate(records)
         return mapOf(
-            "$DIRECTORY/cycles.json" to SyncProtocol.encodeRecords(records.filterKeys { it.startsWith("cycle:") }).toString(2),
-            "$DIRECTORY/day-logs.json" to
+            CYCLES_FILE to SyncProtocol.encodeRecords(records.filterKeys { it.startsWith("cycle:") }).toString(2),
+            DAYS_FILE to
                 SyncProtocol.encodeRecords(records.filterKeys { it.startsWith("day:") || it.startsWith("legacy:") }).toString(2),
-            "$DIRECTORY/settings.json" to SyncProtocol.encodeRecords(records.filterKeys { it.startsWith("settings:") }).toString(2),
-            "$DIRECTORY/manifest.json" to
+            SETTINGS_FILE to SyncProtocol.encodeRecords(records.filterKeys { it.startsWith("settings:") }).toString(2),
+            MANIFEST_FILE to
                 JSONObject()
                     .put("app", "ritulaya")
                     .put("protocolVersion", 2)
                     .put("schemaVersion", 3)
-                    .put("files", JSONArray(files.filter { it != "manifest.json" }))
+                    .put("files", JSONArray(files.filter { it != MANIFEST_FILE }))
                     .toString(2),
         )
     }
 
     fun decode(contents: Map<String, String>): SyncRecords {
         require(contents.keys == files.toSet()) { "Incomplete protocol snapshot" }
-        val manifest = JSONObject(contents.getValue("manifest.json"))
+        val manifest = JSONObject(contents.getValue(MANIFEST_FILE))
         require(
             manifest.getString("app") == "ritulaya" && manifest.get("protocolVersion") == 2 && manifest.get("schemaVersion") in setOf(2, 3),
         ) {
             "Unsupported sync protocol; upgrade required"
         }
+        val declared = manifest.getJSONArray("files")
+        require(
+            declared.length() == files.size - 1 &&
+                (0 until declared.length()).map { declared.get(it) }.toSet() == files.filter { it != MANIFEST_FILE }.toSet(),
+        ) {
+            "Unexpected sync file layout"
+        }
         val records = mutableMapOf<String, SyncRecord?>()
-        files.filter { it != "manifest.json" }.forEach { file ->
+        files.filter { it != MANIFEST_FILE }.forEach { file ->
             val part = SyncProtocol.decodeRecords(JSONObject(contents.getValue(file)))
             require(part.keys.none { it in records }) { "Duplicate records" }
             require(
                 part.keys.all { key ->
                     when (file) {
-                        "cycles.json" -> key.startsWith("cycle:")
-                        "day-logs.json" -> key.startsWith("day:") || key.startsWith("legacy:")
+                        CYCLES_FILE -> key.startsWith("cycle:")
+                        DAYS_FILE -> key.startsWith("day:") || key.startsWith("legacy:")
                         else -> key == "settings:default"
                     }
                 },

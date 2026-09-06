@@ -106,7 +106,7 @@ class GithubApiClient private constructor(
                         getFileContent(
                             owner,
                             repo,
-                            "${SyncRecordsCodec.DIRECTORY}/$it",
+                            it,
                             commit,
                         )?.content
                     }
@@ -128,6 +128,7 @@ class GithubApiClient private constructor(
             override fun prepare(
                 parent: String,
                 records: SyncRecords,
+                migrateLegacy: Boolean,
             ): String {
                 repository(owner, repo)
                 val tree = JSONObject(request("GET", "$root/git/commits/$parent")).getJSONObject("tree").getString("sha")
@@ -141,6 +142,27 @@ class GithubApiClient private constructor(
                                 .put("content", content)
                         },
                     )
+                if (migrateLegacy) {
+                    // Inspect only this immutable parent's root. Never delete by prefix or
+                    // erase legacy files recreated after migration during ordinary sync.
+                    val original = JSONObject(request("GET", "$root/git/trees/$tree"))
+                    require(!original.getBoolean("truncated")) { "Incomplete repository tree" }
+                    val paths = original.getJSONArray("tree")
+                    for (index in 0 until paths.length()) {
+                        val file = paths.getJSONObject(index)
+                        if (file.getString("path") !in SyncRecordsCodec.legacyFiles) continue
+                        require(file.getString("type") == "blob" && file.getString("mode") in setOf("100644", "100755")) {
+                            "Legacy sync path is not a regular file"
+                        }
+                        entries.put(
+                            JSONObject()
+                                .put("path", file.getString("path"))
+                                .put("mode", file.getString("mode"))
+                                .put("type", "blob")
+                                .put("sha", JSONObject.NULL),
+                        )
+                    }
+                }
                 val newTree =
                     JSONObject(
                         request("POST", "$root/git/trees", JSONObject().put("base_tree", tree).put("tree", entries)),

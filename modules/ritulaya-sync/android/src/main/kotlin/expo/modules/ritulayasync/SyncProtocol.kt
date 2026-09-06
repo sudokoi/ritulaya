@@ -143,6 +143,7 @@ internal interface GitSyncRemote {
     fun prepare(
         parent: String,
         records: SyncRecords,
+        migrateLegacy: Boolean = false,
     ): String
 
     fun publish(commit: String)
@@ -247,7 +248,7 @@ internal class SyncProtocol(
                 )
                 return
             }
-            val candidate = remote.prepare(head, records)
+            val candidate = remote.prepare(head, records, migrateLegacy = incoming.migration)
             val prepared =
                 JSONObject()
                     .put("reviewBound", sameReview && review?.has("resolved") == true)

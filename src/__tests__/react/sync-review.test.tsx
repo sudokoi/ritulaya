@@ -43,6 +43,7 @@ test("migration requires explicit confirmation before asking native sync to publ
     .mockResolvedValue(null)
   await render(<SyncReviewScreen />)
   expect(resolveSyncReview).not.toHaveBeenCalled()
+  expect(screen.getByText("syncV2.migrationBody")).toBeVisible()
   await fireEvent.press(screen.getByRole("button", { name: "syncV2.approve" }))
   expect(resolveSyncReview).toHaveBeenCalledWith("review", { migration: "approve" })
   expect(syncNowAction).toHaveBeenCalledTimes(1)
