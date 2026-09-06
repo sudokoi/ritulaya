@@ -45,6 +45,16 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Android backup policy follow-up
+
+Added durable Expo manifest wiring and explicit exclusion resources for legacy
+backup and modern cloud/device/cross-platform transfer. The rebuilt release APK
+was decoded: its production package is unchanged, `allowBackup` is false, both
+manifest resource references resolve, and all nine storage domains are excluded
+in every section. This validates our packaged configuration, not manufacturer
+compliance or an actual device transfer. Dependency reasoning and details are in
+[the compatibility/platform evidence](../assessments/2026-09-06-compatibility-and-platform.md).
+
 ### Dependency compatibility follow-up
 
 The earlier downgrade (`d075c29`) fixed Expo 57 versus RN 0.87's removal of
