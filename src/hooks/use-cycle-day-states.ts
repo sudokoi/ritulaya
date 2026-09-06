@@ -1,7 +1,6 @@
 import { useMemo } from "react"
 import { useSelector } from "@xstate/store-react"
-import { predictionStore } from "@/stores/prediction-store"
-import { dayLogStore } from "@/stores/day-log-store"
+import { dataStore } from "@/stores/data-store"
 import {
   deriveCycleDays,
   fertileFractions,
@@ -31,7 +30,9 @@ const EMPTY_STATE: CycleDayState = {
 }
 
 function buildDayStates(
-  prediction: ReturnType<typeof predictionStore.getSnapshot>["context"]["prediction"],
+  prediction: ReturnType<
+    typeof dataStore.getSnapshot
+  >["context"]["prediction"]["prediction"],
   avgCycleLength: number,
   logs: { date: string; flowIntensity: string | null }[],
   throughDate?: Date,
@@ -66,9 +67,12 @@ function buildDayStates(
 }
 
 export function useCycleDayStates(throughDate?: Date) {
-  const prediction = useSelector(predictionStore, (s) => s.context.prediction)
-  const avgCycleLength = useSelector(predictionStore, (s) => s.context.avgCycleLength)
-  const logs = useSelector(dayLogStore, (s) => s.context.logs)
+  const prediction = useSelector(dataStore, (s) => s.context.prediction.prediction)
+  const avgCycleLength = useSelector(
+    dataStore,
+    (s) => s.context.prediction.avgCycleLength,
+  )
+  const logs = useSelector(dataStore, (s) => s.context.logs)
 
   return useMemo(
     () => buildDayStates(prediction, avgCycleLength, logs, throughDate),

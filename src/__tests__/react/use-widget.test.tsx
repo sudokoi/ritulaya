@@ -1,10 +1,13 @@
 import { renderHook } from "@testing-library/react-native"
 import { useWidget } from "@/hooks/use-widget"
 import { refreshWidget } from "@/services/widget"
-import { recomputePrediction } from "@/stores/prediction-store"
+import { refreshAll } from "@/data/refresh"
 
 let mockBundle = { prediction: null }
-jest.mock("@xstate/store-react", () => ({ useSelector: () => mockBundle }))
+jest.mock("@xstate/store-react", () => ({
+  useSelector: (_: unknown, selector: (state: unknown) => unknown) =>
+    selector({ context: { prediction: mockBundle, refreshFailed: false } }),
+}))
 jest.mock("@/hooks/use-settings", () => ({
   useSettings: () => ({ discreetMode: false }),
 }))
@@ -12,10 +15,7 @@ jest.mock("@/services/widget", () => ({
   refreshWidget: jest.fn().mockResolvedValue(undefined),
 }))
 jest.mock("@/services/logger", () => ({ logger: { warn: jest.fn() } }))
-jest.mock("@/stores/prediction-store", () => ({
-  predictionStore: {},
-  recomputePrediction: jest.fn(),
-}))
+jest.mock("@/data/refresh", () => ({ refreshAll: jest.fn() }))
 
 test("widget refresh is downstream, not a prediction trigger", async () => {
   jest.clearAllMocks()
@@ -24,5 +24,5 @@ test("widget refresh is downstream, not a prediction trigger", async () => {
   mockBundle = { prediction: null }
   await view.rerender(undefined)
   expect(refreshWidget).toHaveBeenCalledTimes(2)
-  expect(recomputePrediction).not.toHaveBeenCalled()
+  expect(refreshAll).not.toHaveBeenCalled()
 })

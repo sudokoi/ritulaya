@@ -67,6 +67,29 @@ revision-bound token in the same native transaction, and rejects stale previews.
 Discreet mode requires deliberate reveal. No migration silently repairs history.
 The old insertion-only planner is replaced, not retained as a second write policy.
 
+### Atomic cache follow-up
+
+`readAppSnapshot` captures cycles, day entries, settings and the widget data version
+in one Room transaction. `refreshAll` derives predictions before a single
+`dataStore.publish` event; all data hooks select that same version. Overlapping
+refresh callers await a shared loop which discards superseded computations.
+Capture/computation failures leave the preceding full snapshot intact. Settings
+mutations refresh persisted state rather than patching cached values ahead of
+prediction completion. The three independent data stores and their subscription
+recomputation chain are removed; the existing XState dependency is retained.
+
+Regression tests cover our publication ordering, failure retention, shared-await
+semantics and downstream-only widget effects, not XState or Room internals.
+
+Independent standards/spec review caught privacy transitions waiting for prediction
+and stale scheduled reminder copy after failed settings refresh. Settings commands
+now hide retained routes/dialogs and acknowledge capture protection before writes;
+refreshes keep those surfaces hidden until a coherent result is ready. Reminder
+policy changes invalidate queued schedules, cancel and dismiss old copy before
+persistence, and keep scheduling blocked on failure. Ordinary refreshes with an
+unchanged reminder policy retain durable schedules while computing, avoiding a
+process-interruption gap. Successful retry restores scheduling from the new version.
+
 - Sync scope was subsequently approved as the full revision-based protocol in
   ADR-0012, including explicit remote migration and review UI. Implementation and
   local validation are recorded in the [sync follow-up](../assessments/2026-09-05-revision-sync-validation.md).

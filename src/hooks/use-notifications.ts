@@ -6,8 +6,14 @@ import { logger } from "@/services/logger"
 import { useSettings } from "./use-settings"
 import { usePrediction } from "./use-predictions"
 import { useCycles } from "./use-cycles"
+import { useSelector } from "@xstate/store-react"
+import { dataStore } from "@/stores/data-store"
 
 export function useNotifications() {
+  const refreshFailed = useSelector(dataStore, (state) => state.context.refreshFailed)
+  const settingsWrites = useSelector(dataStore, (state) => state.context.settingsWrites)
+  const version = useSelector(dataStore, (state) => state.context.version)
+  const refreshing = useSelector(dataStore, (state) => state.context.refreshing)
   const { reminderPeriodAhead, reminderDailyLog, discreetMode, avgCycleLength } =
     useSettings()
   const prediction = usePrediction().prediction
@@ -23,6 +29,7 @@ export function useNotifications() {
     differenceInDays(new Date(), new Date(currentCycle.startDate)) + 1 > avgCycleLength
 
   useEffect(() => {
+    if (refreshFailed || refreshing || settingsWrites > 0) return
     updateAllReminders(
       prediction?.nextPeriodStart ?? null,
       reminderPeriodAhead,
@@ -30,5 +37,16 @@ export function useNotifications() {
       discreetMode,
       overdue,
     ).catch((e) => logger.warn("notifications", "Reminder scheduling failed", e))
-  }, [prediction, reminderPeriodAhead, reminderDailyLog, discreetMode, overdue, language])
+  }, [
+    prediction,
+    reminderPeriodAhead,
+    reminderDailyLog,
+    discreetMode,
+    overdue,
+    language,
+    refreshFailed,
+    settingsWrites,
+    version,
+    refreshing,
+  ])
 }

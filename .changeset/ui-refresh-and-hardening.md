@@ -21,6 +21,9 @@
 - Reconcile cycle boundaries and entry associations after flow edits/deletions,
   including backdated merges and splits. Add a before/after historical repair
   preview requiring confirmation; changed data invalidates the inspected preview.
+- Publish cycles, entries, settings and predictions as one coherent cache version.
+  Capture inputs together in native storage, discard superseded refresh results,
+  and retain the previous complete snapshot if loading or prediction fails.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification

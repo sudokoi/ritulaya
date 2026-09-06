@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import HistoryScreen from "@/app/history"
-import { dayLogStore, loadDayLogs } from "@/stores/day-log-store"
+import { dataStore } from "@/stores/data-store"
 import { refreshAll } from "@/data/refresh"
 import * as db from "@/services/db"
 import { useSettings } from "@/hooks/use-settings"
@@ -84,8 +84,14 @@ beforeEach(async () => {
   jest.mocked(db.deleteDayLog).mockImplementation(async (id) => {
     persisted = persisted.filter((entry) => entry.id !== id)
   })
-  jest.mocked(refreshAll).mockImplementation(loadDayLogs)
-  await loadDayLogs()
+  jest.mocked(refreshAll).mockImplementation(async () => {
+    dataStore.send({
+      type: "publish",
+      snapshot: { ...dataStore.getSnapshot().context, logs: persisted },
+    })
+  })
+  await refreshAll()
+  jest.mocked(refreshAll).mockClear()
 })
 
 afterEach(async () => {
@@ -179,7 +185,10 @@ test("deleting a result uses the shared command and removes it from history", as
 })
 
 test("an empty history offers logging instead of fabricated or predicted entries", async () => {
-  dayLogStore.send({ type: "setLogs", logs: [] })
+  dataStore.send({
+    type: "publish",
+    snapshot: { ...dataStore.getSnapshot().context, logs: [] },
+  })
   await render(<HistoryScreen />)
   expect(screen.getByText("history.emptyTitle")).toBeTruthy()
   await fireEvent.press(screen.getByRole("button", { name: "today.logToday" }))

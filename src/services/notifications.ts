@@ -144,6 +144,26 @@ export async function scheduleOverdueNudge(discreet: boolean) {
 }
 
 let reminderQueue: Promise<void> = Promise.resolve()
+let remindersBlocked = false
+let reminderGeneration = 0
+
+/** Invalidate queued work before removing reminders with potentially stale policy. */
+export function blockReminders(): Promise<void> {
+  remindersBlocked = true
+  reminderGeneration += 1
+  const work = reminderQueue
+    .catch(() => undefined)
+    .then(async () => {
+      await cancelAllReminders()
+      await Notifications.dismissAllNotificationsAsync()
+    })
+  reminderQueue = work
+  return work
+}
+
+export function allowReminders() {
+  remindersBlocked = false
+}
 
 export function updateAllReminders(
   nextPeriodStart: Date | null,
@@ -152,12 +172,19 @@ export function updateAllReminders(
   discreet: boolean,
   overdue: boolean,
 ) {
+  const generation = reminderGeneration
   const work = reminderQueue
     .catch(() => undefined)
     .then(async () => {
       await cancelAllReminders()
+      if (remindersBlocked || generation !== reminderGeneration) return
       const permission = await Notifications.getPermissionsAsync()
-      if (permission.status !== "granted") return
+      if (
+        permission.status !== "granted" ||
+        remindersBlocked ||
+        generation !== reminderGeneration
+      )
+        return
 
       if (overdue && periodDaysAhead > 0) {
         // While overdue, the daily nudge replaces the period-ahead reminder.

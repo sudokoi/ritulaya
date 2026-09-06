@@ -5,6 +5,10 @@ import type { DayLog, DayLogCreate } from "@/types/day-log"
 
 export type { SettingsRow, SettingsPatch }
 
+export function readAppSnapshot() {
+  return nativeRequire(native.db, (db) => db.readAppSnapshot())
+}
+
 export function previewCycleRepair() {
   return nativeRequire(native.db, (db) => db.previewCycleRepair())
 }
