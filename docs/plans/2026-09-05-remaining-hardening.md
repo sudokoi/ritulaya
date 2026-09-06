@@ -45,6 +45,26 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Discreet overview and layout follow-up
+
+Today/Calendar/Settings already suppress overview health statistics and calendar
+state in discreet mode. Insights now removes all cycle dates, counts, phase
+correlations and symptom/mood summaries rather than merely renaming headings.
+History hides search text and health filters and ignores retained filters while
+discreet, so results cannot disclose a hidden health predicate. Its neutral dated
+rows still deliberately open the editor. Sync and repair previews retain explicit
+reveal; these are deliberate review actions, not passive overviews.
+
+Insights dates now use the selected date locale; headers shrink/wrap, statistics
+are centered, safe-area padding is retained. Setup steppers stack their labels
+above flexible values with 48dp icon actions instead of 34dp targets and fixed
+64dp value widths. Save has an immediate duplicate-command guard. Existing tabs
+remain icon+text without press animation; the design HTML is unchanged.
+
+React regression coverage checks Insights locale and health-summary suppression
+and History's inaccessible search controls in discreet mode. This is code/test
+evidence, not a claim of full TalkBack/OEM/large-font device validation.
+
 ### Cycle reconciliation follow-up
 
 Native save, partial-write, period-fill and deletion commands now derive affected

@@ -319,6 +319,7 @@
     "openGithub": "GitHub 열기"
   },
   "discreet": {
+    "overviewHidden": "심플 모드에서는 세부 정보가 숨겨집니다. 보거나 수정하려면 기록을 여세요.",
     "settingsTitle": "환경설정",
     "viewInsights": "상세 보기",
     "sectionPrivacy": "보안",
