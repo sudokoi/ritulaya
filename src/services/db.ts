@@ -5,6 +5,14 @@ import type { DayLog, DayLogCreate } from "@/types/day-log"
 
 export type { SettingsRow, SettingsPatch }
 
+export function previewCycleRepair() {
+  return nativeRequire(native.db, (db) => db.previewCycleRepair())
+}
+
+export function applyCycleRepair(token: string) {
+  return nativeRequire(native.db, (db) => db.applyCycleRepair(token))
+}
+
 export function listCycles(): Promise<Cycle[]> {
   return nativeRequire(native.db, (db) => db.listCycles())
 }

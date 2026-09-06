@@ -18,6 +18,9 @@
 - Add explicit Yes, No and Not recorded activity choices. Preserve existing No
   values during migration; new entries remain unrecorded. Replace implicit clear
   sentinels with named field intent and keep partial writes transactional.
+- Reconcile cycle boundaries and entry associations after flow edits/deletions,
+  including backdated merges and splits. Add a before/after historical repair
+  preview requiring confirmation; changed data invalidates the inspected preview.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification

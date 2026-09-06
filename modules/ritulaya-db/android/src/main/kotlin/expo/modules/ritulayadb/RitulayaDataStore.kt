@@ -34,7 +34,10 @@ class RitulayaDataStore internal constructor(
 
     suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
         db.withTransaction {
+            val before = dao.listDayLogs()
             writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
+            reconcileEntries(before)
+            requireNotNull(dao.getDayLogByDate(input.date))
         }
 
     /** Decide the flow transition from persisted data and commit the whole command together. */
@@ -43,15 +46,18 @@ class RitulayaDataStore internal constructor(
         periodDays: Int,
     ): DayLogEntity =
         db.withTransaction {
+            val before = dao.listDayLogs()
             val existing = dao.getDayLogByDate(input.date)
             val flow = input.flowIntensity
             val isPeriod = flow != null && flow != "none"
             val wasPeriod = existing?.flowIntensity != null && existing.flowIntensity != "none"
             if (isPeriod && !wasPeriod) {
-                logPeriodOn(input.date, requireNotNull(flow), periodDays)
+                fillPeriod(input.date, requireNotNull(flow), periodDays)
             }
             // Re-read after period fill so its chosen cycle association is preserved.
             writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
+            reconcileEntries(before)
+            requireNotNull(dao.getDayLogByDate(input.date))
         }
 
     suspend fun logPeriod(
@@ -66,58 +72,72 @@ class RitulayaDataStore internal constructor(
         flow: String,
         periodDays: Int,
     ) {
-        val start = LocalDate.parse(date)
         db.withTransaction {
-            val cycles = dao.listCycles().sortedBy { it.startDate }
-            val startDates = cycles.map { it.startDate }
-            val prevFlowDate = dao.findFlowDateBefore(date)
-            val placement = CyclePlanner.place(startDates, date, prevFlowDate)
-
-            val cycleId: String =
-                when (placement) {
-                    is CyclePlanner.Placement.Extend -> {
-                        cycles.firstOrNull { it.startDate == placement.cycleStartDate }?.id
-                            ?: createCycle(date).id
-                    }
-
-                    is CyclePlanner.Placement.New -> {
-                        val newCycle = createCycle(date)
-                        placement.predecessorStartDate?.let { predStart ->
-                            val predecessor = cycles.first { it.startDate == predStart }
-                            dao.updateCycleEndDate(
-                                predecessor.id,
-                                start.minusDays(1).toString(),
-                                nowISO(),
-                            )
-                        }
-                        placement.successorStartDate?.let { succStart ->
-                            dao.updateCycleEndDate(
-                                newCycle.id,
-                                LocalDate.parse(succStart).minusDays(1).toString(),
-                                nowISO(),
-                            )
-                        }
-                        newCycle.id
-                    }
-                }
-
-            val previousDayLog = dao.getDayLogByDate(start.minusDays(1).toString())
-            val previousIsPeriod =
-                previousDayLog?.flowIntensity != null && previousDayLog.flowIntensity != "none"
-            val fillCount = if (previousIsPeriod) 1 else periodDays
-
-            for (i in 0 until fillCount) {
-                writeDayLog(
-                    date = start.plusDays(i.toLong()).toString(),
-                    cycleId = cycleId,
-                    input =
-                        DayLogInput().apply {
-                            flowIntensity = flow
-                        },
-                )
-            }
+            val before = dao.listDayLogs()
+            fillPeriod(date, flow, periodDays)
+            reconcileEntries(before)
         }
     }
+
+    private suspend fun fillPeriod(
+        date: String,
+        flow: String,
+        periodDays: Int,
+    ) {
+        require(flow in setOf("spotting", "light", "medium", "heavy") && periodDays in 1..14) { "Invalid period input" }
+        val start = LocalDate.parse(date)
+        val previous = dao.getDayLogByDate(start.minusDays(1).toString())
+        val count = if (previous?.flowIntensity != null && previous.flowIntensity != "none") 1 else periodDays
+        repeat(count) { index ->
+            writeDayLog(start.plusDays(index.toLong()).toString(), null, DayLogInput().apply { flowIntensity = flow })
+        }
+    }
+
+    private suspend fun reconcileEntries(before: List<DayLogEntity>) {
+        installReconciliation(CycleReconciliation.plan(dao.listCycles(), before, dao.listDayLogs()))
+    }
+
+    private suspend fun installReconciliation(plan: CycleReconciliation.Plan) {
+        val cycles = dao.listCycles().associateBy { it.id }
+        val logs = dao.listDayLogs().associateBy { it.id }
+        for (removed in cycles.keys - plan.cycles.map { it.id }.toSet()) {
+            dao.deleteCycleById(removed)
+            dao.insertTombstone(SyncTombstoneEntity("cycle", removed, nowISO()))
+        }
+        plan.cycles.filter { cycles[it.id] != it }.forEach { dao.insertCycle(it) }
+        plan.logs.filter { logs[it.id] != it }.forEach { dao.upsertDayLog(it) }
+    }
+
+    private suspend fun repairToken(): String =
+        java.security.MessageDigest
+            .getInstance("SHA-256")
+            .digest(
+                dao
+                    .syncRevisions()
+                    .sortedBy { it.key }
+                    .joinToString("\n") { "${it.key}:${it.revision}" }
+                    .toByteArray(),
+            ).joinToString("") { "%02x".format(it) }
+
+    suspend fun previewCycleRepair(): Map<String, Any> =
+        db.withTransaction {
+            val cycles = dao.listCycles()
+            val logs = dao.listDayLogs()
+            val plan = CycleReconciliation.plan(cycles, logs, logs, repair = true)
+            mapOf(
+                "token" to repairToken(),
+                "before" to cycles.map { it.toMap() },
+                "after" to plan.cycles.map { it.toMap() },
+                "reassociatedEntries" to plan.logs.count { row -> logs.single { it.id == row.id }.cycleId != row.cycleId },
+            )
+        }
+
+    suspend fun applyCycleRepair(token: String) =
+        db.withTransaction {
+            require(token == repairToken()) { "History changed; preview again before confirming" }
+            val logs = dao.listDayLogs()
+            installReconciliation(CycleReconciliation.plan(dao.listCycles(), logs, logs, repair = true))
+        }
 
     private suspend fun writeDayLog(
         date: String,
@@ -166,10 +186,12 @@ class RitulayaDataStore internal constructor(
 
     suspend fun deleteDayLog(id: String) =
         db.withTransaction {
+            val before = dao.listDayLogs()
             dao.deleteDayLogById(id)
             dao.insertTombstone(
                 SyncTombstoneEntity(entity = "day_log", entityId = id, deletedAt = nowISO()),
             )
+            reconcileEntries(before)
         }
 
     suspend fun getSettings(): SettingsEntity? = dao.getSettings()

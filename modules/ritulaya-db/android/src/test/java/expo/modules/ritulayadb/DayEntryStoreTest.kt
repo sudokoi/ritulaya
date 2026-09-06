@@ -15,6 +15,83 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [28])
 class DayEntryStoreTest {
+    @Test
+    fun `seven day placement boundary is the same for reverse entry order`(): Unit =
+        runBlocking {
+            for (date in listOf("2026-06-14", "2026-06-07", "2026-06-01")) store.logPeriodOn(date, "light", 1)
+            assertThat(store.listCycles().map { it.startDate }).containsExactly("2026-06-01", "2026-06-14")
+            assertThat(store.listCycles().single { it.startDate == "2026-06-01" }.endDate).isEqualTo("2026-06-13")
+            val before = store.readSyncSnapshot().revisions
+            store.applyCycleRepair(store.previewCycleRepair().getValue("token") as String)
+            assertThat(store.readSyncSnapshot().revisions).isEqualTo(before)
+        }
+
+    @Test
+    fun `clearing the first flow shifts its boundary and removing final flow removes the cycle`(): Unit =
+        runBlocking {
+            store.logPeriodOn("2026-06-01", "medium", 2)
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    notes = "retain me"
+                    flowIntensity = "none"
+                },
+            )
+            assertThat(store.listCycles().single().startDate).isEqualTo("2026-06-02")
+            val second = store.listDayLogs().single { it.date == "2026-06-02" }
+            store.deleteDayLog(second.id)
+            assertThat(store.listCycles()).isEmpty()
+            assertThat(store.listDayLogs().single().notes).isEqualTo("retain me")
+            assertThat(store.listDayLogs().single().cycleId).isNull()
+        }
+
+    @Test
+    fun `backdated bridge flow merges and deleting it splits cycles independently of entry order`(): Unit =
+        runBlocking {
+            store.logPeriodOn("2026-06-01", "medium", 1)
+            store.logPeriodOn("2026-06-09", "medium", 1)
+            assertThat(store.listCycles()).hasSize(2)
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-05"
+                    flowIntensity = "light"
+                },
+            )
+            assertThat(store.listCycles()).hasSize(1)
+            assertThat(store.listDayLogs().map { it.cycleId }.distinct()).hasSize(1)
+            store.deleteDayLog(store.listDayLogs().single { it.date == "2026-06-05" }.id)
+            assertThat(store.listCycles().single { it.startDate == "2026-06-01" }.endDate).isEqualTo("2026-06-08")
+            assertThat(store.listCycles().single { it.startDate == "2026-06-09" }.endDate).isNull()
+        }
+
+    @Test
+    fun `historical orphan repair is previewed without mutation and rejects stale confirmation`(): Unit =
+        runBlocking {
+            val orphan = store.createCycle("2025-01-01")
+            store.logPeriodOn("2026-06-01", "medium", 1)
+            assertThat(store.listCycles().any { it.id == orphan.id }).isTrue()
+            val preview = store.previewCycleRepair()
+            assertThat(store.listCycles()).hasSize(2)
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    notes = "late edit"
+                },
+            )
+            try {
+                store.applyCycleRepair(preview.getValue("token") as String)
+                error("Expected stale preview rejection")
+            } catch (
+                _: IllegalArgumentException,
+            ) {
+            }
+            assertThat(store.listCycles()).hasSize(2)
+            store.applyCycleRepair(store.previewCycleRepair().getValue("token") as String)
+            assertThat(store.listCycles()).hasSize(1)
+            assertThat(store.listDayLogs().single().notes).isEqualTo("late edit")
+            assertThat(store.listTombstones().any { it.entityId == orphan.id }).isTrue()
+        }
+
     private lateinit var db: RitulayaDatabase
     private lateinit var store: RitulayaDataStore
 

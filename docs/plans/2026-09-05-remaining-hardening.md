@@ -45,6 +45,28 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Cycle reconciliation follow-up
+
+Native save, partial-write, period-fill and deletion commands now derive affected
+cycle topology from recorded flow dates. Consecutive recorded flow dates less
+than seven days apart share a cycle; a gap of seven or more starts another. The
+next start closes its predecessor the previous day. Clearing the first flow can
+shift the start; removing all flow removes the affected cycle; bridging dates can
+merge and deleting a bridge can split it. Unchanged cycle IDs remain stable.
+
+Automatic reconciliation applies only differences between the pre-command and
+post-command derived timelines, not a blanket repair of historical data. Notes,
+measurements and activity values are retained. Previously unassociated non-flow
+entries are not assigned a cycle merely because a repair runs. Existing affected
+associations are moved or cleared to avoid dangling references. Deleted cycles
+retain sync tombstones/revisions.
+
+Settings → Review history shows complete before/after cycle ranges and the number
+of reassociated entries. It changes nothing until confirmation, revalidates a
+revision-bound token in the same native transaction, and rejects stale previews.
+Discreet mode requires deliberate reveal. No migration silently repairs history.
+The old insertion-only planner is replaced, not retained as a second write policy.
+
 - Sync scope was subsequently approved as the full revision-based protocol in
   ADR-0012, including explicit remote migration and review UI. Implementation and
   local validation are recorded in the [sync follow-up](../assessments/2026-09-05-revision-sync-validation.md).
