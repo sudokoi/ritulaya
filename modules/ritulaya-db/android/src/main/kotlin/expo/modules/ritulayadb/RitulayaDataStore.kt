@@ -32,6 +32,16 @@ class RitulayaDataStore internal constructor(
 
     suspend fun listDayLogs(): List<DayLogEntity> = dao.listDayLogs()
 
+    suspend fun readAppSnapshot(): Map<String, Any?> =
+        db.withTransaction {
+            mapOf(
+                "cycles" to dao.listCycles().map { it.toMap() },
+                "logs" to dao.listDayLogs().map { it.toMap() },
+                "settings" to dao.getSettings()?.toMap(),
+                "dataVersion" to (latestDataChange() ?: ""),
+            )
+        }
+
     suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
         db.withTransaction {
             val before = dao.listDayLogs()

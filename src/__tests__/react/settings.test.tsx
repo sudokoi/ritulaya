@@ -3,7 +3,10 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { router } from "expo-router"
 import * as LocalAuthentication from "expo-local-authentication"
 import SettingsScreen from "@/app/(tabs)/settings"
-import { settingsStore, loadSettings } from "@/stores/settings-store"
+import { loadSettings } from "@/stores/settings-store"
+import { dataStore } from "@/stores/data-store"
+import { defaultSettings } from "@/data/settings"
+jest.mock("@/data/refresh", () => ({ refreshAll: jest.fn() }))
 import * as db from "@/services/db"
 import { requestNotificationPermissions } from "@/services/notifications"
 
@@ -20,7 +23,12 @@ jest.mock("@/hooks/use-theme-colors", () => ({ useThemeColors: () => ({}) }))
 jest.mock("@/services/export", () => ({ exportData: jest.fn() }))
 jest.mock("@/services/bug-report", () => ({ reportBug: jest.fn() }))
 jest.mock("@/services/notifications", () => ({
+  blockReminders: jest.fn().mockResolvedValue(undefined),
+  allowReminders: jest.fn(),
   requestNotificationPermissions: jest.fn(async () => true),
+}))
+jest.mock("@/services/capture-protection", () => ({
+  setCaptureProtected: jest.fn().mockResolvedValue(undefined),
 }))
 jest.mock("@/i18n", () => ({
   SUPPORTED_LOCALES: ["en-US", "en-GB", "en-IN", "hi", "ja", "ko"],
@@ -59,6 +67,31 @@ jest.mock("lucide-react-native", () =>
 beforeEach(async () => {
   jest.clearAllMocks()
   jest.spyOn(Alert, "alert").mockImplementation(() => undefined)
+  jest.mocked(loadSettings).mockImplementation(async () => {
+    const patch = jest.mocked(db.updateSettings).mock.lastCall?.[0]
+    const previous = patch ? dataStore.getSnapshot().context.settings : defaultSettings
+    const next = {
+      ...previous,
+      ...patch,
+      theme: (patch?.theme ?? previous.theme) as typeof previous.theme,
+      biometricLock:
+        patch?.biometricLock === undefined
+          ? previous.biometricLock
+          : patch.biometricLock === 1,
+      discreetMode:
+        patch?.discreetMode === undefined
+          ? previous.discreetMode
+          : patch.discreetMode === 1,
+      reminderDailyLog:
+        patch?.reminderDailyLog === undefined
+          ? previous.reminderDailyLog
+          : patch.reminderDailyLog === 1,
+    }
+    dataStore.send({
+      type: "publish",
+      snapshot: { ...dataStore.getSnapshot().context, settings: next },
+    })
+  })
   await loadSettings()
 })
 
@@ -97,7 +130,7 @@ test("the labeled switch row blocks duplicate writes and only changes after pers
   await fireEvent.press(toggle)
   expect(db.updateSettings).toHaveBeenCalledTimes(1)
   expect(db.updateSettings).toHaveBeenCalledWith({ discreetMode: 1 })
-  expect(settingsStore.getSnapshot().context.discreetMode).toBe(false)
+  expect(dataStore.getSnapshot().context.settings.discreetMode).toBe(false)
   await act(async () => finish())
   expect(
     screen.getByRole("switch", { name: "discreet.discreetMode", checked: true }),

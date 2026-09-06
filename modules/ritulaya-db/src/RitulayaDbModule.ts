@@ -31,6 +31,12 @@ export interface SettingsPatch {
 }
 
 interface RitulayaDbNativeModule {
+  readAppSnapshot(): Promise<{
+    cycles: Cycle[]
+    logs: DayLog[]
+    settings: SettingsRow | null
+    dataVersion: string
+  }>
   previewCycleRepair(): Promise<{
     token: string
     before: Cycle[]

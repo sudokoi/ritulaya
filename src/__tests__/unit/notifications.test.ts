@@ -6,6 +6,7 @@ jest.mock("@/i18n", () => ({
 jest.mock("expo-notifications", () => ({
   setNotificationHandler: jest.fn(),
   cancelAllScheduledNotificationsAsync: jest.fn().mockResolvedValue(undefined),
+  dismissAllNotificationsAsync: jest.fn().mockResolvedValue(undefined),
   getPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
   requestPermissionsAsync: jest.fn(),
   scheduleNotificationAsync: jest.fn(),
@@ -17,9 +18,32 @@ jest.mock("expo-notifications", () => ({
 }))
 
 import * as Notifications from "expo-notifications"
-import { updateAllReminders } from "@/services/notifications"
+import {
+  updateAllReminders,
+  blockReminders,
+  allowReminders,
+} from "@/services/notifications"
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  allowReminders()
+})
+
+test("privacy invalidation cancels stale queued reminders and stays blocked until recovery", async () => {
+  const stale = updateAllReminders(null, 2, true, false, true)
+  await blockReminders()
+  await stale
+  await updateAllReminders(null, 2, true, false, true)
+  expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled()
+  expect(Notifications.dismissAllNotificationsAsync).toHaveBeenCalled()
+  allowReminders()
+  await updateAllReminders(null, 0, true, true, false)
+  expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
+    expect.objectContaining({
+      content: expect.objectContaining({ title: "discreet.dailyLogCheckIn" }),
+    }),
+  )
+})
 
 test("overdue does not override the user's disabled reminder setting", async () => {
   await updateAllReminders(null, 0, false, false, true)

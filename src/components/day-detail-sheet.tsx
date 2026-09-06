@@ -23,7 +23,7 @@ import { AppText } from "@/components/ui/text"
 import { ChoiceChip } from "@/components/ui/choice-chip"
 import { Field } from "@/components/ui/field"
 import { useDateLocale } from "@/hooks/use-date-locale"
-import { useCaptureReady } from "@/components/capture-gate"
+import { useCaptureReady } from "@/components/capture-policy-context"
 
 const FLOW_LEVELS: FlowIntensity[] = ["none", "spotting", "light", "medium", "heavy"]
 

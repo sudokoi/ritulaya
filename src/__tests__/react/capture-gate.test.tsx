@@ -4,6 +4,9 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { CaptureGate } from "@/components/capture-gate"
 import { setCaptureProtected } from "@/services/capture-protection"
 import { useSettings } from "@/hooks/use-settings"
+import { dataStore } from "@/stores/data-store"
+import { refreshAll } from "@/data/refresh"
+jest.mock("@/data/refresh", () => ({ refreshAll: jest.fn() }))
 
 jest.mock("@/services/capture-protection", () => ({ setCaptureProtected: jest.fn() }))
 jest.mock("@/hooks/use-settings", () => ({ useSettings: jest.fn() }))
@@ -53,7 +56,38 @@ test("applying a changed policy hides content without discarding its draft", asy
   expect(screen.getByLabelText("draft")).toHaveDisplayValue("unsaved note")
 })
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  jest.mocked(setCaptureProtected).mockResolvedValue(undefined)
+  dataStore.send({ type: "publish", snapshot: dataStore.getSnapshot().context })
+})
+
+test("a pending settings write and refresh hide the retained route until acknowledged", async () => {
+  settings(false, false)
+  await render(content)
+  await act(async () => dataStore.send({ type: "beginSettingsWrite" }))
+  expect(screen.queryByText("health entry")).toBeNull()
+  expect(setCaptureProtected).toHaveBeenLastCalledWith(true)
+  await act(async () => dataStore.send({ type: "beginRefresh" }))
+  await act(async () => dataStore.send({ type: "endSettingsWrite" }))
+  expect(screen.queryByText("health entry")).toBeNull()
+  await act(async () => dataStore.send({ type: "endRefresh" }))
+  expect(screen.getByText("health entry")).toBeTruthy()
+})
+
+test("a failed post-write refresh hides stale privacy settings until retry succeeds", async () => {
+  settings(false, false)
+  jest.mocked(setCaptureProtected).mockResolvedValueOnce(undefined)
+  await render(content)
+  await act(async () => dataStore.send({ type: "refreshFailed" }))
+  expect(screen.queryByText("health entry")).toBeNull()
+  expect(screen.getByText("bootstrap.failed")).toBeTruthy()
+  jest.mocked(refreshAll).mockImplementationOnce(async () => {
+    dataStore.send({ type: "publish", snapshot: dataStore.getSnapshot().context })
+  })
+  await fireEvent.press(screen.getByText("gate.tryAgain"))
+  expect(screen.getByText("health entry")).toBeTruthy()
+})
 
 test.each([
   [false, false, false],
