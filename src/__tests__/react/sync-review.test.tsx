@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import SyncReviewScreen from "@/app/settings/sync-review"
 import { getSyncReview, resolveSyncReview } from "@/services/sync"
 import { syncNowAction } from "@/stores/sync-store"
@@ -24,9 +24,19 @@ jest.mock("@/stores/sync-store", () => ({
   syncNowAction: jest.fn(async () => ({ status: "inSync" })),
 }))
 
+const synced = {
+  status: "inSync" as const,
+  syncedAt: null,
+  warning: false,
+  consecutiveFailures: 0,
+}
+
 beforeEach(() => {
   jest.useFakeTimers()
   jest.clearAllMocks()
+  jest.mocked(getSyncReview).mockReset()
+  jest.mocked(resolveSyncReview).mockReset().mockResolvedValue(undefined)
+  jest.mocked(syncNowAction).mockReset().mockResolvedValue(synced)
   jest
     .mocked(useSettings)
     .mockReturnValue({ discreetMode: false } as ReturnType<typeof useSettings>)
@@ -62,6 +72,70 @@ const conflict = {
     },
   ],
 }
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((done) => {
+    resolve = done
+  })
+  return { promise, resolve }
+}
+
+test("migration shows progress through approval, sync and review refresh", async () => {
+  const approval = deferred<undefined>()
+  const sync = deferred<Awaited<ReturnType<typeof syncNowAction>>>()
+  const refresh = deferred<Awaited<ReturnType<typeof getSyncReview>>>()
+  jest
+    .mocked(getSyncReview)
+    .mockResolvedValueOnce({ id: "review", kind: "migration", conflicts: [] })
+    .mockReturnValueOnce(refresh.promise)
+  jest.mocked(resolveSyncReview).mockReturnValueOnce(approval.promise)
+  jest.mocked(syncNowAction).mockReturnValueOnce(sync.promise)
+  await render(<SyncReviewScreen />)
+  expect(screen.queryByRole("progressbar")).toBeNull()
+  await fireEvent.press(screen.getByRole("button", { name: "syncV2.approve" }))
+  expect(screen.getByRole("progressbar", { name: "sync.statusSyncing" })).toBeVisible()
+  expect(
+    screen.getByRole("button", { name: "sync.statusSyncing", busy: true }),
+  ).toBeDisabled()
+  expect(screen.getByRole("button", { name: "common.back" })).toBeDisabled()
+  await fireEvent.press(screen.getByRole("button", { name: "sync.statusSyncing" }))
+  expect(resolveSyncReview).toHaveBeenCalledTimes(1)
+  expect(syncNowAction).not.toHaveBeenCalled()
+
+  await act(async () => approval.resolve(undefined))
+  expect(syncNowAction).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole("progressbar")).toBeVisible()
+  await act(async () => sync.resolve(synced))
+  expect(getSyncReview).toHaveBeenCalledTimes(2)
+  expect(screen.getByRole("progressbar")).toBeVisible()
+  await act(async () => refresh.resolve(null))
+  expect(screen.queryByRole("progressbar")).toBeNull()
+  expect(screen.getByText("syncV2.noReview")).toBeVisible()
+})
+
+test("failed migration clears progress and retry displays it again", async () => {
+  const sync = deferred<Awaited<ReturnType<typeof syncNowAction>>>()
+  jest
+    .mocked(getSyncReview)
+    .mockResolvedValue({ id: "review", kind: "migration", conflicts: [] })
+  jest.mocked(syncNowAction).mockReturnValueOnce(sync.promise)
+  await render(<SyncReviewScreen />)
+  await fireEvent.press(screen.getByRole("button", { name: "syncV2.approve" }))
+  expect(screen.getByRole("progressbar")).toBeVisible()
+  await act(async () => sync.resolve({ ...synced, status: "error" }))
+  expect(screen.queryByRole("progressbar")).toBeNull()
+  expect(screen.getByRole("alert")).toHaveTextContent("syncV2.failed")
+  expect(screen.getByRole("button", { name: "syncV2.approve" })).toBeEnabled()
+
+  const retry = deferred<Awaited<ReturnType<typeof syncNowAction>>>()
+  jest.mocked(syncNowAction).mockReturnValueOnce(retry.promise)
+  await userEvent.press(screen.getByRole("button", { name: "gate.tryAgain" }))
+  expect(screen.getByRole("progressbar")).toBeVisible()
+  await act(async () => retry.resolve({ ...synced, status: "error" }))
+  expect(screen.queryByRole("progressbar")).toBeNull()
+  expect(screen.getByRole("alert")).toHaveTextContent("syncV2.failed")
+})
 
 test("publication failure remains visible after choices were saved", async () => {
   jest.mocked(getSyncReview).mockResolvedValue(conflict)
