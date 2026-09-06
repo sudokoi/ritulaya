@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 
 class RitulayaLoggerModule : Module() {
     private lateinit var db: LogDatabase
+    private var version: String? = null
 
     override fun definition() =
         ModuleDefinition {
@@ -17,17 +18,20 @@ class RitulayaLoggerModule : Module() {
                     appContext.reactContext?.applicationContext
                         ?: throw IllegalStateException("Application context not available")
                 db = LogDatabase.getInstance(context)
+                version = context.packageManager.getPackageInfo(context.packageName, 0).versionName
             }
 
             AsyncFunction("log") Coroutine { level: String, tag: String, message: String, metadata: String? ->
                 val dao = db.logDao()
                 dao.insert(
-                    LogEntity(
-                        timestamp = System.currentTimeMillis(),
-                        level = level,
-                        tag = tag,
-                        message = message,
-                        metadata = metadata,
+                    DiagnosticPolicy.project(
+                        LogEntity(
+                            timestamp = System.currentTimeMillis(),
+                            level = level,
+                            tag = tag,
+                            message = message,
+                            metadata = metadata,
+                        ),
                     ),
                 )
                 val count = dao.count()
@@ -39,10 +43,7 @@ class RitulayaLoggerModule : Module() {
             AsyncFunction("exportLogs") {
                 val dao = db.logDao()
                 val entries = runBlocking { dao.getRecent(LogDatabase.getMaxEntries()) }
-                entries.joinToString("\n") { entry ->
-                    val sanitized = sanitize(entry.message)
-                    "[${entry.level.uppercase()}] ${entry.tag}: $sanitized"
-                }
+                DiagnosticPolicy.export(entries, version, android.os.Build.VERSION.SDK_INT)
             }
 
             AsyncFunction("clearLogs") {
@@ -50,11 +51,4 @@ class RitulayaLoggerModule : Module() {
                 runBlocking { dao.clearAll() }
             }
         }
-
-    private fun sanitize(text: String): String =
-        text
-            .replace(Regex("\\d{4}-\\d{2}-\\d{2}"), "[DATE]")
-            .replace(Regex("\"symptoms\"\\s*:\\s*\\[[^\\]]*\\]"), "\"symptoms\":[REDACTED]")
-            .replace(Regex("\"notes\"\\s*:\\s*\"[^\"]*\""), "\"notes\":\"[REDACTED]\"")
-            .replace(Regex("\"mood\"\\s*:\\s*\"[^\"]*\""), "\"mood\":\"[REDACTED]\"")
 }

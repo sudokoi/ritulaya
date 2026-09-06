@@ -33,6 +33,9 @@
   backups and device transfers, in addition to disabling automatic backup.
 - Fix the native logging bridge returning a coroutine job instead of completing
   its write; diagnostic failures no longer create unhandled JS errors.
+- Export useful, allowlisted local diagnostic context and app/Android versions.
+  Filter new log writes and historical exports; omit raw errors, stacks, health
+  fields, repository details and credentials. Reports remain user-initiated.
 - Remove cycle-day and countdown details from private widgets and replace failed
   widget updates with neutral content. Keep privacy blocks owned by the pending
   app operation rather than releasing them during unrelated background sync.

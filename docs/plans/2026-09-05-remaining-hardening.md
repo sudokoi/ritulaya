@@ -54,6 +54,11 @@ the follow-up native reminder race, language freshness and logger runtime findin
 The subsequent original-audit recheck identified two still-open implementation
 items: privacy-reviewed structured diagnostic fields/redaction tests, and an Expo
 compatibility/Doctor CI gate. They were missed by the original completion summary.
+The diagnostics follow-up now implements finite error categories and native
+pre-storage/export projection, including legacy rows; see [the disclosure policy](../diagnostics.md).
+Validation for this follow-up: 158 JS/React tests and 84 native tests pass, along
+with typecheck, lint, formatting and the ARM64 release-mode rebuild. No new
+installed-app diagnostic export or production installation is claimed.
 The subsequently authorized [live GitHub verification](../assessments/2026-09-06-live-github-sync.md)
 uses only a newly created private repository and synthetic Android test stores.
 The production-identity ARM64 release-mode build and a separately identified
