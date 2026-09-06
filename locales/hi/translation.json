@@ -320,6 +320,7 @@
     "openGithub": "GitHub खोलें"
   },
   "discreet": {
+    "overviewHidden": "सरल मोड में विवरण छिपे रहते हैं। देखने या संपादित करने के लिए कोई प्रविष्टि खोलें।",
     "settingsTitle": "प्राथमिकताएँ",
     "viewInsights": "विवरण देखें",
     "sectionPrivacy": "सुरक्षा",

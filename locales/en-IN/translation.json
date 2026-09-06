@@ -320,6 +320,7 @@
     "openGithub": "Open GitHub"
   },
   "discreet": {
+    "overviewHidden": "Details are hidden in Simple Mode. Open an entry to view or edit it.",
     "settingsTitle": "Preferences",
     "viewInsights": "View Details",
     "sectionPrivacy": "Security",

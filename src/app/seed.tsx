@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Pressable, Alert } from "react-native"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { router, useLocalSearchParams } from "expo-router"
 import { format, subDays } from "date-fns"
 import { ChevronLeft, Minus, Plus } from "lucide-react-native"
@@ -10,6 +10,7 @@ import { logPeriodOnDate } from "@/domain/day-entry"
 import { discreetLabel } from "@/lib/discreet"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { IconButton } from "@/components/ui/icon-button"
 
 function Stepper({
   label,
@@ -29,31 +30,29 @@ function Stepper({
   const { muted } = useThemeColors()
   const { t } = useTranslation()
   return (
-    <View className="flex-row items-center justify-between py-3">
+    <View className="gap-3 py-3">
       <Text className="text-base text-[var(--text-primary)]">{label}</Text>
       <View className="flex-row items-center gap-3">
-        <Pressable
+        <IconButton
           onPress={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="rounded-button bg-[var(--bg-muted)] p-2 active:opacity-60 disabled:opacity-40"
-          accessibilityRole="button"
+          className="bg-[var(--bg-muted)]"
           accessibilityLabel={t("seed.decrease", { label })}
         >
           <Minus size={18} color={muted} />
-        </Pressable>
-        <Text className="w-16 text-center text-lg font-semibold text-[var(--text-primary)]">
+        </IconButton>
+        <Text className="flex-1 text-center text-lg font-semibold text-[var(--text-primary)]">
           {value}
           {suffix ? ` ${suffix}` : ""}
         </Text>
-        <Pressable
+        <IconButton
           onPress={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
-          className="rounded-button bg-[var(--bg-muted)] p-2 active:opacity-60 disabled:opacity-40"
-          accessibilityRole="button"
+          className="bg-[var(--bg-muted)]"
           accessibilityLabel={t("seed.increase", { label })}
         >
           <Plus size={18} color={muted} />
-        </Pressable>
+        </IconButton>
       </View>
     </View>
   )
@@ -83,11 +82,14 @@ export default function SeedCycleScreen() {
   const [cycleLength, setCycleLength] = useState(avgCycleLength)
   const [periodLength, setPeriodLength] = useState(avgPeriodLength)
   const [saving, setSaving] = useState(false)
+  const pending = useRef(false)
   const [complete, setComplete] = useState(false)
   // The Stepper renders the numeric value itself, so the suffix is unit-only.
   const daysAgoLabel = daysAgo === 1 ? t("seed.daysAgo_one") : t("seed.daysAgo_other")
 
   const handleSave = async () => {
+    if (pending.current) return
+    pending.current = true
     setSaving(true)
     try {
       await update({
@@ -105,6 +107,7 @@ export default function SeedCycleScreen() {
     } catch {
       Alert.alert(t("seed.saveFailedTitle"), t("seed.saveFailedBody"))
     } finally {
+      pending.current = false
       setSaving(false)
     }
   }
@@ -145,21 +148,25 @@ export default function SeedCycleScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[var(--bg-primary)]">
+    <ScrollView
+      className="flex-1 bg-[var(--bg-primary)]"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+    >
       <View
         className="flex-row items-center gap-2 px-4 pb-2"
         style={{ paddingTop: insets.top + 8 }}
       >
-        <Pressable
+        <IconButton
+          disabled={saving}
           onPress={() => router.back()}
-          className="p-2 active:opacity-60"
-          hitSlop={12}
-          accessibilityRole="button"
           accessibilityLabel={t("common.back")}
         >
           <ChevronLeft size={24} color={muted} />
-        </Pressable>
-        <Text className="text-2xl font-bold text-[var(--text-primary)]">
+        </IconButton>
+        <Text
+          accessibilityRole="header"
+          className="flex-1 text-2xl font-bold text-[var(--text-primary)]"
+        >
           {discreetLabel(
             discreet,
             t(settingsOnly ? "settings.adjustCycle" : "seed.title"),
@@ -210,7 +217,7 @@ export default function SeedCycleScreen() {
       </Pressable>
 
       {!settingsOnly ? (
-        <Text className="mx-8 mt-4 text-center text-xs text-[var(--text-muted)] opacity-70">
+        <Text className="mx-8 mt-4 text-center text-xs text-[var(--text-muted)]">
           {t("seed.explainer")}
         </Text>
       ) : null}

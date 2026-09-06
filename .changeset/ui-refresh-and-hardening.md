@@ -24,6 +24,9 @@
 - Publish cycles, entries, settings and predictions as one coherent cache version.
   Capture inputs together in native storage, discard superseded refresh results,
   and retain the previous complete snapshot if loading or prediction fails.
+- Hide Insights health summaries and History search/filter details in discreet
+  mode, while deliberately opened entries remain editable. Localize Insights
+  dates and make setup controls wrap at large text sizes with 48dp actions.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification

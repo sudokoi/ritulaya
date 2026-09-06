@@ -203,6 +203,8 @@ test("discreet mode leaves entry details out of history previews", async () => {
   expect(screen.queryByText("Coffee after lunch")).toBeNull()
   expect(screen.queryByText("Long walk")).toBeNull()
   expect(screen.getAllByText("history.privatePreview")).toHaveLength(2)
+  expect(screen.queryByLabelText("history.searchNotes")).toBeNull()
+  expect(screen.queryByRole("button", { name: "history.filters" })).toBeNull()
   expect(screen.getAllByRole("button", { name: /^history.editDate/ })).toHaveLength(2)
   expect(
     screen.queryByRole("button", { name: /Coffee|Long walk|flow.medium/ }),
