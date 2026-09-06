@@ -14,8 +14,10 @@ It is not a replacement for:
 ## Assessment status
 
 Current status: the [hardening completion evidence](./2026-09-06-hardening-completion.md)
-records codewise completion through `9e15d15`, final local checks, isolated
-installed QA and explicit external validation limits. The pending statements
+records the completed slices through `9e15d15`, final local checks, isolated
+installed QA, the subsequent diagnostics/CI omissions and external validation limits.
+The [authorized live-sync follow-up](./2026-09-06-live-github-sync.md) records real
+GitHub verification in one newly created private repository. The pending statements
 below describe historical checkpoints, not the current implementation backlog.
 
 The subsequent [revision-sync follow-up](./2026-09-05-revision-sync-validation.md)
