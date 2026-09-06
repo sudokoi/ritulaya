@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   ci:
-    name: Lint, Format, Typecheck & Test
+    name: Compatibility, Lint, Format, Typecheck & Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -27,13 +27,13 @@ jobs:
           node-version-file: ".node-version"
 
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: "temurin"
           java-version: "17"
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           packages: "platforms;android-35 build-tools;35.0.0"
 
@@ -80,6 +80,11 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Check Expo compatibility and project health
+        run: yarn check:expo
+        env:
+          EXPO_NO_TELEMETRY: "1"
 
       - name: Check formatting (Prettier)
         run: yarn format:check

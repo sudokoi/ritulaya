@@ -1,5 +1,28 @@
 # Compatibility and Android platform follow-up
 
+## CI enforcement follow-up — 2026-09-06
+
+`yarn check:expo` now runs `expo install --check && expo-doctor` from the existing
+pinned local dependencies. `.github/workflows/ci.yml` invokes it after immutable
+installation, with no auto-fix, `continue-on-error`, offline bypass or new warning
+exclusions. Both failures block the job. Expo CLI telemetry is disabled for this
+step. Network/registry outages are failures to investigate or rerun, not reasons
+to silently omit the check.
+
+With maintainer confirmation, that workflow also updates `actions/setup-java`
+from v5 to v6 and `android-actions/setup-android` from v3 to v4. Current releases
+were checked at authoring time: checkout v7.0.1, setup-node v7.0.0, setup-java
+v6.0.0, setup-android v4.0.1, cache v6.1.0. The workflow retains latest-major tags.
+Java v6's removed Adopt distributions and renamed `jdkFile` input do not affect
+our Temurin/`java-version` inputs. Android v4 changes its action runtime to Node 24
+and command-line tools default; our `packages` input is retained and supported.
+Hosted `ubuntu-latest`, Node from `.node-version`, Yarn/Corepack setup and all app
+dependency pins are unchanged. This is not a repository-wide workflow upgrade.
+
+Local validation: the command passes under `CI=1`, compatibility is up to date,
+Doctor reports **21/21**, and `actionlint .github/workflows/ci.yml` passes. No
+GitHub-hosted workflow run is claimed because the app branch has not been pushed.
+
 ## Dependency decision
 
 The historical React Native downgrade (`d075c29`) addressed an actual SDK mismatch:

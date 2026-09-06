@@ -5,11 +5,26 @@
 The selected hardening implementation and subsequent privacy-race/logger-runtime
 fixes are implemented through `9e15d15`. The
 [execution plan](../plans/2026-09-05-remaining-hardening.md) records the individual
-changes. Rechecking the original audit after this report found two outstanding
+changes. Rechecking the original audit after this report found two omitted
 implementation items: structured privacy-safe diagnostics and an Expo compatibility
-gate in CI. The earlier blanket claim that every audit finding was complete was
-incorrect; neither local Doctor success nor the logger runtime fix resolves those
-two findings.
+gate in CI. The earlier blanket completion claim was incorrect. Both omissions
+are now addressed by the follow-ups below; the earlier logger runtime fix and
+local Doctor success alone had not resolved them.
+
+### Audit omissions addressed
+
+- **Diagnostics:** `67a435e` projects finite technical categories before native
+  logging/persistence and reprojects historical exports, with safe app/Android
+  version context. Raw messages, stacks, health fields and credentials are not
+  allowed. See [the diagnostic policy](../diagnostics.md).
+- **CI:** `yarn check:expo` is a required step using pinned tools, with no auto-fix
+  or failure suppression. The maintainer-approved action-major updates are
+  documented in [the compatibility evidence](./2026-09-06-compatibility-and-platform.md).
+
+Follow-up validation: **158 JS/React tests, 84 native tests**, typecheck, lint,
+formatting, whitespace checks and ARM64 release-mode build pass. The CI command
+passes locally under `CI=1`, Doctor is **21/21**, and actionlint passes. This is not
+a hosted CI execution or a new installed-app diagnostics export check.
 
 At this checkpoint all commits after `601cb5d` remained local. No push, publication,
 production install, live GitHub sync, remote QA repository or test credentials had
@@ -99,8 +114,8 @@ changed. QA screenshots/XML/logs remain local outside the repository.
   full TalkBack/locales/font-size coverage, or OEM recording/recents compliance.
   Application policies and relevant ordering failures have local regression tests.
 
-These are evidence limits. Separately, the diagnostics and CI items noted above
-remain unimplemented audit findings.
+These remain evidence limits; the diagnostics and CI implementation omissions
+are now addressed as recorded above.
 
 ## Local evidence identifiers
 

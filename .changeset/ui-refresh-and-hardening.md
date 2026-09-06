@@ -29,6 +29,7 @@
   dates and make setup controls wrap at large text sizes with 48dp actions.
 - Align exact Expo SDK 57 package pins with its recommended patch matrix and
   React Native 0.86.3; preserve NativeWind 4 and the existing native architecture.
+  Enforce compatibility and Expo Doctor checks in CI without automatic upgrades.
 - Exclude private and device-protected app storage explicitly from Android cloud
   backups and device transfers, in addition to disabling automatic backup.
 - Fix the native logging bridge returning a coroutine job instead of completing

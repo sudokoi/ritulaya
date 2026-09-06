@@ -58,6 +58,7 @@ Run the checks that match your change. For most code changes, that means:
 yarn test
 yarn typecheck
 yarn lint
+yarn check:expo
 ```
 
 Useful additional checks:
@@ -65,6 +66,13 @@ Useful additional checks:
 ```bash
 yarn format:check
 ```
+
+`yarn check:expo` runs the pinned Expo compatibility check and Expo Doctor. CI
+runs the same command after immutable dependency installation and fails on either
+check. It never auto-fixes dependencies. Investigate a failure against the exact
+SDK documentation and retained pin rationale; make evidence-backed compatible
+updates instead of suppressing checks or broadly upgrading packages. The checks
+use network-backed Expo metadata, so service failures may require a rerun.
 
 If your contribution changes release-note-worthy behavior, also run:
 

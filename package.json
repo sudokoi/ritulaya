@@ -91,6 +91,7 @@
     "test:watch": "jest --watch",
     "test:kotlin": "bash scripts/test-kotlin.sh",
     "typecheck": "tsc --noEmit",
+    "check:expo": "expo install --check && expo-doctor",
     "changeset:version": "changeset version",
     "prepare": ""
   },
