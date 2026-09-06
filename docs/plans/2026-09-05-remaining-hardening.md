@@ -45,6 +45,16 @@ and unrelated port 8081 must remain untouched.
 
 ## Progress
 
+### Dependency compatibility follow-up
+
+The earlier downgrade (`d075c29`) fixed Expo 57 versus RN 0.87's removal of
+`rn-get-polyfills`; it did not prohibit SDK-compatible RN 0.86 patch updates.
+Exact pinning from `bf9dea9` remains intentional. Applied only the fifteen patch
+updates recommended by `expo install --check`, including Expo 57.0.20 and RN
+0.86.3. No framework minor upgrade, NativeWind migration, or warning suppression.
+The compatibility check now passes and Expo Doctor reports **21/21**. Full tests,
+typecheck, lint and formatting pass with the new dependency lockfile.
+
 ### Discreet overview and layout follow-up
 
 Today/Calendar/Settings already suppress overview health statistics and calendar

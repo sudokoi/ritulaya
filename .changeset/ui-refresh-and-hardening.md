@@ -27,6 +27,8 @@
 - Hide Insights health summaries and History search/filter details in discreet
   mode, while deliberately opened entries remain editable. Localize Insights
   dates and make setup controls wrap at large text sizes with 48dp actions.
+- Align exact Expo SDK 57 package pins with its recommended patch matrix and
+  React Native 0.86.3; preserve NativeWind 4 and the existing native architecture.
 - Gate protected routes on successful initialization, reject missing prediction
   results and stale authentication successes after backgrounding, remove the
   unauthenticated lock bypass, prevent widget/prediction feedback, and request notification
