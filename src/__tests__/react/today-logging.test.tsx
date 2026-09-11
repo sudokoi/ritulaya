@@ -11,7 +11,6 @@ import { AppState, type AppStateStatus } from "react-native"
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
-  useFocusEffect: jest.fn(),
 }))
 jest.mock("nativewind", () => ({ useColorScheme: () => ({ colorScheme: "light" }) }))
 jest.mock("react-native-safe-area-context", () => ({
