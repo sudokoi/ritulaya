@@ -99,7 +99,7 @@
     "editToday": "Edit today's entry",
     "logEntry": "Log this day",
     "editEntry": "Edit this entry",
-    "tapDayToLog": "Tap a day to log or edit an entry.",
+    "tapDayToLog": "Tap today or a past day to log or edit. Future dates are read-only.",
     "daysUntil": "{{count}} days until next period",
     "roughlyDaysUntil": "roughly {{count}} days until next period",
     "couldStart": "Could start {{start}} – {{end}}",

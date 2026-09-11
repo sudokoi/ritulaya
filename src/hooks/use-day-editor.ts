@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react"
 import { format } from "date-fns"
-import { usePrediction } from "@/hooks/use-predictions"
+import { isLoggableDate } from "@/utils/date"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import {
   saveDayEntry,
@@ -10,8 +10,9 @@ import {
 } from "@/domain/day-entry"
 
 export function useDayEditor(initialDate: Date | null = null) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate)
-  const { periodLength } = usePrediction()
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() =>
+    initialDate && isLoggableDate(initialDate) ? initialDate : null,
+  )
   const { getLogForDate } = useDayLogs()
 
   const existingLog = useMemo(() => {
@@ -20,14 +21,13 @@ export function useDayEditor(initialDate: Date | null = null) {
   }, [selectedDate, getLogForDate])
 
   const close = useCallback(() => setSelectedDate(null), [])
-  const open = useCallback((date: Date) => setSelectedDate(date), [])
+  const open = useCallback((date: Date) => {
+    if (isLoggableDate(date)) setSelectedDate(date)
+  }, [])
 
-  const handleSave = useCallback(
-    async (entry: DayEntryInput) => {
-      await saveDayEntry(entry, periodLength)
-    },
-    [periodLength],
-  )
+  const handleSave = useCallback(async (entry: DayEntryInput) => {
+    await saveDayEntry(entry)
+  }, [])
 
   const handleDelete = useCallback(async () => {
     if (!existingLog) return

@@ -74,7 +74,6 @@ test("month navigation and Today preserve direct date editing", async () => {
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
   expect(saveDayEntry).toHaveBeenCalledWith(
     expect.objectContaining({ date: "2026-09-03", notes: "Calendar draft" }),
-    3,
   )
 })
 
@@ -87,6 +86,20 @@ test("Calendar retains history navigation and described day states", async () =>
   ).toBeTruthy()
   await fireEvent.press(screen.getByRole("button", { name: "history.open" }))
   expect(router.push).toHaveBeenCalledWith("/history")
+})
+
+test("future dates cannot open an editor, including in a later month", async () => {
+  await render(<CalendarScreen />)
+  const tomorrow = screen.getByRole("button", { name: /Sunday, September 6th, 2026/ })
+  expect(tomorrow).toBeDisabled()
+  await fireEvent.press(tomorrow)
+  expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
+  await fireEvent.press(screen.getByRole("button", { name: "calendar.nextMonth" }))
+  const future = screen.getByRole("button", { name: /Thursday, October 1st, 2026/ })
+  expect(future).toBeDisabled()
+  await fireEvent.press(future)
+  expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
+  expect(saveDayEntry).not.toHaveBeenCalled()
 })
 
 test("discreet Calendar omits health labels and estimates but still opens entries", async () => {

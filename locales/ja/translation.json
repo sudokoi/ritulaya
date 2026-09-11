@@ -98,7 +98,7 @@
     "editToday": "今日の記録を編集",
     "logEntry": "この日を記録",
     "editEntry": "この記録を編集",
-    "tapDayToLog": "日付をタップして、記録や編集ができます。",
+    "tapDayToLog": "今日または過去の日付をタップして記録・編集できます。未来の日付は閲覧のみです。",
     "daysUntil": "次の生理まであと{{count}}日",
     "roughlyDaysUntil": "次の生理までおよそ{{count}}日",
     "couldStart": "{{start}} – {{end}} に始まる可能性あり",

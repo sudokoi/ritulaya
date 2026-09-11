@@ -5,6 +5,7 @@ import {
   startOfWeek,
   endOfWeek,
   eachDayOfInterval,
+  differenceInCalendarDays,
 } from "date-fns"
 
 export function toISODate(date: Date): string {
@@ -13,6 +14,11 @@ export function toISODate(date: Date): string {
 
 export function todayISO(): string {
   return toISODate(new Date())
+}
+
+/** Local calendar dates, including today at any time, can be recorded. */
+export function isLoggableDate(date: Date, today = new Date()): boolean {
+  return differenceInCalendarDays(date, today) <= 0
 }
 
 export function getDaysInMonthGrid(

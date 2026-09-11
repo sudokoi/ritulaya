@@ -28,24 +28,25 @@ const entry: DayEntryInput = {
   sexualActivity: null,
 }
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  jest.useFakeTimers().setSystemTime(new Date(2026, 5, 5, 0, 30))
+})
+afterEach(() => jest.useRealTimers())
 
 test("saving an entry uses one native command instead of a cache-based period write", async () => {
-  await saveDayEntry(entry, 3)
-  expect(db.saveDayEntry).toHaveBeenCalledWith(
-    {
-      date: "2026-06-01",
-      flowIntensity: "medium",
-      symptoms: [],
-      mood: null,
-      notes: "a note",
-      cervicalMucus: null,
-      bbt: null,
-      sexualActivity: undefined,
-      clearFields: ["mood", "cervicalMucus", "bbt", "sexualActivity"],
-    },
-    3,
-  )
+  await saveDayEntry(entry)
+  expect(db.saveDayEntry).toHaveBeenCalledWith({
+    date: "2026-06-01",
+    flowIntensity: "medium",
+    symptoms: [],
+    mood: null,
+    notes: "a note",
+    cervicalMucus: null,
+    bbt: null,
+    sexualActivity: undefined,
+    clearFields: ["mood", "cervicalMucus", "bbt", "sexualActivity"],
+  })
   expect(db.logPeriodOn).not.toHaveBeenCalled()
   expect(db.upsertDayLog).not.toHaveBeenCalled()
   expect(refreshAll).toHaveBeenCalledTimes(1)
@@ -68,6 +69,23 @@ test("deletion targets the selected entry and refreshes all dependent data", asy
   expect(refreshAll).toHaveBeenCalledTimes(1)
 })
 
+test("future-day saves and flow edits are rejected before persistence", async () => {
+  await expect(saveDayEntry({ ...entry, date: "2026-06-06" })).rejects.toThrow(
+    "future day",
+  )
+  await expect(clearDayEntryFlow("2026-06-06")).rejects.toThrow("future day")
+  expect(db.saveDayEntry).not.toHaveBeenCalled()
+  expect(db.upsertDayLog).not.toHaveBeenCalled()
+  expect(refreshAll).not.toHaveBeenCalled()
+})
+
+test("today can be recorded even near the local midnight boundary", async () => {
+  await saveDayEntry({ ...entry, date: "2026-06-05" })
+  expect(db.saveDayEntry).toHaveBeenCalledWith(
+    expect.objectContaining({ date: "2026-06-05" }),
+  )
+})
+
 const saved: DayLog = {
   ...entry,
   id: "entry-id",
@@ -79,7 +97,7 @@ const saved: DayLog = {
 const commands = [
   {
     name: "save",
-    run: () => saveDayEntry(entry, 3),
+    run: () => saveDayEntry(entry),
     write: db.saveDayEntry,
     holdWrite: (gate: Promise<void>) =>
       jest.mocked(db.saveDayEntry).mockReturnValueOnce(gate.then(() => saved)),

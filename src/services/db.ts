@@ -45,8 +45,9 @@ export function upsertDayLog(input: DayLogCreate): Promise<DayLog | null> {
   return nativeRequire(native.db, (db) => db.upsertDayLog(input))
 }
 
-export function saveDayEntry(input: DayLogCreate, periodDays: number): Promise<DayLog> {
-  return nativeRequire(native.db, (db) => db.saveDayEntry(input, periodDays))
+export function saveDayEntry(input: DayLogCreate): Promise<DayLog> {
+  // Legacy native binaries require a duration. One prevents their auto-fill too.
+  return nativeRequire(native.db, (db) => db.saveDayEntry(input, 1))
 }
 
 export function deleteDayLog(id: string): Promise<void> {

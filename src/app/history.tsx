@@ -27,16 +27,20 @@ import { SYMPTOM_CATALOG } from "@/constants/symptoms"
 import { MOOD_CATALOG } from "@/constants/moods"
 import { EMPTY_HISTORY_FILTERS, searchDayEntries } from "@/domain/day-entry-history"
 import type { DayLog } from "@/types/day-log"
+import { isLoggableDate } from "@/utils/date"
+import { useToday } from "@/hooks/use-today"
 
 const entryKey = (entry: DayLog) => entry.id
 
 const HistoryRow = memo(function HistoryRow({
   entry,
   discreet,
+  editable,
   onOpen,
 }: {
   entry: DayLog
   discreet: boolean
+  editable: boolean
   onOpen: (date: Date) => void
 }) {
   const { t } = useTranslation()
@@ -53,9 +57,11 @@ const HistoryRow = memo(function HistoryRow({
   return (
     <Pressable
       onPress={() => onOpen(parseISO(entry.date))}
+      disabled={!editable}
+      accessibilityState={{ disabled: !editable }}
       accessibilityRole="button"
       accessibilityLabel={[
-        t("history.editDate", { date: dateLabel }),
+        editable ? t("history.editDate", { date: dateLabel }) : dateLabel,
         discreet
           ? t("history.privatePreview")
           : [details, entry.notes].filter(Boolean).join(". "),
@@ -81,9 +87,11 @@ const HistoryRow = memo(function HistoryRow({
               {entry.notes}
             </AppText>
           ) : null}
-          <AppText variant="supporting" tone="accent">
-            {t("today.editEntry")}
-          </AppText>
+          {editable ? (
+            <AppText variant="supporting" tone="accent">
+              {t("today.editEntry")}
+            </AppText>
+          ) : null}
         </>
       )}
     </Pressable>
@@ -116,6 +124,7 @@ function DateFilter({
 }
 
 export default function HistoryScreen() {
+  const today = useToday()
   const { t } = useTranslation()
   const { logs } = useDayLogs()
   const { discreetMode } = useSettings()
@@ -144,8 +153,15 @@ export default function HistoryScreen() {
     [open],
   )
   const renderEntry: ListRenderItem<DayLog> = useCallback(
-    ({ item }) => <HistoryRow entry={item} discreet={discreetMode} onOpen={openEntry} />,
-    [discreetMode, openEntry],
+    ({ item }) => (
+      <HistoryRow
+        entry={item}
+        discreet={discreetMode}
+        editable={isLoggableDate(parseISO(item.date), today)}
+        onOpen={openEntry}
+      />
+    ),
+    [discreetMode, openEntry, today],
   )
 
   return (

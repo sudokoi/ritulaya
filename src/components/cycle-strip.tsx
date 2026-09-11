@@ -1,12 +1,14 @@
 import { View, Text, Pressable, ScrollView } from "react-native"
 import { useMemo } from "react"
-import { addDays, format, isToday as isTodayFns } from "date-fns"
+import { addDays, format, isSameDay } from "date-fns"
 import { useColorScheme } from "nativewind"
 import { useTranslation } from "react-i18next"
 import { DayCircle } from "@/components/day-circle"
 import { resolveDayStyle } from "@/lib/day-colors"
 import type { CycleDayState } from "@/hooks/use-cycle-day-states"
 import { useDateLocale } from "@/hooks/use-date-locale"
+import { useToday } from "@/hooks/use-today"
+import { isLoggableDate } from "@/utils/date"
 
 const EMPTY_STATE: CycleDayState = {
   period: false,
@@ -35,6 +37,7 @@ export function CycleStrip({
   const { colorScheme } = useColorScheme()
   const { t } = useTranslation()
   const locale = useDateLocale()
+  const today = useToday()
   const dark = colorScheme === "dark"
   const selectedIso = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
 
@@ -46,13 +49,14 @@ export function CycleStrip({
       return {
         date,
         iso,
-        label: format(date, "EEEEE", { locale }),
-        isToday: isTodayFns(date),
+        label: format(date, "EEE", { locale }),
+        isToday: isSameDay(date, today),
+        editable: isLoggableDate(date, today),
         isSelected: iso === selectedIso,
         state: dayStates.get(iso) ?? EMPTY_STATE,
       }
     })
-  }, [centerDate, span, dayStates, selectedIso, locale])
+  }, [centerDate, span, dayStates, selectedIso, locale, today])
 
   return (
     <ScrollView
@@ -96,7 +100,9 @@ export function CycleStrip({
         const content = (
           <>
             <Text className="text-xs text-[var(--text-muted)]">{day.label}</Text>
-            <Text className="text-label text-[var(--text-primary)]">
+            <Text
+              className={`text-label ${day.editable ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+            >
               {format(day.date, "d")}
             </Text>
             {circle}
@@ -111,10 +117,11 @@ export function CycleStrip({
             <Pressable
               key={day.iso}
               onPress={() => onDayPress(day.date)}
+              disabled={!day.editable}
               className="relative min-h-touch min-w-touch flex-1 items-center gap-1 px-1 py-2 active:opacity-60"
               accessibilityRole="button"
               accessibilityLabel={`${format(day.date, "EEE, MMM d", { locale })}${day.isToday ? `, ${t("calendar.today")}` : ""}`}
-              accessibilityState={{ selected: !!selected }}
+              accessibilityState={{ selected: !!selected, disabled: !day.editable }}
             >
               {content}
             </Pressable>

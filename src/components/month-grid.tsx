@@ -4,13 +4,14 @@ import {
   subMonths,
   format,
   isSameMonth,
-  isToday,
+  isSameDay,
   startOfMonth,
 } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
 import { useColorScheme } from "nativewind"
 import { memo, useMemo } from "react"
-import { getDaysInMonthGrid } from "@/utils/date"
+import { getDaysInMonthGrid, isLoggableDate } from "@/utils/date"
+import { useToday } from "@/hooks/use-today"
 import { cn } from "@/lib/utils"
 import { useThemeColors } from "@/hooks/use-theme-colors"
 import { useTranslation } from "react-i18next"
@@ -34,6 +35,7 @@ interface DayCellProps {
   date: Date
   state: CycleDayState
   today: boolean
+  editable: boolean
   inMonth: boolean
   dark: boolean
   onPress: (date: Date) => void
@@ -43,6 +45,7 @@ const DayCell = memo(function DayCell({
   date,
   state,
   today,
+  editable,
   inMonth,
   dark,
   onPress,
@@ -86,6 +89,8 @@ const DayCell = memo(function DayCell({
   return (
     <Pressable
       onPress={() => onPress(date)}
+      disabled={!editable}
+      accessibilityState={{ disabled: !editable }}
       className="min-h-16 flex-1 items-center justify-center gap-1 py-2 active:opacity-60"
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
@@ -98,7 +103,7 @@ const DayCell = memo(function DayCell({
       >
         <AppText
           variant="label"
-          tone={inMonth ? "primary" : "muted"}
+          tone={inMonth && editable ? "primary" : "muted"}
           className="text-center"
         >
           {format(date, "d")}
@@ -132,6 +137,7 @@ export function MonthGrid({
   discreet = false,
 }: MonthGridProps) {
   const locale = useDateLocale()
+  const today = useToday()
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === "dark"
   const { muted } = useThemeColors()
@@ -149,12 +155,12 @@ export function MonthGrid({
 
   const prevMonth = () => onMonthChange(subMonths(currentMonth, 1))
   const nextMonth = () => onMonthChange(addMonths(currentMonth, 1))
-  const isOffCurrentMonth = !isSameMonth(currentMonth, new Date())
+  const isOffCurrentMonth = !isSameMonth(currentMonth, today)
   const goToday = () => onMonthChange(startOfMonth(new Date()))
 
   // The grid starts on Sunday irrespective of the locale's week-start preference.
   const weekDays = Array.from({ length: 7 }, (_, day) =>
-    format(new Date(2026, 0, 4 + day), "EEEEE", { locale }),
+    format(new Date(2026, 0, 4 + day), "EEE", { locale }),
   )
 
   return (
@@ -163,18 +169,21 @@ export function MonthGrid({
         <IconButton onPress={prevMonth} accessibilityLabel={t("calendar.prevMonth")}>
           <ChevronLeft size={20} color={muted} />
         </IconButton>
-        <View className="flex-1 items-center justify-center gap-2">
+        <View className="flex-1 items-center justify-center">
           <AppText variant="section" accessibilityRole="header" className="text-center">
             {format(currentMonth, "MMMM yyyy", { locale })}
           </AppText>
           {isOffCurrentMonth ? (
             <Button
-              variant="muted"
+              variant="ghost"
               size="sm"
+              className="min-h-10 px-3 py-0"
               onPress={goToday}
               accessibilityLabel={t("calendar.today")}
             >
-              {t("calendar.today")}
+              <AppText variant="supporting" tone="accent">
+                {t("calendar.today")}
+              </AppText>
             </Button>
           ) : null}
         </View>
@@ -187,7 +196,7 @@ export function MonthGrid({
         <View className="flex-row">
           {weekDays.map((day, index) => (
             <View key={index} className="flex-1 items-center py-2">
-              <AppText variant="supporting" tone="muted">
+              <AppText variant="supporting" tone="muted" className="text-center">
                 {day}
               </AppText>
             </View>
@@ -203,7 +212,8 @@ export function MonthGrid({
                   key={iso}
                   date={day.date}
                   state={discreet ? EMPTY_STATE : (dayStates.get(iso) ?? EMPTY_STATE)}
-                  today={isToday(day.date)}
+                  today={isSameDay(day.date, today)}
+                  editable={isLoggableDate(day.date, today)}
                   inMonth={isSameMonth(day.date, currentMonth)}
                   dark={dark}
                   onPress={onDayPress}
