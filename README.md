@@ -81,11 +81,17 @@ newest first. Search note text or expand the filters to choose a symptom, mood,
 or inclusive date range. Dates use `YYYY-MM-DD`; a blank date leaves that end
 unrestricted. Filters combine, and **Clear filters** resets them all.
 
-Tap a result to edit it. Saved changes and deletions update the results without
+Tap a result dated today or earlier to edit it. Saved changes and deletions update the results without
 resetting the current filters. Discreet mode hides result details until you open
 an entry. Search queries remain in screen memory; the app does not save them or
 send them to a search service. This is a view of recorded entries, not predictions
 or a claim that automatically filled days were individually observed.
+
+Daily logging saves only the selected date. Future dates remain visible for
+prediction browsing but cannot be edited. Initial cycle setup can seed a period
+across elapsed dates, stopping at today. Previously stored auto-filled entries are
+retained; this change does not attempt to infer which historical entries were
+individually observed.
 
 ## Versioning
 

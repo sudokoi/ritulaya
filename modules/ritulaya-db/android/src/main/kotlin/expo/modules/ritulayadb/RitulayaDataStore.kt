@@ -3,6 +3,7 @@ package expo.modules.ritulayadb
 import android.content.Context
 import androidx.room.withTransaction
 import kotlinx.coroutines.sync.withLock
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -11,6 +12,7 @@ import java.time.format.DateTimeFormatter
 class RitulayaDataStore internal constructor(
     private val db: RitulayaDatabase,
     private val reminders: ReminderActions? = null,
+    private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     constructor(
         context: Context,
@@ -48,27 +50,18 @@ class RitulayaDataStore internal constructor(
 
     suspend fun upsertDayLog(input: DayLogInput): DayLogEntity =
         db.withTransaction {
+            requireLoggableDate(input.date)
             val before = dao.listDayLogs()
             writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
             reconcileEntries(before)
             requireNotNull(dao.getDayLogByDate(input.date))
         }
 
-    /** Decide the flow transition from persisted data and commit the whole command together. */
-    suspend fun saveDayEntry(
-        input: DayLogInput,
-        periodDays: Int,
-    ): DayLogEntity =
+    /** A daily observation records one date; multi-day seeding is a separate command. */
+    suspend fun saveDayEntry(input: DayLogInput): DayLogEntity =
         db.withTransaction {
+            requireLoggableDate(input.date)
             val before = dao.listDayLogs()
-            val existing = dao.getDayLogByDate(input.date)
-            val flow = input.flowIntensity
-            val isPeriod = flow != null && flow != "none"
-            val wasPeriod = existing?.flowIntensity != null && existing.flowIntensity != "none"
-            if (isPeriod && !wasPeriod) {
-                fillPeriod(input.date, requireNotNull(flow), periodDays)
-            }
-            // Re-read after period fill so its chosen cycle association is preserved.
             writeDayLog(date = input.date, cycleId = input.cycleId, input = input)
             reconcileEntries(before)
             requireNotNull(dao.getDayLogByDate(input.date))
@@ -78,7 +71,7 @@ class RitulayaDataStore internal constructor(
         flow: String,
         periodDays: Int,
     ) {
-        logPeriodOn(LocalDate.now().toString(), flow, periodDays)
+        logPeriodOn(LocalDate.now(clock).toString(), flow, periodDays)
     }
 
     suspend fun logPeriodOn(
@@ -99,12 +92,21 @@ class RitulayaDataStore internal constructor(
         periodDays: Int,
     ) {
         require(flow in setOf("spotting", "light", "medium", "heavy") && periodDays in 1..14) { "Invalid period input" }
-        val start = LocalDate.parse(date)
+        val start = requireLoggableDate(date)
         val previous = dao.getDayLogByDate(start.minusDays(1).toString())
         val count = if (previous?.flowIntensity != null && previous.flowIntensity != "none") 1 else periodDays
         repeat(count) { index ->
-            writeDayLog(start.plusDays(index.toLong()).toString(), null, DayLogInput().apply { flowIntensity = flow })
+            val day = start.plusDays(index.toLong())
+            if (!day.isAfter(LocalDate.now(clock))) {
+                writeDayLog(day.toString(), null, DayLogInput().apply { flowIntensity = flow })
+            }
         }
+    }
+
+    private fun requireLoggableDate(date: String): LocalDate {
+        val parsed = LocalDate.parse(date)
+        require(!parsed.isAfter(LocalDate.now(clock))) { "Cannot record a future day" }
+        return parsed
     }
 
     private suspend fun reconcileEntries(before: List<DayLogEntity>) {

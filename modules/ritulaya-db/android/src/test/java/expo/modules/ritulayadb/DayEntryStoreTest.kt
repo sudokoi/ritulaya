@@ -10,6 +10,10 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 /** Tests Ritulaya's commands, not Room's transaction or SQLCipher implementation. */
 @RunWith(RobolectricTestRunner::class)
@@ -94,6 +98,7 @@ class DayEntryStoreTest {
 
     private lateinit var db: RitulayaDatabase
     private lateinit var store: RitulayaDataStore
+    private val clock = Clock.fixed(Instant.parse("2026-09-11T00:30:00Z"), ZoneId.of("America/Los_Angeles"))
 
     @Before
     fun setUp() {
@@ -104,7 +109,7 @@ class DayEntryStoreTest {
                     RitulayaDatabase::class.java,
                 ).addCallback(SyncSchema.callback)
                 .build()
-        store = RitulayaDataStore(db)
+        store = RitulayaDataStore(db, clock = clock)
     }
 
     @After
@@ -120,7 +125,6 @@ class DayEntryStoreTest {
                     date = "2026-06-01"
                     flowIntensity = "medium"
                 },
-                2,
             )
             assertThat(store.listDayLogs().all { it.sexualActivity == null }).isTrue()
             store.upsertDayLog(
@@ -190,7 +194,7 @@ class DayEntryStoreTest {
         }
 
     @Test
-    fun `saving a new flow entry fills once and later edits use persisted flow`(): Unit =
+    fun `saving and editing flow records only the selected day`(): Unit =
         runBlocking {
             store.saveDayEntry(
                 DayLogInput().apply {
@@ -199,11 +203,10 @@ class DayEntryStoreTest {
                     symptoms = listOf("cramps")
                     notes = "first entry"
                 },
-                3,
             )
 
             val original = store.listDayLogs().single { it.date == "2026-06-01" }
-            assertThat(store.listDayLogs()).hasSize(3)
+            assertThat(store.listDayLogs()).hasSize(1)
             assertThat(original.symptoms).isEqualTo("[\"cramps\"]")
             assertThat(original.notes).isEqualTo("first entry")
             assertThat(original.cycleId).isEqualTo(store.listCycles().single().id)
@@ -215,16 +218,85 @@ class DayEntryStoreTest {
                     symptoms = emptyList()
                     notes = "edited entry"
                 },
-                5,
             )
 
             val edited = store.listDayLogs().single { it.date == "2026-06-01" }
-            assertThat(store.listDayLogs()).hasSize(3)
+            assertThat(store.listDayLogs()).hasSize(1)
             assertThat(store.listCycles()).hasSize(1)
             assertThat(edited.id).isEqualTo(original.id)
             assertThat(edited.cycleId).isEqualTo(original.cycleId)
             assertThat(edited.flowIntensity).isEqualTo("heavy")
             assertThat(edited.symptoms).isEqualTo("[]")
             assertThat(edited.notes).isEqualTo("edited entry")
+        }
+
+    @Test
+    fun `adding flow to a notes entry leaves adjacent recorded days untouched`(): Unit =
+        runBlocking {
+            store.upsertDayLog(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    notes = "first"
+                },
+            )
+            val next =
+                store.upsertDayLog(
+                    DayLogInput().apply {
+                        date = "2026-06-02"
+                        flowIntensity = "none"
+                        notes = "second"
+                    },
+                )
+            store.saveDayEntry(
+                DayLogInput().apply {
+                    date = "2026-06-01"
+                    flowIntensity = "light"
+                },
+            )
+            assertThat(store.listDayLogs()).hasSize(2)
+            val unchanged = store.listDayLogs().single { it.date == next.date }
+            assertThat(unchanged.flowIntensity).isEqualTo("none")
+            assertThat(unchanged.notes).isEqualTo("second")
+        }
+
+    @Test
+    fun `seeding an ongoing period only fills elapsed dates`(): Unit =
+        runBlocking {
+            val today = LocalDate.now(clock)
+            store.logPeriodOn(today.minusDays(1).toString(), "medium", 5)
+            assertThat(store.listDayLogs().map { it.date }).containsExactly(today.minusDays(1).toString(), today.toString())
+        }
+
+    @Test
+    fun `future entry writes and seeds are rejected without changing history`(): Unit =
+        runBlocking {
+            val future = LocalDate.now(clock).plusDays(1).toString()
+            for (write in listOf<suspend () -> Unit>(
+                {
+                    store.saveDayEntry(
+                        DayLogInput().apply {
+                            date = future
+                            flowIntensity = "medium"
+                        },
+                    )
+                },
+                {
+                    store.upsertDayLog(
+                        DayLogInput().apply {
+                            date = future
+                            notes = "future"
+                        },
+                    )
+                },
+                { store.logPeriodOn(future, "medium", 5) },
+            )) {
+                try {
+                    write()
+                    error("Expected future date rejection")
+                } catch (_: IllegalArgumentException) {
+                    assertThat(store.listDayLogs()).isEmpty()
+                    assertThat(store.listCycles()).isEmpty()
+                }
+            }
         }
 }

@@ -1,7 +1,6 @@
 import { View, ScrollView, ActivityIndicator } from "react-native"
-import { useState, useCallback } from "react"
 import { format, differenceInCalendarDays, parseISO } from "date-fns"
-import { useFocusEffect, router } from "expo-router"
+import { router } from "expo-router"
 import { useColorScheme } from "nativewind"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { CycleStrip } from "@/components/cycle-strip"
@@ -19,6 +18,7 @@ import { PHASE_COLORS } from "@/constants/phase-colors"
 import { Button } from "@/components/ui/button"
 import { AppText } from "@/components/ui/text"
 import { useDateLocale } from "@/hooks/use-date-locale"
+import { useToday } from "@/hooks/use-today"
 
 const NO_MARKERS = new Map()
 
@@ -30,17 +30,11 @@ export default function TodayScreen() {
   const { prediction, phase } = usePrediction()
   const { colorScheme } = useColorScheme()
   const insets = useSafeAreaInsets()
-  const [today, setToday] = useState(() => new Date())
+  const today = useToday()
   const { getLogForDate } = useDayLogs()
   const todayLog = getLogForDate(format(today, "yyyy-MM-dd"))
   const dayStates = useCycleDayStates()
   const editor = useDayEditor()
-
-  useFocusEffect(
-    useCallback(() => {
-      setToday(new Date())
-    }, []),
-  )
 
   const phaseColor =
     colorScheme === "dark" ? PHASE_COLORS[phase].darkHex : PHASE_COLORS[phase].hex

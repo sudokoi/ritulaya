@@ -98,7 +98,7 @@
     "editToday": "오늘 기록 수정하기",
     "logEntry": "이 날짜 기록하기",
     "editEntry": "이 기록 수정하기",
-    "tapDayToLog": "날짜를 눌러 기록을 추가하거나 수정하세요.",
+    "tapDayToLog": "오늘이나 지난 날짜를 눌러 기록을 추가하거나 수정하세요. 미래 날짜는 보기만 가능합니다.",
     "daysUntil": "다음 생리까지 {{count}}일",
     "roughlyDaysUntil": "다음 생리까지 약 {{count}}일",
     "couldStart": "{{start}} – {{end}} 사이에 시작 가능",

@@ -46,8 +46,9 @@ class RitulayaDbModule : Module() {
                 store.upsertDayLog(input).toMap()
             }
 
-            AsyncFunction("saveDayEntry") Coroutine { input: DayLogInput, periodDays: Int ->
-                store.saveDayEntry(input, periodDays).toMap()
+            // Keep the legacy bridge arity for existing JS bundles; daily saves no longer fill a period.
+            AsyncFunction("saveDayEntry") Coroutine { input: DayLogInput, _: Int ->
+                store.saveDayEntry(input).toMap()
             }
 
             AsyncFunction("deleteDayLog") Coroutine { id: String ->

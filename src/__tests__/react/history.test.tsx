@@ -57,7 +57,7 @@ const base: DayLog = {
 let persisted: DayLog[]
 
 beforeEach(async () => {
-  jest.useFakeTimers()
+  jest.useFakeTimers().setSystemTime(new Date(2026, 5, 5, 12))
   jest.clearAllMocks()
   persisted = [
     base,
@@ -126,6 +126,23 @@ test("search and combined filters select the correct entries, and Clear restores
   expect(screen.getByLabelText("history.searchNotes")).toHaveDisplayValue("")
 })
 
+test("a previously stored future entry stays visible but cannot open an editor", async () => {
+  persisted.push({
+    ...base,
+    id: "future",
+    date: "2026-06-06",
+    notes: "Existing future entry",
+  })
+  await refreshAll()
+  await render(<HistoryScreen />)
+  const future = screen.getByRole("button", { name: /Jun 6, 2026/ })
+  expect(future).toBeDisabled()
+  await fireEvent.press(future)
+  expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
+  expect(screen.getByText("Existing future entry")).toBeTruthy()
+  expect(db.saveDayEntry).not.toHaveBeenCalled()
+})
+
 test("an invalid range is explained instead of presented as an empty search", async () => {
   await render(<HistoryScreen />)
   await fireEvent.press(screen.getByRole("button", { name: "history.filters" }))
@@ -148,7 +165,6 @@ test("a result opens its existing draft and a saved edit refreshes the active se
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
   expect(db.saveDayEntry).toHaveBeenCalledWith(
     expect.objectContaining({ date: "2026-06-01", notes: "Tea after lunch" }),
-    3,
   )
   expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
   expect(screen.getByLabelText("history.searchNotes")).toHaveDisplayValue("coffee")

@@ -41,7 +41,6 @@ test("widget logging uses the shared command and navigates only after it complet
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
   expect(saveDayEntry).toHaveBeenCalledWith(
     expect.objectContaining({ notes: "Widget draft" }),
-    3,
   )
   expect(router.replace).not.toHaveBeenCalled()
   expect(router.back).not.toHaveBeenCalled()

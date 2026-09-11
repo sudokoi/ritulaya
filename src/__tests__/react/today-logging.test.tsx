@@ -2,11 +2,12 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import TodayScreen from "@/app/(tabs)/index"
 import { useDayLogs } from "@/hooks/use-day-logs"
 import { saveDayEntry, deleteDayEntry, clearDayEntryFlow } from "@/domain/day-entry"
-import { router, useFocusEffect } from "expo-router"
+import { router } from "expo-router"
 import type { DayLog } from "@/types/day-log"
 import { useCycles } from "@/hooks/use-cycles"
 import { usePrediction } from "@/hooks/use-predictions"
 import { useSettings } from "@/hooks/use-settings"
+import { AppState, type AppStateStatus } from "react-native"
 
 jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
@@ -83,20 +84,43 @@ beforeEach(() => {
 })
 afterEach(() => jest.useRealTimers())
 
-test("refocusing after midnight does not show yesterday's cached entry as today's", async () => {
+test("midnight refreshes today's summary and enables the newly current day", async () => {
+  jest.setSystemTime(new Date(2026, 5, 5, 23, 59))
   setLogs([{ ...prior, date: "2026-06-05", notes: "Yesterday's entry" }])
   await render(<TodayScreen />)
   expect(screen.getByText("Yesterday's entry")).toBeTruthy()
-  jest.setSystemTime(new Date(2026, 5, 6, 0, 5))
+  expect(screen.getByRole("button", { name: "Sat, Jun 6" })).toBeDisabled()
   await act(async () => {
-    const onFocus = jest.mocked(useFocusEffect).mock.calls.at(-1)?.[0]
-    if (!onFocus) throw new Error("Today did not register its focus callback")
-    onFocus()
+    jest.advanceTimersByTime(60_000)
   })
+  expect(screen.getByRole("button", { name: /Sat, Jun 6/ })).toBeEnabled()
   expect(screen.queryByText("Yesterday's entry")).toBeNull()
   expect(screen.getByRole("button", { name: "today.logToday" })).toBeTruthy()
   await fireEvent.press(screen.getByRole("button", { name: "today.logToday" }))
   expect(screen.getByLabelText("sheet.notes")).toHaveDisplayValue("")
+})
+
+test("returning after midnight refreshes day availability when background timers did not run", async () => {
+  const listeners: ((state: AppStateStatus) => void)[] = []
+  const originalAddEventListener = AppState.addEventListener
+  AppState.addEventListener = jest.fn().mockImplementation((_event, listener) => {
+    listeners.push(listener)
+    return { remove: jest.fn() }
+  })
+  try {
+    await render(<TodayScreen />)
+    expect(screen.getByRole("button", { name: "Sat, Jun 6" })).toBeDisabled()
+    jest.setSystemTime(new Date(2026, 5, 6, 8))
+    await act(async () => listeners.forEach((listener) => listener("active")))
+    expect(screen.getByRole("button", { name: /Sat, Jun 6/ })).toBeEnabled()
+    await fireEvent.press(screen.getByRole("button", { name: /Sat, Jun 6/ }))
+    await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
+    expect(saveDayEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ date: "2026-06-06" }),
+    )
+  } finally {
+    AppState.addEventListener = originalAddEventListener
+  }
 })
 
 test("Today explains missing cycle history instead of displaying a dash and inferred phase", async () => {
@@ -180,7 +204,6 @@ test("Log today opens and saves today's editor without visiting Calendar", async
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
   expect(saveDayEntry).toHaveBeenCalledWith(
     expect.objectContaining({ date: "2026-06-05", notes: "today's note" }),
-    3,
   )
   expect(router.push).not.toHaveBeenCalled()
   expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
@@ -193,9 +216,19 @@ test("one tap on a week date opens its existing entry", async () => {
   await fireEvent.press(screen.getByLabelText("sheet.saveEntry"))
   expect(saveDayEntry).toHaveBeenCalledWith(
     expect.objectContaining({ date: "2026-06-03", notes: "earlier note" }),
-    3,
   )
   expect(router.push).not.toHaveBeenCalled()
+})
+
+test("future week dates are read-only while today's date remains editable", async () => {
+  await render(<TodayScreen />)
+  const tomorrow = screen.getByRole("button", { name: "Sat, Jun 6" })
+  expect(tomorrow).toBeDisabled()
+  await fireEvent.press(tomorrow)
+  expect(screen.queryByLabelText("sheet.saveEntry")).toBeNull()
+  expect(saveDayEntry).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByRole("button", { name: /Fri, Jun 5/ }))
+  expect(screen.getByLabelText("sheet.saveEntry")).toBeTruthy()
 })
 
 test("an existing entry gets an explicit Edit today action", async () => {
