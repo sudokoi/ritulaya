@@ -1,5 +1,5 @@
 import { Alert } from "react-native"
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { router } from "expo-router"
 import * as LocalAuthentication from "expo-local-authentication"
 import SettingsScreen from "@/app/(tabs)/settings"
@@ -9,6 +9,7 @@ import { defaultSettings } from "@/data/settings"
 jest.mock("@/data/refresh", () => ({ refreshAll: jest.fn() }))
 import * as db from "@/services/db"
 import { requestNotificationPermissions } from "@/services/notifications"
+import { exportData } from "@/services/export"
 
 jest.mock("expo-router", () => ({ router: { push: jest.fn() } }))
 jest.mock("@/services/db", () => ({
@@ -70,6 +71,7 @@ jest.mock("lucide-react-native", () =>
 
 beforeEach(async () => {
   jest.clearAllMocks()
+  jest.mocked(exportData).mockReset().mockResolvedValue(undefined)
   jest.spyOn(Alert, "alert").mockImplementation(() => undefined)
   jest.mocked(loadSettings).mockImplementation(async () => {
     const patch = jest.mocked(db.updateSettings).mock.lastCall?.[0]
@@ -205,4 +207,42 @@ test("cycle-length editing and insights are separate navigation actions", async 
     pathname: "/seed",
     params: { mode: "settings" },
   })
+})
+
+test("export stays busy and ignores repeated presses until the export finishes", async () => {
+  let finish!: () => void
+  jest.mocked(exportData).mockReturnValueOnce(
+    new Promise((resolve) => {
+      finish = resolve
+    }),
+  )
+  await render(<SettingsScreen />)
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "settings.exportData" }))
+  try {
+    const exporting = screen.getByRole("button", { name: /settings.exportData/ })
+    await user.press(exporting)
+    expect(exportData).toHaveBeenCalledTimes(1)
+    expect(exporting).toBeDisabled()
+    expect(exporting).toBeBusy()
+    expect(screen.getByText("settings.exporting")).toBeTruthy()
+  } finally {
+    await act(async () => finish())
+  }
+  expect(screen.getByRole("button", { name: "settings.exportData" })).toBeEnabled()
+  expect(screen.queryByText("settings.exporting")).toBeNull()
+})
+
+test("export failures show an error and allow a new attempt", async () => {
+  jest.mocked(exportData).mockRejectedValueOnce(new Error("disk full"))
+  jest.mocked(exportData).mockResolvedValueOnce(undefined)
+  await render(<SettingsScreen />)
+  await fireEvent.press(screen.getByRole("button", { name: "settings.exportData" }))
+  expect(Alert.alert).toHaveBeenCalledWith(
+    "settings.exportFailedTitle",
+    "settings.exportFailedBody",
+  )
+  expect(screen.getByRole("button", { name: "settings.exportData" })).toBeEnabled()
+  await fireEvent.press(screen.getByRole("button", { name: "settings.exportData" }))
+  expect(exportData).toHaveBeenCalledTimes(2)
 })

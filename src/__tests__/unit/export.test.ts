@@ -1,19 +1,27 @@
 jest.mock("expo-file-system", () => ({
   File: class MockFile {
-    uri = ""
+    uri: string
+    constructor(directory: string, name: string) {
+      this.uri = `${directory}/${name}`
+    }
+    create = jest.fn()
+    write = jest.fn()
+    delete = jest.fn()
   },
   Paths: { cache: "/tmp" },
 }))
 jest.mock("expo-sharing", () => ({
-  isAvailableAsync: async () => false,
-  shareAsync: async () => undefined,
+  isAvailableAsync: jest.fn(async () => true),
+  shareAsync: jest.fn(async () => undefined),
 }))
 jest.mock("@/services/db", () => ({
-  listCycles: async () => [],
-  listDayLogs: async () => [],
+  listCycles: jest.fn(async () => []),
+  listDayLogs: jest.fn(async () => []),
 }))
 
-import { csvCell, toCyclesCsv, toLogsCsv } from "@/services/export"
+import { csvCell, exportData, toCyclesCsv, toLogsCsv } from "@/services/export"
+import * as Sharing from "expo-sharing"
+import { listCycles } from "@/services/db"
 import type { Cycle } from "@/types/cycle"
 import type { DayLog } from "@/types/day-log"
 
@@ -31,6 +39,72 @@ const baseLog: DayLog = {
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 }
+
+describe("exportData", () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it("shares one pending export across callers through preparation and both share dialogs", async () => {
+    let finishRead!: (cycles: Cycle[]) => void
+    let finishLogsShare!: () => void
+    let finishCyclesShare!: () => void
+    let logsShareOpened!: () => void
+    let cyclesShareOpened!: () => void
+    const logsOpened = new Promise<void>((resolve) => {
+      logsShareOpened = resolve
+    })
+    const cyclesOpened = new Promise<void>((resolve) => {
+      cyclesShareOpened = resolve
+    })
+    jest.mocked(listCycles).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishRead = resolve
+      }),
+    )
+    jest
+      .mocked(Sharing.shareAsync)
+      .mockImplementationOnce(() => {
+        logsShareOpened()
+        return new Promise((resolve) => {
+          finishLogsShare = resolve
+        })
+      })
+      .mockImplementationOnce(() => {
+        cyclesShareOpened()
+        return new Promise((resolve) => {
+          finishCyclesShare = resolve
+        })
+      })
+
+    const first = exportData()
+    const duringRead = exportData()
+    finishRead([])
+    await logsOpened
+    const duringLogsShare = exportData()
+    finishLogsShare()
+    await cyclesOpened
+    const duringCyclesShare = exportData()
+    finishCyclesShare()
+    await Promise.all([first, duringRead, duringLogsShare, duringCyclesShare])
+
+    expect(listCycles).toHaveBeenCalledTimes(1)
+    expect(Sharing.shareAsync).toHaveBeenCalledTimes(2)
+    expect(Sharing.shareAsync).toHaveBeenNthCalledWith(1, "/tmp/ritulaya-day-logs.csv")
+    expect(Sharing.shareAsync).toHaveBeenNthCalledWith(2, "/tmp/ritulaya-cycles.csv")
+
+    await exportData()
+    expect(listCycles).toHaveBeenCalledTimes(2)
+    expect(Sharing.shareAsync).toHaveBeenCalledTimes(4)
+  })
+
+  it("allows retry after preparation or sharing fails", async () => {
+    jest.mocked(listCycles).mockRejectedValueOnce(new Error("read failed"))
+    await expect(exportData()).rejects.toThrow("read failed")
+    jest.mocked(Sharing.shareAsync).mockRejectedValueOnce(new Error("share failed"))
+    await expect(exportData()).rejects.toThrow("share failed")
+    await expect(exportData()).resolves.toBeUndefined()
+    expect(listCycles).toHaveBeenCalledTimes(3)
+  })
+})
 
 describe("csvCell", () => {
   it("wraps every cell in quotes", () => {

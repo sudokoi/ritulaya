@@ -199,6 +199,7 @@
     "githubSync": "GitHub Sync",
     "notSetUp": "Not set up",
     "exportData": "Export Data",
+    "exporting": "Exporting…",
     "sectionReminders": "Reminders",
     "periodAhead": "Period Ahead",
     "dailyLog": "Daily Log",

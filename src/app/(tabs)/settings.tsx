@@ -4,6 +4,7 @@ import {
   Pressable,
   Switch,
   Alert,
+  ActivityIndicator,
   type AccessibilityState,
 } from "react-native"
 import { useRef, useState } from "react"
@@ -132,6 +133,8 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
   const pendingRef = useRef(false)
   const [pending, setPending] = useState(false)
+  const exportingRef = useRef(false)
+  const [exporting, setExporting] = useState(false)
   const [expanded, setExpanded] = useState<"theme" | "language" | "reminder" | null>(null)
   const toggleOptions = (section: NonNullable<typeof expanded>) =>
     setExpanded((current) => (current === section ? null : section))
@@ -165,6 +168,20 @@ export default function SettingsScreen() {
     } finally {
       pendingRef.current = false
       setPending(false)
+    }
+  }
+
+  const handleExport = async () => {
+    if (exportingRef.current) return
+    exportingRef.current = true
+    setExporting(true)
+    try {
+      await exportData()
+    } catch {
+      Alert.alert(t("settings.exportFailedTitle"), t("settings.exportFailedBody"))
+    } finally {
+      exportingRef.current = false
+      setExporting(false)
     }
   }
 
@@ -298,14 +315,13 @@ export default function SettingsScreen() {
               t("settings.exportData"),
               t("discreet.exportData"),
             )}
-            onPress={() =>
-              exportData().catch(() =>
-                Alert.alert(
-                  t("settings.exportFailedTitle"),
-                  t("settings.exportFailedBody"),
-                ),
-              )
+            value={exporting ? t("settings.exporting") : undefined}
+            disabled={exporting}
+            accessibilityState={{ busy: exporting }}
+            right={
+              exporting ? <ActivityIndicator size="small" color={colors.accent} /> : null
             }
+            onPress={() => void handleExport()}
           />
         </View>
 
