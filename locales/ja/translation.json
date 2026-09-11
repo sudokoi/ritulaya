@@ -198,6 +198,7 @@
     "githubSync": "GitHub同期",
     "notSetUp": "未設定",
     "exportData": "データを書き出す",
+    "exporting": "書き出し中…",
     "sectionReminders": "リマインダー",
     "periodAhead": "生理前通知",
     "dailyLog": "毎日の記録",

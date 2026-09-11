@@ -51,7 +51,19 @@ function writeCsv(name: string, content: string): File {
   return file
 }
 
-export async function exportData() {
+let pendingExport: Promise<void> | null = null
+
+export function exportData(): Promise<void> {
+  // The share activity can remount Settings through the app lock. Keep the
+  // operation guard here too, so a new caller cannot overwrite in-use CSVs.
+  if (pendingExport) return pendingExport
+  pendingExport = prepareAndShareData().finally(() => {
+    pendingExport = null
+  })
+  return pendingExport
+}
+
+async function prepareAndShareData() {
   const cycles = await listCycles()
   const logs = await listDayLogs()
 
