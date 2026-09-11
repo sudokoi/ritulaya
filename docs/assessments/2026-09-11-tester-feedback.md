@@ -26,6 +26,18 @@ clock whose date differs from UTC. Android production Hermes export passed.
 No device UI QA was performed in this follow-up. The earlier Expo compatibility
 check remains blocked by four existing package pins behind current recommendations.
 
+### CI compatibility follow-up
+
+PR #22's first CI run stopped at `yarn check:expo`. By that run, Expo's SDK 57
+recommendations included 19 direct package patch updates. Updated those exact
+pins and the lockfile, including `expo` 57.0.22, `@expo/ui` 57.0.18 and
+`expo-router` 57.0.21. This resolves the compatibility blocker recorded above.
+
+After the update, `yarn check:expo` passed dependency validation and all 21 Doctor
+checks. TypeScript, ESLint/ktlint, formatting, all 170 JS/React tests and native
+test tasks also passed. Release notes are in `.changeset/expo-sdk-57-patches.md`;
+the updated native packages require rebuilding the Android app.
+
 ### ADB UI verification follow-up
 
 Subsequent adjustment: at the maintainer's request, Calendar's Today action now
