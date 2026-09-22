@@ -5,8 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import expo.modules.ritulayacrypto.CryptoKeys
-import net.sqlcipher.database.SQLiteDatabase
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 @Database(
     entities = [
@@ -36,9 +35,9 @@ abstract class RitulayaDatabase : RoomDatabase() {
             }
 
         private fun build(context: Context): RitulayaDatabase {
-            SQLiteDatabase.loadLibs(context)
+            System.loadLibrary("sqlcipher")
             val key = CryptoKeys.getDatabaseKey(context)
-            val factory = SupportFactory(key.toByteArray(Charsets.UTF_8))
+            val factory = SupportOpenHelperFactory(key.toByteArray(Charsets.UTF_8))
             return Room
                 .databaseBuilder(context, RitulayaDatabase::class.java, DATABASE_NAME)
                 .openHelperFactory(factory)

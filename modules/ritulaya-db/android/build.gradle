@@ -43,8 +43,9 @@ dependencies {
   implementation "androidx.room:room-runtime:2.7.1"
   implementation "androidx.room:room-ktx:2.7.1"
   kapt "androidx.room:room-compiler:2.7.1"
-  implementation "androidx.sqlite:sqlite:2.4.0"
-  implementation "net.zetetic:android-database-sqlcipher:4.5.4"
+  implementation "androidx.sqlite:sqlite:2.6.2"
+  // 4.18+ requires compileSdk 37; Expo SDK 57 uses compileSdk 36.
+  implementation "net.zetetic:sqlcipher-android:4.17.0"
   implementation project(":ritulaya-crypto")
 
   testImplementation "junit:junit:4.13.2"
