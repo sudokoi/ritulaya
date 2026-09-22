@@ -8,10 +8,9 @@ Privacy-first period tracker for Android. Local-first, encrypted, ambient sync. 
 
 ## Get the app
 
-Ritulaya is in closed testing on Google Play. Join the test to install the latest build and help shape what comes next:
+Ritulaya is publicly available on Google Play:
 
 - [Google Play](https://play.google.com/store/apps/details?id=com.sudokoi.ritulaya)
-- [Join the closed test](https://play.google.com/apps/testing/com.sudokoi.ritulaya)
 
 ## Philosophy
 
@@ -74,7 +73,7 @@ For enhancement planning, start with the latest
 [codebase assessment](./docs/assessments/2026-09-05-codebase-assessment.md) rather
 than repeating the repository survey.
 
-## Entry history (unreleased)
+## Entry history
 
 From Today or Calendar, choose **Search history** to browse recorded entries,
 newest first. Search note text or expand the filters to choose a symptom, mood,
@@ -101,6 +100,10 @@ Versioned with [Changesets](https://github.com/changesets/changesets). See `pack
 yarn changeset        # Create a changeset
 yarn changeset:version  # Bump versions + update changelog
 ```
+
+Tagged releases build an APK and Android App Bundle, verify native-library
+alignment, and submit the bundle directly to Google Play production. See the
+[release guide](docs/releases.md) for publishing and Android compatibility checks.
 
 ## License
 

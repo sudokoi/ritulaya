@@ -82,6 +82,10 @@ yarn changeset
 
 See the [changesets documentation](https://github.com/changesets/changesets) for details.
 
+For publishing and native-library compatibility checks, see the
+[Android release guide](docs/releases.md). Tagged releases submit directly to
+Google Play production.
+
 ## Pull Request Expectations
 
 Keep pull requests focused and easy to review.

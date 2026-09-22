@@ -13,6 +13,12 @@ It is not a replacement for:
 
 ## Assessment status
 
+Release-status update (2026-09-22): Ritulaya is now publicly available on
+[Google Play](https://play.google.com/store/apps/details?id=com.sudokoi.ritulaya).
+Closed-testing references below describe the assessment baseline. See the
+[release guide](../releases.md) for the current production publishing workflow
+and 16 KB page-size checks.
+
 Current status: the [hardening completion evidence](./2026-09-06-hardening-completion.md)
 records the completed slices through `9e15d15`, final local checks, isolated
 installed QA, the subsequent diagnostics/CI omissions and external validation limits.
