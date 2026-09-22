@@ -1,5 +1,17 @@
 # ritulaya
 
+## 0.2.3
+
+### Patch Changes
+
+- b96e69c: Update seven Expo SDK 57 packages to the recommended compatible patch versions
+  and refresh the dependency lockfile. Rebuild the Android app to include the
+  updated native packages.
+- 4ffe1f4: Replace the retired SQLCipher Android library with its maintained, 16 KB-aligned
+  successor. Keep the existing encrypted database and Keystore-backed key, using
+  the updated Room open-helper integration. Add an artifact checker for native ELF
+  and package alignment. This requires a rebuilt Android app.
+
 ## 0.2.2
 
 ### Patch Changes
