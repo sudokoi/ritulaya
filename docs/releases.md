@@ -93,6 +93,11 @@ These local builds use debug signing. Play-signed delivery, physical-device QA
 and background-sync runtime behavior were not exercised by this check. The Play
 Console warning must be rechecked after the corrected bundle is uploaded.
 
+The Android artifact/device checks above preceded the subsequent seven-package
+Expo SDK 57 patch update. That update passed Expo compatibility/Doctor, tests,
+typecheck, lint and formatting; Android alignment was not rechecked locally.
+The release workflow checks the rebuilt artifacts before submission.
+
 References:
 
 - [Android 16 KB page-size support](https://developer.android.com/guide/practices/page-sizes)
